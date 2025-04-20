@@ -3,6 +3,7 @@ import HeaderBanner from "./components/header/HeaderBanner";
 import Services from "./components/services/Services";
 import Testimonial from "./components/testimonial/Testimonial";
 import QuoteForm from "./components/quoteform/quoteform";
+import HowItWorks from "./components/howitworks/HowItWorks";
 
  function App() {
    return (
@@ -11,6 +12,9 @@ import QuoteForm from "./components/quoteform/quoteform";
       <Services />
       <Testimonial />
       <QuoteForm />
+      <HowItWorks />
+      <footer />
+        <p>© 2023. All rights reserved.</p>
      </>
    );
  }
