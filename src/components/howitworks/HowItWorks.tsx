@@ -2,7 +2,7 @@ import React from "react";
 import {
   Camera,
   ClipboardEdit,
-  SendHorizonal,
+  SendHorizontal,
   CheckCircle2,
 } from "lucide-react";
 
@@ -14,7 +14,7 @@ const steps = [
     blurb: "Tell us the basics—contact & overview.",
   },
   {
-    icon: SendHorizonal,
+    icon: SendHorizontal,
     title: "We Send a Quote",
     blurb: "Clear price, zero obligation, usually < 2 hrs.",
   },
