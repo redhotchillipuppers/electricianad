@@ -53,7 +53,7 @@ const QuoteForm = () => {
   };
 
   return (
-    <section className="bg-neutral-50 py-16 px-4">
+    <section id="quote-form" className="bg-neutral-50 py-16 px-4">
       <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow">
         <h2 className="text-2xl md:text-3xl font-extrabold mb-8 tracking-tight text-center">
           REQUEST A QUOTE

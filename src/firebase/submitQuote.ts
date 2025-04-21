@@ -14,6 +14,7 @@ import {
     email: string;
     phone?: string;
     description: string;
+    contactMethod: string;
     file: File | null;
   }
   
@@ -23,6 +24,7 @@ import {
     email,
     phone,
     description,
+    contactMethod,
     file,
   }: QuotePayload) {
     const { db, storage } = getFirebase();
@@ -42,6 +44,7 @@ import {
       email,
       phone,
       description,
+      contactMethod,
       fileUrl,
       createdAt: new Date().toISOString(),
     });
