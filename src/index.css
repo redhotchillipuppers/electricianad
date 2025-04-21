@@ -1,5 +1,9 @@
 /* 1 ▪ pull in Tailwind — must be the first line */
 @import "tailwindcss";
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
 
 /* 2 ▪ light custom tweaks */
 /* You can expand these as the design evolves */
@@ -9,8 +13,10 @@ html {
 
 body {
   /* Use Tailwind’s CSS variables for colors if you like */
-  background-color: #f5f5f5;       /* light gray canvas */
-  color: #1f2937;                  /* neutral-800 */
+  background-color: #f5f5f5;
+  /* light gray canvas */
+  color: #1f2937;
+  /* neutral-800 */
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   min-width: 320px;
   min-height: 100vh;
