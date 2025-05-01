@@ -1,9 +1,10 @@
-/* 1 ▪ pull in Tailwind — must be the first line */
-@import "tailwindcss";
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+/* Remove this line - it's causing the conflict */
+/* @import "tailwindcss"; */
 
+/* Keep these directives - they're the correct way to import Tailwind */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* 2 ▪ light custom tweaks */
 /* You can expand these as the design evolves */
@@ -12,7 +13,7 @@ html {
 }
 
 body {
-  /* Use Tailwind’s CSS variables for colors if you like */
+  /* Use Tailwind's CSS variables for colors if you like */
   background-color: #f5f5f5;
   /* light gray canvas */
   color: #1f2937;
