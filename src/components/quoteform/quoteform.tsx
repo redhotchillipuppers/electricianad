@@ -17,7 +17,7 @@ const QuoteForm = () => {
     phone: "",
     description: "",
   });
-  
+
   const [values, setValues] = useState({
     name: "",
     email: "",
@@ -42,7 +42,7 @@ const QuoteForm = () => {
 
   const validateField = (name: string, value: string) => {
     let errorMessage = "";
-    
+
     switch (name) {
       case "name":
         if (!value.trim()) {
@@ -73,7 +73,7 @@ const QuoteForm = () => {
       default:
         break;
     }
-    
+
     return errorMessage;
   };
 
@@ -82,7 +82,7 @@ const QuoteForm = () => {
   ) => {
     const { name, value } = e.target;
     setValues((prev) => ({ ...prev, [name]: value }));
-    
+
     // Clear the error when user starts typing
     if (formErrors[name as keyof typeof formErrors]) {
       setFormErrors(prev => ({ ...prev, [name]: "" }));
@@ -143,9 +143,9 @@ const QuoteForm = () => {
       phone: validateField("phone", values.phone),
       description: validateField("description", values.description),
     };
-    
+
     setFormErrors(errors);
-    
+
     // Check if any errors exist
     return !Object.values(errors).some(error => error);
   };
@@ -153,7 +153,7 @@ const QuoteForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    
+
     // Validate the captcha
     if (captchaAnswer !== e.currentTarget.querySelector<HTMLInputElement>('input[name="captcha"]')?.value) {
       setCaptchaError(true);
@@ -161,15 +161,15 @@ const QuoteForm = () => {
     } else {
       setCaptchaError(false);
     }
-    
+
     // Validate all fields
     if (!validateForm()) {
       return;
     }
-    
+
     setSending(true);
     setSuccess(false);
-    
+
     try {
       await submitQuote(values); // 🔗 your existing Firebase call
       setSuccess(true);
@@ -183,241 +183,240 @@ const QuoteForm = () => {
   };
 
   return (
-    <section id="quote-form" className="bg-neutral-50 py-16 px-4">
-      <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow">
-        <h2 className="text-2xl md:text-3xl font-extrabold mb-8 tracking-tight text-center">
-          REQUEST A QUOTE
-        </h2>
+    <section id="quote-form" data-aos="fade-up" className="relative py-16 px-4 gradient-electric overflow-hidden">
+      <div className="section-content">
+        <div className="max-w-4xl mx-auto bg-white/95 p-8 rounded-2xl shadow-xl">
+          <h2 className="text-2xl md:text-3xl font-extrabold mb-8 tracking-tight text-center">
+            REQUEST A QUOTE
+          </h2>
 
-        {success && (
-          <div role="alert" aria-live="assertive" className="mb-6 p-4 bg-green-50 border border-green-200 rounded-md flex items-center gap-3">
-            <Check size={20} className="text-green-600" />
-            <span className="text-green-800 font-medium">
-              Thanks! We'll get back to you ASAP.
-            </span>
-          </div>
-        )}
-
-        {error && (
-          <div role="alert" aria-live="assertive" className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md flex items-center gap-3">
-            <AlertCircle size={20} className="text-red-600" />
-            <span className="text-red-800">{error}</span>
-          </div>
-        )}
-
-        <form
-          onSubmit={handleSubmit}
-          className="grid md:grid-cols-2 gap-6 text-base"
-        >
-          <div>
-            <input
-              className={`border ${formErrors.name ? "border-red-500" : "border-neutral-300"} rounded-md px-4 py-3 outline-sky-500 w-full`}
-              type="text"
-              name="name"
-              placeholder="Name *"
-              value={values.name}
-              required
-              onChange={handleChange}
-              onBlur={handleBlur}
-            />
-            {formErrors.name && (
-              <p className="text-red-500 text-sm mt-1">{formErrors.name}</p>
-            )}
-          </div>
-
-          <div>
-            <input
-              className={`border ${formErrors.email ? "border-red-500" : "border-neutral-300"} rounded-md px-4 py-3 outline-sky-500 w-full`}
-              type="email"
-              name="email"
-              placeholder="Email *"
-              value={values.email}
-              required
-              onChange={handleChange}
-              onBlur={handleBlur}
-            />
-            {formErrors.email && (
-              <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>
-            )}
-          </div>
-
-          <div>
-            <input
-              className={`border ${formErrors.phone ? "border-red-500" : "border-neutral-300"} rounded-md px-4 py-3 outline-sky-500 w-full`}
-              type="tel"
-              name="phone"
-              placeholder="Phone *"
-              value={values.phone}
-              required
-              onChange={handleChange}
-              onBlur={handleBlur}
-            />
-            {formErrors.phone && (
-              <p className="text-red-500 text-sm mt-1">{formErrors.phone}</p>
-            )}
-          </div>
-
-          {/* Contact Method Selection */}
-          <div className="md:col-span-2">
-            <p className="text-neutral-700 font-medium mb-2">
-              Preferred contact method (we'll only use this method to reach you):
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <label 
-                className={`flex items-center gap-2 p-3 rounded-lg border ${
-                  values.contactMethod === "phone" 
-                    ? "border-sky-500 bg-sky-50 ring-2 ring-sky-200" 
-                    : "border-neutral-300 hover:border-sky-300"
-                } cursor-pointer transition`}
-              >
-                <input
-                  type="radio"
-                  name="contactMethod"
-                  value="phone"
-                  checked={values.contactMethod === "phone"}
-                  onChange={() => handleContactMethodChange("phone")}
-                  className="sr-only"
-                />
-                <Phone size={20} className={values.contactMethod === "phone" ? "text-sky-600" : "text-neutral-500"} />
-                <span className={values.contactMethod === "phone" ? "font-medium text-sky-700" : "text-neutral-700"}>Phone Call</span>
-              </label>
-
-              <label 
-                className={`flex items-center gap-2 p-3 rounded-lg border ${
-                  values.contactMethod === "text" 
-                    ? "border-sky-500 bg-sky-50 ring-2 ring-sky-200" 
-                    : "border-neutral-300 hover:border-sky-300"
-                } cursor-pointer transition`}
-              >
-                <input
-                  type="radio"
-                  name="contactMethod"
-                  value="text"
-                  checked={values.contactMethod === "text"}
-                  onChange={() => handleContactMethodChange("text")}
-                  className="sr-only"
-                />
-                <MessageSquare size={20} className={values.contactMethod === "text" ? "text-sky-600" : "text-neutral-500"} />
-                <span className={values.contactMethod === "text" ? "font-medium text-sky-700" : "text-neutral-700"}>Text Message</span>
-              </label>
-
-              <label 
-                className={`flex items-center gap-2 p-3 rounded-lg border ${
-                  values.contactMethod === "email" 
-                    ? "border-sky-500 bg-sky-50 ring-2 ring-sky-200" 
-                    : "border-neutral-300 hover:border-sky-300"
-                } cursor-pointer transition`}
-              >
-                <input
-                  type="radio"
-                  name="contactMethod"
-                  value="email"
-                  checked={values.contactMethod === "email"}
-                  onChange={() => handleContactMethodChange("email")}
-                  className="sr-only"
-                />
-                <Mail size={20} className={values.contactMethod === "email" ? "text-sky-600" : "text-neutral-500"} />
-                <span className={values.contactMethod === "email" ? "font-medium text-sky-700" : "text-neutral-700"}>Email</span>
-              </label>
+          {success && (
+            <div role="alert" aria-live="assertive" className="mb-6 p-4 bg-green-50 border border-green-200 rounded-md flex items-center gap-3">
+              <Check size={20} className="text-green-600" />
+              <span className="text-green-800 font-medium">
+                Thanks! We'll get back to you ASAP.
+              </span>
             </div>
-          </div>
+          )}
 
-          {/* Description - spans 2 columns on desktop */}
-          <div className="md:col-span-2">
-            <textarea
-              className={`w-full h-32 border ${formErrors.description ? "border-red-500" : "border-neutral-300"} rounded-md px-4 py-3 outline-sky-500 resize-none`}
-              name="description"
-              placeholder="Tell us what needs doing… (min 10 words) *"
-              value={values.description}
-              required
-              onChange={handleChange}
-              onBlur={handleBlur}
-            />
-            {formErrors.description && (
-              <p className="text-red-500 text-sm mt-1">{formErrors.description}</p>
-            )}
-          </div>
+          {error && (
+            <div role="alert" aria-live="assertive" className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md flex items-center gap-3">
+              <AlertCircle size={20} className="text-red-600" />
+              <span className="text-red-800">{error}</span>
+            </div>
+          )}
 
-          {/* File uploader with improved UX */}
-          <label className={`md:col-span-2 flex flex-col items-center justify-center border-2 border-dashed rounded-md py-6 cursor-pointer transition ${
-            values.file ? "border-green-500 bg-green-50" : "border-neutral-300 hover:border-sky-500"
-          }`}>
-            <div className="flex flex-col items-center">
-              {values.file ? (
-                <>
-                  <Check size={24} className="text-green-600 mb-2" />
-                  <span className="text-green-700 font-medium">File selected</span>
-                  <span className="text-sm text-neutral-700 mt-1">{values.file.name}</span>
-                  <span className="text-xs text-neutral-500 mt-1">
-                    {(values.file.size / 1024 / 1024).toFixed(2)} MB
-                  </span>
-                </>
-              ) : (
-                <>
-                  <Upload size={24} className="text-neutral-500 mb-2" />
-                  <span className="text-neutral-700 font-medium">Attach photo or video</span>
-                  <span className="text-xs text-neutral-500 mt-1">Click to select a file (5MB max)</span>
-                </>
+          <form
+            onSubmit={handleSubmit}
+            className="grid md:grid-cols-2 gap-6 text-base"
+          >
+            <div>
+              <input
+                className={`border ${formErrors.name ? "border-red-500" : "border-neutral-300"} rounded-md px-4 py-3 outline-sky-500 w-full`}
+                type="text"
+                name="name"
+                placeholder="Name *"
+                value={values.name}
+                required
+                onChange={handleChange}
+                onBlur={handleBlur}
+              />
+              {formErrors.name && (
+                <p className="text-red-500 text-sm mt-1">{formErrors.name}</p>
               )}
             </div>
-            <input
-              type="file"
-              accept="image/*,video/*"
-              className="hidden"
-              onChange={handleFile}
-            />
-          </label>
 
-          {/* Simple Captcha */}
-          <div className="md:col-span-2">
-            <div className="border border-neutral-300 rounded-md p-4 bg-neutral-50">
-              <p className="font-medium mb-2">Security Check:</p>
-              <div className="flex items-center gap-4 flex-wrap">
-                <div className="bg-white border border-neutral-300 p-3 rounded font-mono text-lg">
-                  {captchaValue} = ?
-                </div>
-                <div className="flex-grow max-w-xs">
-                  <input
-                    type="text"
-                    name="captcha"
-                    placeholder="Enter result"
-                    required
-                    className={`border ${captchaError ? 'border-red-500' : 'border-neutral-300'} rounded-md px-4 py-2 w-full outline-sky-500`}
-                    onChange={() => captchaError && setCaptchaError(false)}
-                  />
-                  {captchaError && (
-                    <p className="text-red-500 text-sm mt-1">Incorrect answer, please try again</p>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={generateCaptcha}
-                  className="text-sky-600 hover:text-sky-800 text-sm underline"
+            <div>
+              <input
+                className={`border ${formErrors.email ? "border-red-500" : "border-neutral-300"} rounded-md px-4 py-3 outline-sky-500 w-full`}
+                type="email"
+                name="email"
+                placeholder="Email *"
+                value={values.email}
+                required
+                onChange={handleChange}
+                onBlur={handleBlur}
+              />
+              {formErrors.email && (
+                <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>
+              )}
+            </div>
+
+            <div>
+              <input
+                className={`border ${formErrors.phone ? "border-red-500" : "border-neutral-300"} rounded-md px-4 py-3 outline-sky-500 w-full`}
+                type="tel"
+                name="phone"
+                placeholder="Phone *"
+                value={values.phone}
+                required
+                onChange={handleChange}
+                onBlur={handleBlur}
+              />
+              {formErrors.phone && (
+                <p className="text-red-500 text-sm mt-1">{formErrors.phone}</p>
+              )}
+            </div>
+
+            {/* Contact Method Selection */}
+            <div className="md:col-span-2">
+              <p className="text-neutral-700 font-medium mb-2">
+                Preferred contact method (we'll only use this method to reach you):
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <label
+                  className={`flex items-center gap-2 p-3 rounded-lg border ${values.contactMethod === "phone"
+                    ? "border-sky-500 bg-sky-50 ring-2 ring-sky-200"
+                    : "border-neutral-300 hover:border-sky-300"
+                    } cursor-pointer transition`}
                 >
-                  Regenerate
-                </button>
+                  <input
+                    type="radio"
+                    name="contactMethod"
+                    value="phone"
+                    checked={values.contactMethod === "phone"}
+                    onChange={() => handleContactMethodChange("phone")}
+                    className="sr-only"
+                  />
+                  <Phone size={20} className={values.contactMethod === "phone" ? "text-sky-600" : "text-neutral-500"} />
+                  <span className={values.contactMethod === "phone" ? "font-medium text-sky-700" : "text-neutral-700"}>Phone Call</span>
+                </label>
+
+                <label
+                  className={`flex items-center gap-2 p-3 rounded-lg border ${values.contactMethod === "text"
+                    ? "border-sky-500 bg-sky-50 ring-2 ring-sky-200"
+                    : "border-neutral-300 hover:border-sky-300"
+                    } cursor-pointer transition`}
+                >
+                  <input
+                    type="radio"
+                    name="contactMethod"
+                    value="text"
+                    checked={values.contactMethod === "text"}
+                    onChange={() => handleContactMethodChange("text")}
+                    className="sr-only"
+                  />
+                  <MessageSquare size={20} className={values.contactMethod === "text" ? "text-sky-600" : "text-neutral-500"} />
+                  <span className={values.contactMethod === "text" ? "font-medium text-sky-700" : "text-neutral-700"}>Text Message</span>
+                </label>
+
+                <label
+                  className={`flex items-center gap-2 p-3 rounded-lg border ${values.contactMethod === "email"
+                    ? "border-sky-500 bg-sky-50 ring-2 ring-sky-200"
+                    : "border-neutral-300 hover:border-sky-300"
+                    } cursor-pointer transition`}
+                >
+                  <input
+                    type="radio"
+                    name="contactMethod"
+                    value="email"
+                    checked={values.contactMethod === "email"}
+                    onChange={() => handleContactMethodChange("email")}
+                    className="sr-only"
+                  />
+                  <Mail size={20} className={values.contactMethod === "email" ? "text-sky-600" : "text-neutral-500"} />
+                  <span className={values.contactMethod === "email" ? "font-medium text-sky-700" : "text-neutral-700"}>Email</span>
+                </label>
               </div>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={sending}
-            className="md:col-span-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold py-3 rounded-md transition disabled:opacity-50 flex items-center justify-center"
-          >
-            {sending ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Submitting...
-              </>
-            ) : (
-              "SUBMIT"
-            )}
-          </button>
-        </form>
+            {/* Description - spans 2 columns on desktop */}
+            <div className="md:col-span-2">
+              <textarea
+                className={`w-full h-32 border ${formErrors.description ? "border-red-500" : "border-neutral-300"} rounded-md px-4 py-3 outline-sky-500 resize-none`}
+                name="description"
+                placeholder="Tell us what needs doing… (min 10 words) *"
+                value={values.description}
+                required
+                onChange={handleChange}
+                onBlur={handleBlur}
+              />
+              {formErrors.description && (
+                <p className="text-red-500 text-sm mt-1">{formErrors.description}</p>
+              )}
+            </div>
+
+            {/* File uploader with improved UX */}
+            <label className={`md:col-span-2 flex flex-col items-center justify-center border-2 border-dashed rounded-md py-6 cursor-pointer transition ${values.file ? "border-green-500 bg-green-50" : "border-neutral-300 hover:border-sky-500"
+              }`}>
+              <div className="flex flex-col items-center">
+                {values.file ? (
+                  <>
+                    <Check size={24} className="text-green-600 mb-2" />
+                    <span className="text-green-700 font-medium">File selected</span>
+                    <span className="text-sm text-neutral-700 mt-1">{values.file.name}</span>
+                    <span className="text-xs text-neutral-500 mt-1">
+                      {(values.file.size / 1024 / 1024).toFixed(2)} MB
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Upload size={24} className="text-neutral-500 mb-2" />
+                    <span className="text-neutral-700 font-medium">Attach photo or video</span>
+                    <span className="text-xs text-neutral-500 mt-1">Click to select a file (5MB max)</span>
+                  </>
+                )}
+              </div>
+              <input
+                type="file"
+                accept="image/*,video/*"
+                className="hidden"
+                onChange={handleFile}
+              />
+            </label>
+
+            {/* Simple Captcha */}
+            <div className="md:col-span-2">
+              <div className="border border-neutral-300 rounded-md p-4 bg-neutral-50">
+                <p className="font-medium mb-2">Security Check:</p>
+                <div className="flex items-center gap-4 flex-wrap">
+                  <div className="bg-white border border-neutral-300 p-3 rounded font-mono text-lg">
+                    {captchaValue} = ?
+                  </div>
+                  <div className="flex-grow max-w-xs">
+                    <input
+                      type="text"
+                      name="captcha"
+                      placeholder="Enter result"
+                      required
+                      className={`border ${captchaError ? 'border-red-500' : 'border-neutral-300'} rounded-md px-4 py-2 w-full outline-sky-500`}
+                      onChange={() => captchaError && setCaptchaError(false)}
+                    />
+                    {captchaError && (
+                      <p className="text-red-500 text-sm mt-1">Incorrect answer, please try again</p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={generateCaptcha}
+                    className="text-sky-600 hover:text-sky-800 text-sm underline"
+                  >
+                    Regenerate
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={sending}
+              className="md:col-span-2 btn-primary disabled:opacity-50"
+            >
+              {sending ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Submitting...
+                </>
+              ) : (
+                "SUBMIT"
+              )}
+            </button>
+          </form>
+        </div>
+        <div className="diagonal-divider"></div>
       </div>
     </section>
   );
