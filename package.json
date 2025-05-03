@@ -10,11 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@expo/metro-runtime": "^5.0.4",
     "aos": "^2.3.4",
+    "expo": "^53.0.7",
     "firebase": "^11.6.0",
     "lucide-react": "^0.501.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.1.0",
+    "react-native-web": "^0.20.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",

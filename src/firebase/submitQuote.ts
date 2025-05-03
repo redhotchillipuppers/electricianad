@@ -16,6 +16,9 @@ export interface QuotePayload {
   description: string;
   contactMethod: string;
   file: File | null;
+  houseFlatNumber: string;
+  streetName: string;
+  postcode: string;
 }
 
 /** Adds a quote + optional file to Firestore & Storage */
@@ -26,6 +29,9 @@ export default async function submitQuote({
   description,
   contactMethod,
   file,
+  houseFlatNumber,
+  streetName,
+  postcode,
 }: QuotePayload) {
   const { db, storage } = getFirebase();
 
@@ -59,6 +65,9 @@ export default async function submitQuote({
       description,
       contactMethod,
       fileUrl,
+      houseFlatNumber,
+      streetName,
+      postcode,
       createdAt: new Date().toISOString(),
     });
 
