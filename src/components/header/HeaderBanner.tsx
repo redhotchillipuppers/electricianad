@@ -9,8 +9,8 @@ const HeaderBanner = () => {
   };
 
   return (
-    <section 
-      data-aos="fade-down" 
+    <section
+      data-aos="fade-down"
       className="relative text-white text-center py-20 px-6 overflow-hidden"
       style={{
         position: 'relative',
@@ -22,7 +22,7 @@ const HeaderBanner = () => {
       }}
     >
       {/* Circuit pattern background - matching How It Works */}
-      <div 
+      <div
         className="absolute inset-0 opacity-30"
         style={{
           position: 'absolute',
@@ -44,11 +44,32 @@ const HeaderBanner = () => {
 
       <div className="section-content" style={{ position: 'relative', zIndex: 1 }}>
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-extrabold leading-tight tracking-tight" style={{ color: '#fff' }}>
-            YOUR QUICK FIX <br className="hidden md:inline" /> FOR A BRIGHTER HOME
+          {/* Title with Ampalign and Lincolnshire as one unit with letter spacing */}
+          <h1 className="text-4xl md:text-5xl font-extrabold leading-tight tracking-wider"
+            style={{
+              fontFamily: 'var(--font-heading)',
+              color: '#fff',
+              letterSpacing: '0.05em'
+            }}>
+            <span className="text-4xl md:text-5xl">AMPALIGN</span>
+            {' '}
+            <span className="text-xs md:text-sm tracking-widest"
+              style={{
+                letterSpacing: '0.3em',
+                fontWeight: 'bold',
+                color: '#FFD300', // Yellow to match the button
+                fontSize: '35%',
+                verticalAlign: 'middle'
+              }}>
+              LINCOLNSHIRE
+            </span>
           </h1>
 
           <p className="mt-4 text-lg md:text-xl max-w-md mx-auto" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+            YOUR QUICK FIX FOR A BRIGHTER HOME
+          </p>
+
+          <p className="mt-2 text-base md:text-lg max-w-md mx-auto" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
             Quick, reliable electrical work.
             <br className="hidden sm:inline" />
             Snap a pic for a no-pressure quote
@@ -57,6 +78,7 @@ const HeaderBanner = () => {
           <button
             type="button"
             onClick={scrollToQuote}
+            className="btn-primary"
             style={{
               display: 'inline-block',
               marginTop: '2rem',
@@ -87,11 +109,11 @@ const HeaderBanner = () => {
 
       {/* Wave divider matching How It Works */}
       <div style={{
-        position: 'absolute', 
-        bottom: 0, 
-        left: 0, 
-        right: 0, 
-        height: '4rem', 
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: '4rem',
         overflow: 'hidden'
       }}>
         <svg
