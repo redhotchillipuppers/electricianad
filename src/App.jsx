@@ -4,7 +4,7 @@ import "aos/dist/aos.css";
 import "./App.css"; // Add this line to import your CSS
 import HeaderBanner from "./components/header/HeaderBanner";
 import Services from "./components/services/Services";
-import Testimonial from "./components/testimonial/Testimonial";
+import ServiceAreaMap from "./components/servicemap/ServiceAreaMap"; // Import the new component
 import QuoteForm from "./components/quoteform/quoteform";
 import HowItWorks from "./components/howitworks/HowItWorks";
 
@@ -20,9 +20,9 @@ function App() {
       <Services />
       <QuoteForm />
       <HowItWorks />
-      <Testimonial />
+      <ServiceAreaMap /> {/* Replace Testimonial with ServiceAreaMap */}
       <footer className="p-8 bg-blue-900 text-white">
-        <p className="text-center">© 2023. All rights reserved.</p>
+        <p className="text-center">© 2025. All rights reserved.</p>
       </footer>
     </>
   );
