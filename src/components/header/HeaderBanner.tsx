@@ -1,4 +1,5 @@
 import React from "react";
+import { MessageSquareQuote } from "lucide-react";
 
 const HeaderBanner = () => {
   const scrollToQuote = () => {
@@ -11,7 +12,7 @@ const HeaderBanner = () => {
   return (
     <section
       data-aos="fade-down"
-      className="relative text-white text-center py-20 px-6 overflow-hidden"
+      className="relative text-white py-20 px-6 overflow-hidden"
       style={{
         position: 'relative',
         padding: '3rem 1.5rem',
@@ -21,7 +22,7 @@ const HeaderBanner = () => {
         overflow: 'hidden'
       }}
     >
-      {/* Circuit pattern background - matching How It Works */}
+      {/* Circuit pattern background */}
       <div
         className="absolute inset-0 opacity-30"
         style={{
@@ -43,71 +44,140 @@ const HeaderBanner = () => {
       </div>
 
       <div className="section-content" style={{ position: 'relative', zIndex: 1 }}>
-        <div className="max-w-3xl mx-auto">
-          {/* Title with Ampalign and Lincolnshire as one unit with letter spacing */}
-          <h1 className="text-4xl md:text-5xl font-extrabold leading-tight tracking-wider"
-            style={{
-              fontFamily: 'var(--font-heading)',
-              color: '#fff',
-              letterSpacing: '0.05em'
-            }}>
-            <span className="text-4xl md:text-5xl">AMPALIGN</span>
-            {' '}
-            <span className="text-xs md:text-sm tracking-widest"
-              style={{
-                letterSpacing: '0.3em',
-                fontWeight: 'bold',
-                color: '#FFD300', // Yellow to match the button
-                fontSize: '35%',
-                verticalAlign: 'middle'
-              }}>
-              LINCOLNSHIRE
-            </span>
-          </h1>
+        <div className="max-w-6xl mx-auto">
+          {/* Two-column layout for larger screens */}
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            {/* Left column - Main header content */}
+            <div>
+              {/* Title with Ampalign and Lincolnshire as one unit with letter spacing */}
+              <h1 className="text-4xl md:text-5xl font-extrabold leading-tight tracking-wider"
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  color: '#fff',
+                  letterSpacing: '0.05em'
+                }}>
+                <span className="text-4xl md:text-5xl">AMPALIGN</span>
+                {' '}
+                <span className="text-xs md:text-sm tracking-widest"
+                  style={{
+                    letterSpacing: '0.3em',
+                    fontWeight: 'bold',
+                    color: '#FFD300', // Yellow to match the button
+                    fontSize: '35%',
+                    verticalAlign: 'middle'
+                  }}>
+                  LINCOLNSHIRE
+                </span>
+              </h1>
 
-          <p className="mt-4 text-lg md:text-xl max-w-md mx-auto" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-            YOUR QUICK FIX FOR A BRIGHTER HOME
-          </p>
+              <p className="mt-4 text-lg md:text-xl max-w-md" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+                YOUR QUICK FIX FOR A BRIGHTER HOME
+              </p>
 
-          <p className="mt-2 text-base md:text-lg max-w-md mx-auto" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-            Quick, reliable electrical work.
-            <br className="hidden sm:inline" />
-            Snap a pic for a no-pressure quote
-          </p>
+              <p className="mt-2 text-base md:text-lg max-w-md" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+                Quick, reliable electrical work.
+                <br className="hidden sm:inline" />
+                Snap a pic for a no-pressure quote
+              </p>
 
-          <button
-            type="button"
-            onClick={scrollToQuote}
-            className="btn-primary"
-            style={{
-              display: 'inline-block',
-              marginTop: '2rem',
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#FFD300',
-              color: '#1E3A8A',
-              fontWeight: 'bold',
-              borderRadius: '0.5rem',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-              transition: 'all 0.3s',
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-              border: 'none'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
-            }}
-          >
-            REQUEST A QUOTE
-          </button>
+              <button
+                type="button"
+                onClick={scrollToQuote}
+                className="btn-primary"
+                style={{
+                  display: 'inline-block',
+                  marginTop: '2rem',
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: '#FFD300',
+                  color: '#1E3A8A',
+                  fontWeight: 'bold',
+                  borderRadius: '0.5rem',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                  transition: 'all 0.3s',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  border: 'none'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
+                }}
+              >
+                REQUEST A QUOTE
+              </button>
+            </div>
+
+            {/* Right column - Testimonial */}
+            <div className="hidden md:block">
+              <div
+                style={{
+                  backgroundColor: 'rgba(30, 64, 175, 0.4)',
+                  backdropFilter: 'blur(4px)',
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  marginLeft: 'auto',
+                  maxWidth: '400px'
+                }}
+              >
+                <div className="flex gap-4 items-start">
+                  {/* Avatar/Quote icon */}
+                  <div className="flex-shrink-0">
+                    <div
+                      style={{
+                        width: '3rem',
+                        height: '3rem',
+                        borderRadius: '50%',
+                        backgroundColor: '#FFD300',
+                        display: 'grid',
+                        placeItems: 'center',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+                      }}
+                    >
+                      <MessageSquareQuote size={20} style={{ color: '#1E3A8A' }} />
+                    </div>
+                  </div>
+
+                  {/* Quote copy */}
+                  <blockquote className="relative">
+                    <p style={{
+                      fontSize: '1rem',
+                      fontWeight: 'bold',
+                      fontStyle: 'italic',
+                      lineHeight: '1.3',
+                      color: '#fff',
+                      marginBottom: '0.5rem'
+                    }}>
+                      "The team rewired our entire kitchen in a day—no mess, no drama.
+                      Finally a sparkie who shows up and actually cares."
+                    </p>
+                    <footer style={{
+                      fontSize: '0.85rem',
+                      color: 'rgba(255, 255, 255, 0.9)'
+                    }}>
+                      — Sarah T, Grimsby
+                    </footer>
+
+                    {/* Yellow accent bar */}
+                    <span
+                      className="absolute -left-3 top-1 h-10 w-1 rounded"
+                      style={{
+                        backgroundColor: '#FFD300'
+                      }}
+                    />
+                  </blockquote>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Wave divider matching How It Works */}
+      {/* Wave divider at bottom */}
       <div style={{
         position: 'absolute',
         bottom: 0,
