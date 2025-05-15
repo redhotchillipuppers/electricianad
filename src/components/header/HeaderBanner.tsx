@@ -15,7 +15,7 @@ const HeaderBanner = () => {
       className="relative text-white py-20 px-6 overflow-hidden"
       style={{
         position: 'relative',
-        padding: '3rem 1.5rem',
+        padding: '3rem 1.5rem 5rem', // Increased bottom padding to make room for the wave
         backgroundColor: '#1E40AF',
         background: 'linear-gradient(180deg, #1E40AF, #1E3A8A)',
         color: '#fff',
@@ -46,7 +46,7 @@ const HeaderBanner = () => {
       <div className="section-content" style={{ position: 'relative', zIndex: 1 }}>
         <div className="max-w-6xl mx-auto">
           {/* Two-column layout for larger screens */}
-          <div className="grid md:grid-cols-2 gap-8 items-center">
+          <div className="grid md:grid-cols-2 gap-8 items-start"> {/* Changed items-center to items-start */}
             {/* Left column - Main header content */}
             <div>
               {/* Title with Ampalign and Lincolnshire as one unit with letter spacing */}
@@ -112,7 +112,7 @@ const HeaderBanner = () => {
             </div>
 
             {/* Right column - Testimonial */}
-            <div className="hidden md:block">
+            <div className="hidden md:block" style={{ marginBottom: '2rem' }}> {/* Added marginBottom */}
               <div
                 style={{
                   backgroundColor: 'rgba(30, 64, 175, 0.4)',
@@ -121,7 +121,9 @@ const HeaderBanner = () => {
                   padding: '1.5rem',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
                   marginLeft: 'auto',
-                  maxWidth: '400px'
+                  maxWidth: '400px',
+                  position: 'relative', // Ensure positioned properly
+                  top: '-2.5rem' // Moved up to position halfway between current position and top
                 }}
               >
                 <div className="flex gap-4 items-start">
@@ -152,14 +154,13 @@ const HeaderBanner = () => {
                       color: '#fff',
                       marginBottom: '0.5rem'
                     }}>
-                      "The team rewired our entire kitchen in a day—no mess, no drama.
-                      Finally a sparkie who shows up and actually cares."
+                      "Another electrician couldn't fix our lighting issues. Ampalign solved it in one visit and charged exactly what they quoted."
                     </p>
                     <footer style={{
                       fontSize: '0.85rem',
                       color: 'rgba(255, 255, 255, 0.9)'
                     }}>
-                      — Sarah T, Grimsby
+                      — Jamie R, Grimsby
                     </footer>
 
                     {/* Yellow accent bar */}
@@ -184,7 +185,8 @@ const HeaderBanner = () => {
         left: 0,
         right: 0,
         height: '4rem',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        zIndex: 1 // Ensure wave is above other content
       }}>
         <svg
           viewBox="0 0 1200 120"
