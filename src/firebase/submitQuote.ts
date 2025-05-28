@@ -22,20 +22,32 @@ export interface QuotePayload {
 }
 
 /** Adds a quote + optional file to Firestore & Storage */
-export default async function submitQuote({
-  name,
-  email,
-  phone,
-  description,
-  contactMethod,
-  file,
-  houseFlatNumber,
-  streetName,
-  postcode,
-}: QuotePayload) {
+export default async function submitQuote(payload: QuotePayload) {
   const { db, storage } = getFirebase();
 
+    console.log('Firebase initialized:', { db: !!db, storage: !!storage });
+    console.log('Payload received:', { ...payload, file: payload.file ? 'File present' : 'No file' });
+
+
   try {
+    // Validate required fields
+    if (!payload.name?.trim() || !payload.email?.trim() || !payload.contactMethod) {
+      throw new Error('Missing required fields');
+    }
+
+    // Destructure payload for easier access
+    const {
+      name,
+      email,
+      phone,
+      description,
+      contactMethod,
+      file,
+      houseFlatNumber,
+      streetName,
+      postcode,
+    } = payload;
+
     // 1. Upload file (if any) and grab URL
     let fileUrl = "";
     if (file) {
@@ -74,6 +86,16 @@ export default async function submitQuote({
     return docRef.id; // useful if you want to show a "ticket number"
   } catch (error) {
     console.error("Quote submission failed:", error);
+    
+    // Provide user-friendly error messages
+    if (error instanceof Error) {
+      if (error.message.includes('permission')) {
+        throw new Error('Unable to submit quote. Please try again or contact us directly.');
+      } else if (error.message.includes('network')) {
+        throw new Error('Network error. Please check your connection and try again.');
+      }
+    }
+    
     throw error; // Re-throw to let the UI component handle it
   }
 }

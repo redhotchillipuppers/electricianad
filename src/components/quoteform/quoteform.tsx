@@ -119,9 +119,9 @@ const QuoteForm = () => {
   const handleFile = (e) => {
     const file = e.target.files?.[0] ?? null;
     if (file) {
-      // Check file size (limit to 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setError("File too large. Please select a file under 5MB.");
+      // Check file size (limit to 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setError("File too large. Please select a file under 10MB.");
         return;
       }
       // Reset error if it was related to file
@@ -161,21 +161,36 @@ const QuoteForm = () => {
     generateCaptcha(); // Generate a new captcha after form reset
   };
 
-  const validateForm = () => {
-    const errors = {
-      name: validateField("name", values.name),
-      email: validateField("email", values.email),
-      phone: validateField("phone", values.phone),
-      description: validateField("description", values.description),
-      houseFlatNumber: validateField("houseFlatNumber", values.houseFlatNumber),
-      streetName: validateField("streetName", values.streetName),
-      postcode: validateField("postcode", values.postcode),
-    };
-
-    setFormErrors(errors);
-
-    // Check if any errors exist
-    return !Object.values(errors).some(error => error);
+  // Add this validation function in your QuoteForm component
+  const validateForm = (formData) => {
+    const errors: string[] = [];
+    
+    // Required field validation
+    if (!formData.name?.trim()) errors.push('Name is required');
+    if (!formData.email?.trim()) errors.push('Email is required');
+    if (!formData.contactMethod) errors.push('Contact method is required');
+    if (!formData.houseFlatNumber?.trim()) errors.push('House/Flat number is required');
+    if (!formData.streetName?.trim()) errors.push('Street name is required');
+    if (!formData.postcode?.trim()) errors.push('Postcode is required');
+    
+    // Length validation
+    if (formData.name && formData.name.length > 100) errors.push('Name too long (max 100 characters)');
+    if (formData.description && formData.description.length > 2000) errors.push('Description too long (max 2000 characters)');
+    
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (formData.email && !emailRegex.test(formData.email)) errors.push('Invalid email format');
+    
+    // File validation
+    if (formData.file) {
+      const allowedTypes = ['image/', 'application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      const isValidType = allowedTypes.some(type => formData.file.type.startsWith(type) || formData.file.type === type);
+      
+      if (!isValidType) errors.push('Invalid file type. Please use images, PDF, text, or Word documents.');
+      if (formData.file.size > 10 * 1024 * 1024) errors.push('File too large. Maximum size is 10MB.');
+    }
+    
+    return errors;
   };
 
   const handleSubmit = async (e) => {
@@ -190,8 +205,10 @@ const QuoteForm = () => {
       setCaptchaError(false);
     }
 
-    // Validate all fields
-    if (!validateForm()) {
+    // Use the enhanced validation function
+    const errors = validateForm(values);
+    if (errors.length > 0) {
+      setError('Please fix the following errors:\n' + errors.join('\n'));
       return;
     }
 
@@ -299,7 +316,7 @@ const QuoteForm = () => {
             display: 'flex',
             alignItems: 'center'
           }}>
-            <span style={{ color: '#991b1b' }}>{error}</span>
+            <span style={{ color: '#991b1b', whiteSpace: 'pre-line' }}>{error}</span>
           </div>
         )}
 
@@ -515,7 +532,7 @@ const QuoteForm = () => {
             </label>
             <input
               type="file"
-              accept="image/*,application/pdf"
+              accept="image/*,application/pdf,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               onChange={handleFile}
               style={{ 
                 width: '100%',
@@ -523,7 +540,7 @@ const QuoteForm = () => {
               }}
             />
             <p style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.25rem' }}>
-              Optional - Click to select a file (5MB max)
+              Optional - Images, PDF, text, or Word documents (10MB max)
             </p>
           </div>
 
