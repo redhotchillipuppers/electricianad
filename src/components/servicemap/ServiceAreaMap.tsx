@@ -1,28 +1,22 @@
-import React, { useState } from 'react';
-import { MapPin } from 'lucide-react';
+import React from 'react';
+import { MapPin, Clock } from 'lucide-react';
 
 const ServiceAreaMap = () => {
-  const [activeArea, setActiveArea] = useState<string | null>(null);
-  
-  // Define your service areas with approximate coordinates
-  const serviceAreas = [
-    { name: "Grimsby", primary: true, coordinates: { x: 70, y: 30 } },
-    { name: "Cleethorpes", primary: true, coordinates: { x: 77, y: 32 } },
-    { name: "Lincoln", primary: true, coordinates: { x: 50, y: 60 } },
-    { name: "Scunthorpe", primary: true, coordinates: { x: 40, y: 35 } },
-    { name: "Louth", primary: true, coordinates: { x: 65, y: 45 } },
-    { name: "Boston", coordinates: { x: 65, y: 75 } },
-    { name: "Skegness", coordinates: { x: 80, y: 65 } },
-    { name: "Spalding", coordinates: { x: 55, y: 85 } },
-    { name: "Sleaford", coordinates: { x: 55, y: 70 } },
-    { name: "Gainsborough", coordinates: { x: 30, y: 55 } },
-    { name: "Market Rasen", coordinates: { x: 50, y: 45 } },
-    { name: "Horncastle", coordinates: { x: 60, y: 55 } }
+  const primaryAreas = [
+    { name: "Grimsby", description: "Our main service hub" },
+    { name: "Cleethorpes", description: "Full residential & commercial services" },
+    { name: "Lincoln", description: "Complete electrical solutions" },
+    { name: "Scunthorpe", description: "Industrial & domestic expertise" },
+    { name: "Louth", description: "Rural & urban electrical services" }
+  ];
+
+  const extendedAreas = [
+    "Boston", "Skegness", "Spalding", "Sleaford", 
+    "Gainsborough", "Market Rasen", "Horncastle"
   ];
 
   return (
-    <section
-      data-aos="fade-up"
+    <section 
       className="relative bg-gradient-to-b from-blue-600 to-blue-800 text-white py-12 px-6 overflow-hidden"
       style={{
         position: 'relative',
@@ -33,7 +27,7 @@ const ServiceAreaMap = () => {
         overflow: 'hidden'
       }}
     >
-      {/* Circuit pattern background - same as in testimonial */}
+      {/* Circuit pattern background */}
       <div 
         className="absolute inset-0 opacity-30"
         style={{
@@ -43,14 +37,14 @@ const ServiceAreaMap = () => {
         }}
       >
         <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-          <pattern id="circuit-map" width="50" height="50" patternUnits="userSpaceOnUse">
+          <pattern id="circuit-service" width="50" height="50" patternUnits="userSpaceOnUse">
             <path d="M10 10 L40 10 L40 40 L10 40 Z" fill="none" stroke="#F5F5F5" strokeWidth="1.5" />
             <circle cx="10" cy="10" r="2" fill="#F5F5F5" />
             <circle cx="40" cy="40" r="2" fill="#F5F5F5" />
             <path d="M10 25 H30 V40" fill="none" stroke="#F5F5F5" strokeWidth="1.5" />
             <path d="M25 10 V30 H40" fill="none" stroke="#F5F5F5" strokeWidth="1.5" />
           </pattern>
-          <rect width="100%" height="100%" fill="url(#circuit-map)" />
+          <rect width="100%" height="100%" fill="url(#circuit-service)" />
         </svg>
       </div>
 
@@ -62,6 +56,7 @@ const ServiceAreaMap = () => {
           margin: '0 auto'
         }}
       >
+        {/* Header */}
         <div
           style={{
             display: 'flex',
@@ -84,7 +79,7 @@ const ServiceAreaMap = () => {
               textTransform: 'uppercase'
             }}
           >
-            COVERAGE AREA
+            SERVICE COVERAGE
           </span>
           <h2
             style={{
@@ -99,6 +94,7 @@ const ServiceAreaMap = () => {
           </h2>
         </div>
 
+        {/* Service Areas Grid */}
         <div 
           style={{
             backgroundColor: 'rgba(30, 64, 175, 0.4)',
@@ -106,108 +102,146 @@ const ServiceAreaMap = () => {
             borderRadius: '0.75rem',
             padding: '2rem',
             border: '1px solid rgba(255, 255, 255, 0.1)',
-            margin: '0 auto',
-            maxWidth: '800px'
+            marginBottom: '2rem'
           }}
         >
-          <div className="grid md:grid-cols-[2fr_1fr] gap-8 items-start">
-            {/* Map visualization */}
-            <div className="relative w-full h-64 rounded-lg overflow-hidden" style={{ backgroundColor: 'rgba(30, 58, 138, 0.5)' }}>
-              <svg viewBox="0 0 100 100" className="w-full h-full">
-                {/* Simplified Lincolnshire county outline */}
-                <path 
-                  d="M20,20 L80,15 L85,35 L90,60 L75,85 L40,90 L25,75 L15,40 z" 
-                  fill="rgba(255, 255, 255, 0.1)" 
-                  stroke="#FFD300" 
-                  strokeWidth="1.5"
-                />
-                
-                {/* Plot the cities */}
-                {serviceAreas.map((area, idx) => (
-                  <g key={idx}>
-                    <circle 
-                      cx={area.coordinates.x} 
-                      cy={area.coordinates.y} 
-                      r={area.primary ? 4 : 3} 
-                      fill={area.primary ? "#FFD300" : "#60A5FA"}
-                      stroke="#FFFFFF"
-                      strokeWidth="0.5"
-                      className="cursor-pointer"
-                      onMouseEnter={() => setActiveArea(area.name)}
-                      onMouseLeave={() => setActiveArea(null)}
-                    />
-                    
-                    {/* City labels - only show for primary areas or active area */}
-                    {(area.primary || activeArea === area.name) && (
-                      <text 
-                        x={area.coordinates.x} 
-                        y={area.coordinates.y - 5} 
-                        fontSize="3.5"
-                        textAnchor="middle"
-                        fill="#FFFFFF"
-                        fontWeight={area.primary ? "bold" : "normal"}
-                      >
-                        {area.name}
-                      </text>
-                    )}
-                  </g>
-                ))}
-              </svg>
-              
-              <div className="absolute bottom-2 right-2 text-xs bg-blue-900 bg-opacity-70 p-2 rounded">
-                <div className="flex items-center mb-1">
-                  <div className="w-3 h-3 rounded-full bg-yellow-400 mr-2"></div>
-                  <span>Primary service area</span>
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Primary Service Areas */}
+            <div className="lg:col-span-2">
+              <div className="p-6">
+                <div className="flex items-center mb-6">
+                  <div className="w-3 h-3 bg-yellow-400 rounded-full mr-3"></div>
+                  <h3 className="text-2xl font-bold text-white">Primary Service Areas</h3>
                 </div>
-                <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full bg-blue-400 mr-2"></div>
-                  <span>Extended service area</span>
+                
+                <div className="grid md:grid-cols-2 gap-4 mb-6">
+                  {primaryAreas.map((area, idx) => (
+                    <div key={idx} className="flex items-start p-4 bg-blue-800 bg-opacity-30 rounded-xl hover:bg-opacity-50 transition-colors">
+                      <MapPin className="w-5 h-5 text-yellow-400 mt-0.5 mr-3 flex-shrink-0" />
+                      <div>
+                        <h4 className="font-semibold text-white">{area.name}</h4>
+                        <p className="text-sm text-blue-100">{area.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex items-center p-4 bg-green-800 bg-opacity-30 rounded-xl border border-green-600 border-opacity-30">
+                  <Clock className="w-5 h-5 text-green-300 mr-3" />
+                  <div>
+                    <p className="font-semibold text-green-200">Same-Day Service Available</p>
+                    <p className="text-sm text-green-300">Emergency callouts within 2 hours in primary areas</p>
+                  </div>
                 </div>
               </div>
             </div>
-            
-            {/* List of service areas */}
-            <div className="w-full">
-              <div className="mb-2 font-bold text-sm uppercase" style={{ color: '#FFD300' }}>Primary Areas:</div>
-              <ul className="mb-4 grid grid-cols-1 gap-2">
-                {serviceAreas.filter(area => area.primary).map((area, idx) => (
-                  <li 
-                    key={idx} 
-                    className="flex items-center text-sm"
-                    onMouseEnter={() => setActiveArea(area.name)}
-                    onMouseLeave={() => setActiveArea(null)}
-                  >
-                    <MapPin size={16} style={{ color: '#FFD300' }} className="mr-2" />
-                    {area.name}
-                  </li>
-                ))}
-              </ul>
-              
-              <div className="mb-2 font-bold text-sm uppercase">Also Serving:</div>
-              <ul className="grid grid-cols-1 gap-2">
-                {serviceAreas.filter(area => !area.primary).map((area, idx) => (
-                  <li 
-                    key={idx} 
-                    className="flex items-center text-sm"
-                    onMouseEnter={() => setActiveArea(area.name)}
-                    onMouseLeave={() => setActiveArea(null)}
-                  >
-                    <MapPin size={16} className="text-blue-300 mr-2" />
-                    {area.name}
-                  </li>
-                ))}
-              </ul>
+
+            {/* Extended Coverage */}
+            <div>
+              <div className="p-6 h-full">
+                <div className="flex items-center mb-6">
+                  <div className="w-3 h-3 bg-blue-400 rounded-full mr-3"></div>
+                  <h3 className="text-xl font-bold text-white">Extended Coverage</h3>
+                </div>
+                
+                <div className="space-y-3 mb-6">
+                  {extendedAreas.map((area, idx) => (
+                    <div key={idx} className="flex items-center p-3 bg-blue-800 bg-opacity-20 rounded-lg">
+                      <MapPin className="w-4 h-4 text-blue-300 mr-3" />
+                      <span className="text-white">{area}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="p-4 bg-amber-800 bg-opacity-30 rounded-xl border border-amber-600 border-opacity-30">
+                  <p className="text-sm text-amber-200 font-medium mb-1">Extended Areas</p>
+                  <p className="text-sm text-amber-300">48-hour response time, travel charges may apply</p>
+                </div>
+              </div>
             </div>
           </div>
+        </div>
+
+        {/* Call to Action */}
+        <div 
+          className="text-center text-white"
+          style={{
+            backgroundColor: 'rgba(30, 64, 175, 0.4)',
+            backdropFilter: 'blur(4px)',
+            borderRadius: '0.75rem',
+            padding: '2rem',
+            border: '1px solid rgba(255, 255, 255, 0.1)'
+          }}
+        >
+          <h3 className="text-2xl font-bold mb-4">Need Electrical Services?</h3>
+          <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
+            Whether you're in our primary service area or extended coverage zone, 
+            we're here to help with all your electrical needs.
+          </p>
+          <button 
+            type="button"
+            onClick={() => {
+              const quoteSection = document.getElementById("quote-form");
+              if (quoteSection) {
+                quoteSection.scrollIntoView({ behavior: "smooth" });
+              }
+            }}
+            style={{
+              width: 'fit-content',
+              backgroundColor: '#FFD300',
+              color: '#1E3A8A',
+              fontWeight: 'bold',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.25rem',
+              border: 'none',
+              cursor: 'pointer',
+              textTransform: 'uppercase'
+            }}
+          >
+            GET YOUR FREE QUOTE
+          </button>
+        </div>
+
+        {/* Service Info */}
+        <div className="grid md:grid-cols-3 gap-6 text-center">
+          <div className="p-6">
+            <div 
+              className="w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-4"
+              style={{ backgroundColor: 'rgba(255, 211, 0, 0.2)' }}
+            >
+              <Clock className="w-6 h-6 text-yellow-400" />
+            </div>
+            <h4 className="font-semibold text-white mb-2">Quick Response</h4>
+            <p className="text-blue-100 text-sm">Same-day service in primary areas, 48hr in extended zones</p>
+          </div>
           
-          <div className="text-center mt-6 text-sm" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-            <p>We provide reliable electrical services throughout Lincolnshire. <br/>
-            <span className="font-bold" style={{ color: '#FFD300' }}>Same day service available in primary service areas.</span></p>
+          <div className="p-6">
+            <div 
+              className="w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-4"
+              style={{ backgroundColor: 'rgba(255, 211, 0, 0.2)' }}
+            >
+              <MapPin className="w-6 h-6 text-yellow-400" />
+            </div>
+            <h4 className="font-semibold text-white mb-2">Wide Coverage</h4>
+            <p className="text-blue-100 text-sm">Serving all of Lincolnshire with professional electrical services</p>
+          </div>
+          
+          <div className="p-6">
+            <div 
+              className="w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-4"
+              style={{ backgroundColor: 'rgba(255, 211, 0, 0.2)' }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-yellow-400">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+              </svg>
+            </div>
+            <h4 className="font-semibold text-white mb-2">24/7 Emergency</h4>
+            <p className="text-blue-100 text-sm">Emergency electrical services available around the clock</p>
           </div>
         </div>
       </div>
 
-      {/* Wave divider at bottom - same as in testimonial */}
+      {/* Wave divider at bottom */}
       <div
         style={{
           position: 'absolute', 
