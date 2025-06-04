@@ -154,7 +154,7 @@ const HeaderBanner = () => {
                       color: '#fff',
                       marginBottom: '0.5rem'
                     }}>
-                      "Another electrician couldn't fix our lighting issues. Ampalign solved it in one visit and charged exactly what they quoted."
+                      "Ampalign installed our outdoor security lighting. They were professional, and the price was very reasonable. Highly recommend"
                     </p>
                     <footer style={{
                       fontSize: '0.85rem',
