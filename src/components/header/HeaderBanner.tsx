@@ -1,5 +1,6 @@
 import React from "react";
 import { MessageSquareQuote } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const HeaderBanner = () => {
   const scrollToQuote = () => {
@@ -22,6 +23,44 @@ const HeaderBanner = () => {
         overflow: 'hidden'
       }}
     >
+      {/* Top Navigation - Testing Link */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '1rem',
+          right: '1.5rem',
+          zIndex: 10
+        }}
+      >
+        <Link
+          to="/providers"
+          style={{
+            display: 'inline-block',
+            padding: '0.5rem 1rem',
+            backgroundColor: 'rgba(255, 211, 0, 0.9)',
+            color: '#1E3A8A',
+            textDecoration: 'none',
+            borderRadius: '0.5rem',
+            fontSize: '0.875rem',
+            fontWeight: '600',
+            textTransform: 'uppercase',
+            transition: 'all 0.2s',
+            border: '1px solid rgba(255, 211, 0, 0.2)',
+            backdropFilter: 'blur(4px)'
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.backgroundColor = '#FFD300';
+            e.currentTarget.style.transform = 'translateY(-1px)';
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(255, 211, 0, 0.9)';
+            e.currentTarget.style.transform = 'translateY(0)';
+          }}
+        >
+          Service Providers
+        </Link>
+      </div>
+
       {/* Circuit pattern background */}
       <div
         className="absolute inset-0 opacity-30"
