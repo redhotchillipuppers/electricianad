@@ -1,8 +1,54 @@
-import React from "react";
-import { UserPlus, MapPin, Wrench, CheckCircle2, ArrowLeft } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { UserPlus, MapPin, Wrench, CheckCircle2, ArrowLeft, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
+import submitServiceProvider from "../../firebase/submitServiceProvider";
 
 const ServiceProviderForm = () => {
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [captchaValue, setCaptchaValue] = useState("");
+  const [captchaAnswer, setCaptchaAnswer] = useState("");
+  const [captchaError, setCaptchaError] = useState(false);
+  const [serviceAreasOpen, setServiceAreasOpen] = useState(false);
+
+  const [formErrors, setFormErrors] = useState({
+    firstName: "",
+    lastName: "",
+    primaryContactNumber: "",
+    email: "",
+    serviceAreas: "",
+  });
+
+  const [values, setValues] = useState({
+    firstName: "",
+    lastName: "",
+    companyName: "",
+    primaryContactNumber: "",
+    email: "",
+    serviceAreas: [] as string[],
+  });
+
+  // Service Areas - Based on your actual coverage areas
+  const availableServiceAreas = [
+    // Primary Service Areas
+    "Grimsby",
+    "Cleethorpes",
+    "Lincoln",
+    "Scunthorpe",
+    "Louth",
+    // Extended Coverage Areas
+    "Boston",
+    "Skegness",
+    "Spalding",
+    "Sleaford",
+    "Gainsborough",
+    "Market Rasen",
+    "Horncastle",
+    // Other
+    "Other"
+  ];
+
   const benefits = [
     {
       icon: <UserPlus size={24} />,
@@ -25,6 +71,167 @@ const ServiceProviderForm = () => {
       description: "Join a trusted network that values licensed, professional electricians"
     }
   ];
+
+  // Generate a simple math captcha
+  const generateCaptcha = () => {
+    const num1 = Math.floor(Math.random() * 10);
+    const num2 = Math.floor(Math.random() * 10);
+    setCaptchaValue(`${num1} + ${num2}`);
+    setCaptchaAnswer((num1 + num2).toString());
+  };
+
+  // Generate captcha on component mount
+  useEffect(() => {
+    generateCaptcha();
+  }, []);
+
+  const validateField = (name: string, value: string | string[]) => {
+    let errorMessage = "";
+
+    switch (name) {
+      case "firstName":
+        if (!value || (typeof value === 'string' && !value.trim())) {
+          errorMessage = "First name is required";
+        }
+        break;
+      case "lastName":
+        if (!value || (typeof value === 'string' && !value.trim())) {
+          errorMessage = "Last name is required";
+        }
+        break;
+      case "email":
+        if (!value || (typeof value === 'string' && !value.trim())) {
+          errorMessage = "Email is required";
+        } else if (typeof value === 'string' && !/^\S+@\S+\.\S+$/.test(value)) {
+          errorMessage = "Please enter a valid email address";
+        }
+        break;
+      case "primaryContactNumber":
+        if (!value || (typeof value === 'string' && !value.trim())) {
+          errorMessage = "Primary contact number is required";
+        } else if (typeof value === 'string' && !/^[0-9+\-() ]{6,20}$/.test(value)) {
+          errorMessage = "Please enter a valid phone number";
+        }
+        break;
+      case "serviceAreas":
+        if (Array.isArray(value) && value.length === 0) {
+          errorMessage = "Please select at least one service area";
+        }
+        break;
+      default:
+        break;
+    }
+
+    return errorMessage;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setValues((prev) => ({ ...prev, [name]: value }));
+
+    // Clear the error when user starts typing
+    if (formErrors[name as keyof typeof formErrors]) {
+      setFormErrors(prev => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const errorMessage = validateField(name, value);
+    setFormErrors(prev => ({ ...prev, [name]: errorMessage }));
+  };
+
+  const handleServiceAreaChange = (area: string) => {
+    setValues(prev => {
+      const newServiceAreas = prev.serviceAreas.includes(area)
+        ? prev.serviceAreas.filter(a => a !== area)
+        : [...prev.serviceAreas, area];
+
+      // Clear service areas error if user selects at least one
+      if (newServiceAreas.length > 0 && formErrors.serviceAreas) {
+        setFormErrors(prevErrors => ({ ...prevErrors, serviceAreas: "" }));
+      }
+
+      return { ...prev, serviceAreas: newServiceAreas };
+    });
+  };
+
+  const resetForm = () => {
+    setValues({
+      firstName: "",
+      lastName: "",
+      companyName: "",
+      primaryContactNumber: "",
+      email: "",
+      serviceAreas: [],
+    });
+    setCaptchaError(false);
+    setFormErrors({
+      firstName: "",
+      lastName: "",
+      primaryContactNumber: "",
+      email: "",
+      serviceAreas: "",
+    });
+    generateCaptcha();
+  };
+
+  const validateForm = (formData: typeof values) => {
+    const errors: string[] = [];
+
+    // Required field validation
+    if (!formData.firstName?.trim()) errors.push('First name is required');
+    if (!formData.lastName?.trim()) errors.push('Last name is required');
+    if (!formData.email?.trim()) errors.push('Email is required');
+    if (!formData.primaryContactNumber?.trim()) errors.push('Primary contact number is required');
+    if (!formData.serviceAreas?.length) errors.push('At least one service area is required');
+
+    // Length validation
+    if (formData.firstName && formData.firstName.length > 50) errors.push('First name too long (max 50 characters)');
+    if (formData.lastName && formData.lastName.length > 50) errors.push('Last name too long (max 50 characters)');
+    if (formData.companyName && formData.companyName.length > 100) errors.push('Company name too long (max 100 characters)');
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (formData.email && !emailRegex.test(formData.email)) errors.push('Invalid email format');
+
+    return errors;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    // Validate the captcha
+    const captchaInput = (e.target as HTMLFormElement).querySelector('input[name="captcha"]') as HTMLInputElement;
+    if (captchaAnswer !== captchaInput?.value) {
+      setCaptchaError(true);
+      return;
+    } else {
+      setCaptchaError(false);
+    }
+
+    // Use the enhanced validation function
+    const errors = validateForm(values);
+    if (errors.length > 0) {
+      setError('Please fix the following errors:\n' + errors.join('\n'));
+      return;
+    }
+
+    setSending(true);
+    setSuccess(false);
+
+    try {
+      await submitServiceProvider(values);
+      setSuccess(true);
+      resetForm();
+    } catch (err) {
+      console.error("Service provider form submission error:", err);
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#F5F5F5' }}>
@@ -205,7 +412,7 @@ const ServiceProviderForm = () => {
             ))}
           </div>
 
-          {/* Placeholder Form */}
+          {/* Application Form */}
           <div
             style={{
               backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -229,120 +436,319 @@ const ServiceProviderForm = () => {
             >
               APPLICATION FORM
             </h2>
-            <p
-              style={{
-                color: '#6B7280',
-                textAlign: 'center',
-                marginBottom: '2rem'
-              }}
-            >
-              This form is currently under development. Check back soon!
-            </p>
 
-            {/* Placeholder Form Fields */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: '#374151',
-                    marginBottom: '0.25rem'
-                  }}
-                >
-                  Company Name
-                </label>
+            {success && (
+              <div style={{
+                marginBottom: '1rem',
+                padding: '0.75rem',
+                backgroundColor: '#d1fae5',
+                border: '1px solid #a7f3d0',
+                borderRadius: '0.25rem',
+                display: 'flex',
+                alignItems: 'center'
+              }}>
+                <span style={{ color: '#065f46' }}>
+                  Thank you! Your application has been submitted successfully. We'll review it and get back to you soon.
+                </span>
+              </div>
+            )}
+
+            {error && (
+              <div style={{
+                marginBottom: '1rem',
+                padding: '0.75rem',
+                backgroundColor: '#fee2e2',
+                border: '1px solid #fecaca',
+                borderRadius: '0.25rem',
+                display: 'flex',
+                alignItems: 'center'
+              }}>
+                <span style={{ color: '#991b1b', whiteSpace: 'pre-line' }}>{error}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit}>
+              {/* First Name */}
+              <div style={{ marginBottom: '1rem' }}>
                 <input
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: `2px solid ${formErrors.firstName ? '#EF4444' : '#E5E7EB'}`,
+                    borderRadius: '0.5rem',
+                    fontSize: '1rem'
+                  }}
                   type="text"
-                  placeholder="Enter your company name"
-                  disabled
+                  name="firstName"
+                  placeholder="First Name *"
+                  value={values.firstName}
+                  required
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                {formErrors.firstName && (
+                  <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{formErrors.firstName}</p>
+                )}
+              </div>
+
+              {/* Last Name */}
+              <div style={{ marginBottom: '1rem' }}>
+                <input
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: `2px solid ${formErrors.lastName ? '#EF4444' : '#E5E7EB'}`,
+                    borderRadius: '0.5rem',
+                    fontSize: '1rem'
+                  }}
+                  type="text"
+                  name="lastName"
+                  placeholder="Last Name *"
+                  value={values.lastName}
+                  required
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                {formErrors.lastName && (
+                  <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{formErrors.lastName}</p>
+                )}
+              </div>
+
+              {/* Company Name */}
+              <div style={{ marginBottom: '1rem' }}>
+                <input
                   style={{
                     width: '100%',
                     padding: '0.75rem',
                     border: '2px solid #E5E7EB',
                     borderRadius: '0.5rem',
-                    fontSize: '1rem',
-                    backgroundColor: '#F9FAFB',
-                    color: '#9CA3AF'
+                    fontSize: '1rem'
                   }}
+                  type="text"
+                  name="companyName"
+                  placeholder="Company Name (Optional)"
+                  value={values.companyName}
+                  onChange={handleChange}
                 />
               </div>
 
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: '#374151',
-                    marginBottom: '0.25rem'
-                  }}
-                >
-                  License Number
-                </label>
+              {/* Primary Contact Number */}
+              <div style={{ marginBottom: '1rem' }}>
                 <input
-                  type="text"
-                  placeholder="Your electrical contractor license"
-                  disabled
                   style={{
                     width: '100%',
                     padding: '0.75rem',
-                    border: '2px solid #E5E7EB',
+                    border: `2px solid ${formErrors.primaryContactNumber ? '#EF4444' : '#E5E7EB'}`,
                     borderRadius: '0.5rem',
-                    fontSize: '1rem',
-                    backgroundColor: '#F9FAFB',
-                    color: '#9CA3AF'
+                    fontSize: '1rem'
                   }}
+                  type="tel"
+                  name="primaryContactNumber"
+                  placeholder="Primary Contact Number *"
+                  value={values.primaryContactNumber}
+                  required
+                  onChange={handleChange}
+                  onBlur={handleBlur}
                 />
+                {formErrors.primaryContactNumber && (
+                  <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{formErrors.primaryContactNumber}</p>
+                )}
               </div>
 
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: '#374151',
-                    marginBottom: '0.25rem'
-                  }}
-                >
-                  Service Areas
-                </label>
+              {/* Email */}
+              <div style={{ marginBottom: '1rem' }}>
                 <input
-                  type="text"
-                  placeholder="Cities/regions you serve"
-                  disabled
                   style={{
                     width: '100%',
                     padding: '0.75rem',
-                    border: '2px solid #E5E7EB',
+                    border: `2px solid ${formErrors.email ? '#EF4444' : '#E5E7EB'}`,
                     borderRadius: '0.5rem',
-                    fontSize: '1rem',
-                    backgroundColor: '#F9FAFB',
-                    color: '#9CA3AF'
+                    fontSize: '1rem'
                   }}
+                  type="email"
+                  name="email"
+                  placeholder="Email Address *"
+                  value={values.email}
+                  required
+                  onChange={handleChange}
+                  onBlur={handleBlur}
                 />
+                {formErrors.email && (
+                  <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{formErrors.email}</p>
+                )}
+              </div>
+
+              {/* Service Areas Dropdown */}
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  color: '#374151',
+                  marginBottom: '0.5rem'
+                }}>
+                  Service Areas *
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <button
+                    type="button"
+                    onClick={() => setServiceAreasOpen(!serviceAreasOpen)}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: `2px solid ${formErrors.serviceAreas ? '#EF4444' : '#E5E7EB'}`,
+                      borderRadius: '0.5rem',
+                      fontSize: '1rem',
+                      backgroundColor: 'white',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <span style={{ color: values.serviceAreas.length > 0 ? '#000' : '#9CA3AF' }}>
+                      {values.serviceAreas.length > 0
+                        ? `${values.serviceAreas.length} area${values.serviceAreas.length > 1 ? 's' : ''} selected`
+                        : 'Select service areas'
+                      }
+                    </span>
+                    <ChevronDown size={16} style={{
+                      transform: serviceAreasOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s'
+                    }} />
+                  </button>
+
+                  {serviceAreasOpen && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      backgroundColor: 'white',
+                      border: '2px solid #E5E7EB',
+                      borderTop: 'none',
+                      borderRadius: '0 0 0.5rem 0.5rem',
+                      maxHeight: '200px',
+                      overflowY: 'auto',
+                      zIndex: 10,
+                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                    }}>
+                      {availableServiceAreas.map((area) => (
+                        <label
+                          key={area}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '0.5rem 0.75rem',
+                            cursor: 'pointer',
+                            borderBottom: '1px solid #f3f4f6'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={values.serviceAreas.includes(area)}
+                            onChange={() => handleServiceAreaChange(area)}
+                            style={{ marginRight: '0.5rem' }}
+                          />
+                          <span style={{ fontSize: '0.875rem', color: '#000' }}>{area}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {formErrors.serviceAreas && (
+                  <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{formErrors.serviceAreas}</p>
+                )}
+                {values.serviceAreas.length > 0 && (
+                  <div style={{ marginTop: '0.5rem' }}>
+                    <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>Selected areas:</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+                      {values.serviceAreas.map((area) => (
+                        <span
+                          key={area}
+                          style={{
+                            fontSize: '0.75rem',
+                            backgroundColor: '#1E3A8A',
+                            color: 'white',
+                            padding: '0.125rem 0.5rem',
+                            borderRadius: '9999px'
+                          }}
+                        >
+                          {area}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Simple Captcha */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <p style={{ marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600', color: '#000' }}>Security Check:</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <div style={{ color: '#000' }}>
+                    {captchaValue} = ?
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      name="captcha"
+                      placeholder="Enter result"
+                      required
+                      style={{
+                        width: '100%',
+                        maxWidth: '200px',
+                        padding: '0.5rem',
+                        border: `2px solid ${captchaError ? '#EF4444' : '#E5E7EB'}`,
+                        borderRadius: '0.5rem'
+                      }}
+                      onChange={() => captchaError && setCaptchaError(false)}
+                    />
+                    {captchaError && (
+                      <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+                        Incorrect answer, please try again
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={generateCaptcha}
+                    style={{
+                      width: 'fit-content',
+                      padding: '0.25rem 0.5rem',
+                      backgroundColor: '#f3f4f6',
+                      border: '2px solid #d1d5db',
+                      borderRadius: '0.25rem',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem'
+                    }}
+                  >
+                    Regenerate
+                  </button>
+                </div>
               </div>
 
               <button
-                disabled
+                type="submit"
+                disabled={sending}
                 style={{
                   width: '100%',
                   padding: '0.75rem 1.5rem',
-                  backgroundColor: '#E5E7EB',
-                  color: '#9CA3AF',
+                  backgroundColor: sending ? '#E5E7EB' : '#FFD300',
+                  color: sending ? '#9CA3AF' : '#1E3A8A',
                   fontWeight: '600',
                   borderRadius: '0.5rem',
                   border: 'none',
-                  cursor: 'not-allowed',
+                  cursor: sending ? 'not-allowed' : 'pointer',
                   textTransform: 'uppercase',
-                  marginTop: '1rem'
+                  fontSize: '1rem'
                 }}
               >
-                Coming Soon
+                {sending ? "SUBMITTING..." : "SUBMIT APPLICATION"}
               </button>
-            </div>
+            </form>
           </div>
         </div>
 
