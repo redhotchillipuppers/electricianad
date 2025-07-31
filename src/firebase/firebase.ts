@@ -1,10 +1,22 @@
 import { initializeApp, getApps, FirebaseApp } from "firebase/app";
 import {
+  getAuth,
+  Auth,
+  signInWithEmailAndPassword,
+  signOut,
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  User
+} from "firebase/auth";
+import {
   getFirestore,
   Firestore,
   collection,
   doc,
   setDoc,
+  getDoc,
+  getDocs, 
+  updateDoc 
 } from "firebase/firestore";
 import {
   getStorage,
@@ -19,6 +31,7 @@ interface FirebaseServices {
   app: FirebaseApp;
   db: Firestore;
   storage: FirebaseStorage;
+  auth: Auth;
 }
 
 /** Singleton – avoids re‑initialising in dev hot reloads */
@@ -45,8 +58,23 @@ export function getFirebase(): FirebaseServices {
     app,
     db: getFirestore(app),
     storage: getStorage(app),
+    auth: getAuth(app),
   };
   return services;
 }
 
-export { collection, doc, setDoc, ref, uploadBytes, getDownloadURL };
+export { 
+  collection, 
+  doc, 
+  setDoc, 
+  getDoc, // ← ADD these
+  getDocs,
+  updateDoc,
+  ref, 
+  uploadBytes, 
+  getDownloadURL,
+  signInWithEmailAndPassword,
+  signOut,
+  createUserWithEmailAndPassword,
+  onAuthStateChanged
+};
