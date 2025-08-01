@@ -5,15 +5,15 @@ import "./App.css";
 // Import routing components
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-// Your existing components for the main landing page
+
 import HeaderBanner from "./components/header/HeaderBanner";
 import Services from "./components/services/Services";
 import QuoteForm from "./components/quoteform/quoteform";
 import HowItWorks from "./components/howitworks/HowItWorks";
 import ServiceAreaMap from "./components/servicemap/ServiceAreaMap";
 
-// NEW: Import your ServiceProviderForm component (you'll create this next)
-import ServiceProviderForm from "./components/serviceproviders/ServiceProviderForm"; // Create this file/component
+
+import ServiceProviderForm from "./components/serviceproviders/ServiceProviderForm.tsx"; 
 
 function App() {
   useEffect(() => {
