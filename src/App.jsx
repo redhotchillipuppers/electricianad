@@ -12,8 +12,11 @@ import QuoteForm from "./components/quoteform/quoteform";
 import HowItWorks from "./components/howitworks/HowItWorks";
 import ServiceAreaMap from "./components/servicemap/ServiceAreaMap";
 
+// Your existing ServiceProviderForm component
+import ServiceProviderForm from "./components/serviceproviders/ServiceProviderForm";
 
-import ServiceProviderForm from "./components/serviceproviders/ServiceProviderForm.tsx"; 
+// NEW: Import your admin panel
+import AdminPanel from "./admin/pages/AdminPanel";
 
 function App() {
   useEffect(() => {
@@ -37,8 +40,11 @@ function App() {
           </>
         } />
 
-        {/* New Service Provider Page Route */}
+        {/* Service Provider Page Route */}
         <Route path="/providers" element={<ServiceProviderForm />} />
+
+        {/* NEW: Admin Panel Route */}
+        <Route path="/admin" element={<AdminPanel />} />
       </Routes>
     </Router>
   );

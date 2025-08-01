@@ -1,27 +1,164 @@
-/* Remove this line - it's causing the conflict */
-/* @import "tailwindcss"; */
+/* Proper Tailwind imports - this is the issue! */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
 
-/* Keep these directives - they're the correct way to import Tailwind */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Remove the @tailwind directives - they might not be compiling in production */
+/* @tailwind base;
+   @tailwind components;
+   @tailwind utilities; */
 
-/* 2 ▪ light custom tweaks */
-/* You can expand these as the design evolves */
-html {
+/* Essential base styles to ensure vertical stacking */
+html, body {
   scroll-behavior: smooth;
+  margin: 0;
+  padding: 0;
+  width: 100%;
 }
 
 body {
-  /* Use Tailwind's CSS variables for colors if you like */
   background-color: #f5f5f5;
-  /* light gray canvas */
   color: #1f2937;
-  /* neutral-800 */
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   min-width: 320px;
   min-height: 100vh;
-  /* NO flex‑centering here — sections control their own layout */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Critical: Ensure #root stacks children vertically */
+#root {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Ensure all main sections stack vertically */
+#root > * {
+  width: 100%;
+  flex-shrink: 0;
+}
+
+/* Specific fixes for your sections */
+section {
+  width: 100% !important;
+  display: block !important;
+}
+
+/* Grid utilities fallback */
+.grid {
+  display: grid;
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (min-width: 768px) {
+  .md\\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  .md\\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg\\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  
+  .lg\\:col-span-2 {
+    grid-column: span 2 / span 2;
+  }
+}
+
+/* Essential spacing utilities */
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+.gap-8 { gap: 2rem; }
+
+.p-4 { padding: 1rem; }
+.p-6 { padding: 1.5rem; }
+.p-8 { padding: 2rem; }
+
+.mb-1 { margin-bottom: 0.25rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+
+.text-center { text-align: center; }
+.text-white { color: white; }
+
+.bg-blue-900 { background-color: #1e3a8a; }
+.bg-blue-800 { background-color: #1e40af; }
+
+.rounded-xl { border-radius: 0.75rem; }
+.rounded-lg { border-radius: 0.5rem; }
+
+.flex { display: flex; }
+.flex-shrink-0 { flex-shrink: 0; }
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.justify-center { justify-content: center; }
+
+.w-3 { width: 0.75rem; }
+.w-5 { width: 1.25rem; }
+.w-6 { width: 1.5rem; }
+.w-12 { width: 3rem; }
+.h-3 { height: 0.75rem; }
+.h-5 { height: 1.25rem; }
+.h-6 { height: 1.5rem; }
+.h-12 { height: 3rem; }
+
+.mr-3 { margin-right: 0.75rem; }
+.mt-0 { margin-top: 0; }
+
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+
+.text-sm { font-size: 0.875rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+
+.max-w-6xl { max-width: 72rem; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+
+.hidden { display: none; }
+
+@media (min-width: 768px) {
+  .md\\:block { display: block; }
+}
+
+/* Color utilities */
+.bg-opacity-30 { background-color: rgb(0 0 0 / 0.3); }
+.bg-opacity-20 { background-color: rgb(0 0 0 / 0.2); }
+.border-opacity-30 { border-color: rgb(0 0 0 / 0.3); }
+
+.text-blue-100 { color: #dbeafe; }
+.text-blue-300 { color: #93c5fd; }
+.text-green-200 { color: #bbf7d0; }
+.text-green-300 { color: #86efac; }
+.text-amber-200 { color: #fde68a; }
+.text-amber-300 { color: #fcd34d; }
+.text-yellow-400 { color: #facc15; }
+
+.bg-yellow-400 { background-color: #facc15; }
+.bg-blue-400 { background-color: #60a5fa; }
+.bg-green-800 { background-color: #166534; }
+.bg-amber-800 { background-color: #92400e; }
+
+.border-green-600 { border-color: #16a34a; }
+.border-amber-600 { border-color: #d97706; }
+
+.rounded-full { border-radius: 9999px; }
+
+.transition-colors { transition-property: background-color, border-color, color, fill, stroke; }
+
+.hover\\:bg-opacity-50:hover { background-color: rgb(0 0 0 / 0.5); }
