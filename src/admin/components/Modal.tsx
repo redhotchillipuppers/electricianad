@@ -66,7 +66,7 @@ const Modal: React.FC<ModalProps> = ({
         >
             <div
                 style={{
-                    background: 'rgba(255, 255, 255, 0.95)',
+                    background: 'rgba(255, 255, 255, 0.94)',
                     backdropFilter: 'blur(20px)',
                     borderRadius: '16px',
                     border: '1px solid rgba(255, 255, 255, 0.2)',
