@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Users, 
-  FileText, 
-  Settings, 
-  LogOut, 
-  TrendingUp, 
+import {
+  Users,
+  FileText,
+  Settings,
+  LogOut,
+  TrendingUp,
   Clock,
   MapPin,
   Mail,
@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { signOutAdmin, getCurrentAdminUser, AdminUser } from '../utils/adminAuth';
 import { getFirebase, collection, getDocs, doc, updateDoc } from '../../firebase/firebase';
+import QuoteRequestModal from './QuoteRequestModal';
+import ServiceProviderModal from './ServiceProviderModal';
 
 interface ServiceProvider {
   id: string;
@@ -24,7 +26,7 @@ interface ServiceProvider {
   email: string;
   primaryContactNumber: string;
   serviceAreas: string[];
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'approved' | 'rejected' | 'inactive';
   createdAt: string;
 }
 
@@ -32,7 +34,14 @@ interface QuoteRequest {
   id: string;
   name: string;
   email: string;
+  phone?: string;
   contactMethod: string;
+  description?: string;
+  houseFlatNumber?: string;
+  streetName?: string;
+  postcode?: string;
+  fileUrl?: string;
+  createdAt?: string;
   [key: string]: any; // For other quote fields
 }
 
@@ -44,13 +53,18 @@ const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedProvider, setSelectedProvider] = useState<ServiceProvider | null>(null);
 
+  // Modal states
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [showProviderModal, setShowProviderModal] = useState(false);
+  const [selectedQuoteRequest, setSelectedQuoteRequest] = useState<QuoteRequest | null>(null);
+
   // Load current user and data
   useEffect(() => {
     const loadData = async () => {
       try {
         const user = await getCurrentAdminUser();
         setCurrentUser(user);
-        
+
         // Load service providers
         const { db } = getFirebase();
         const providersSnapshot = await getDocs(collection(db, 'serviceProviders'));
@@ -90,18 +104,47 @@ const AdminDashboard: React.FC = () => {
     try {
       const { db } = getFirebase();
       await updateDoc(doc(db, 'serviceProviders', providerId), { status });
-      
+
       // Update local state
-      setServiceProviders(prev => 
-        prev.map(provider => 
+      setServiceProviders(prev =>
+        prev.map(provider =>
           provider.id === providerId ? { ...provider, status } : provider
         )
       );
-      
+
       setSelectedProvider(null);
     } catch (error) {
       console.error('Error updating provider status:', error);
     }
+  };
+
+  // Handle service provider updates from modal
+  const updateServiceProvider = async (providerId: string, updatedData: Partial<ServiceProvider>) => {
+    try {
+      const { db } = getFirebase();
+      await updateDoc(doc(db, 'serviceProviders', providerId), updatedData);
+
+      // Update local state
+      setServiceProviders(prev =>
+        prev.map(provider =>
+          provider.id === providerId ? { ...provider, ...updatedData } : provider
+        )
+      );
+    } catch (error) {
+      console.error('Error updating service provider:', error);
+      throw new Error('Failed to update service provider');
+    }
+  };
+
+  // Modal click handlers
+  const handleQuoteClick = (quote: QuoteRequest) => {
+    setSelectedQuoteRequest(quote);
+    setShowQuoteModal(true);
+  };
+
+  const handleProviderClick = (provider: ServiceProvider) => {
+    setSelectedProvider(provider);
+    setShowProviderModal(true);
   };
 
   const stats = {
@@ -160,7 +203,7 @@ const AdminDashboard: React.FC = () => {
             Welcome back, {currentUser?.email}
           </p>
         </div>
-        
+
         <button
           onClick={handleSignOut}
           style={{
@@ -244,7 +287,7 @@ const AdminDashboard: React.FC = () => {
           {activeTab === 'overview' && (
             <div>
               <h2 style={{ color: 'white', marginBottom: '1.5rem', fontSize: '1.25rem' }}>Overview</h2>
-              
+
               {/* Stats Grid */}
               <div style={{
                 display: 'grid',
@@ -276,9 +319,9 @@ const AdminDashboard: React.FC = () => {
                       right: '1rem',
                       width: '40px',
                       height: '40px',
-                      background: `rgba(${stat.color === '#667eea' ? '102, 126, 234' : 
-                                          stat.color === '#f59e0b' ? '245, 158, 11' :
-                                          stat.color === '#10b981' ? '16, 185, 129' : '139, 92, 246'}, 0.2)`,
+                      background: `rgba(${stat.color === '#667eea' ? '102, 126, 234' :
+                        stat.color === '#f59e0b' ? '245, 158, 11' :
+                          stat.color === '#10b981' ? '16, 185, 129' : '139, 92, 246'}, 0.2)`,
                       borderRadius: '10px',
                       display: 'flex',
                       alignItems: 'center',
@@ -303,7 +346,7 @@ const AdminDashboard: React.FC = () => {
           {activeTab === 'providers' && (
             <div>
               <h2 style={{ color: 'white', marginBottom: '1.5rem', fontSize: '1.25rem' }}>Service Providers</h2>
-              
+
               <div style={{
                 background: 'rgba(255, 255, 255, 0.05)',
                 backdropFilter: 'blur(20px)',
@@ -327,7 +370,22 @@ const AdminDashboard: React.FC = () => {
                         alignItems: 'center'
                       }}
                     >
-                      <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          flex: 1,
+                          cursor: 'pointer',
+                          padding: '0.5rem',
+                          borderRadius: '8px',
+                          transition: 'background-color 0.2s ease'
+                        }}
+                        onClick={() => handleProviderClick(provider)}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }}
+                      >
                         <h3 style={{ color: 'white', margin: '0 0 0.5rem 0', fontSize: '1.1rem' }}>
                           {provider.firstName} {provider.lastName}
                           {provider.companyName && <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontWeight: '400' }}> - {provider.companyName}</span>}
@@ -349,7 +407,7 @@ const AdminDashboard: React.FC = () => {
                           </span>
                         </div>
                       </div>
-                      
+
                       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                         <span style={{
                           padding: '0.25rem 0.75rem',
@@ -357,19 +415,25 @@ const AdminDashboard: React.FC = () => {
                           fontSize: '0.8rem',
                           fontWeight: '600',
                           background: provider.status === 'pending' ? 'rgba(245, 158, 11, 0.2)' :
-                                     provider.status === 'approved' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                            provider.status === 'approved' ? 'rgba(16, 185, 129, 0.2)' :
+                              provider.status === 'inactive' ? 'rgba(107, 114, 128, 0.2)' : 'rgba(239, 68, 68, 0.2)',
                           color: provider.status === 'pending' ? '#fbbf24' :
-                                 provider.status === 'approved' ? '#34d399' : '#f87171',
+                            provider.status === 'approved' ? '#34d399' :
+                              provider.status === 'inactive' ? '#9CA3AF' : '#f87171',
                           border: `1px solid ${provider.status === 'pending' ? 'rgba(245, 158, 11, 0.3)' :
-                                                provider.status === 'approved' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
+                            provider.status === 'approved' ? 'rgba(16, 185, 129, 0.3)' :
+                              provider.status === 'inactive' ? 'rgba(107, 114, 128, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
                         }}>
                           {provider.status.toUpperCase()}
                         </span>
-                        
+
                         {provider.status === 'pending' && (
                           <>
                             <button
-                              onClick={() => updateProviderStatus(provider.id, 'approved')}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                updateProviderStatus(provider.id, 'approved');
+                              }}
                               style={{
                                 padding: '0.5rem',
                                 background: 'rgba(16, 185, 129, 0.1)',
@@ -382,7 +446,10 @@ const AdminDashboard: React.FC = () => {
                               <CheckCircle size={16} />
                             </button>
                             <button
-                              onClick={() => updateProviderStatus(provider.id, 'rejected')}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                updateProviderStatus(provider.id, 'rejected');
+                              }}
                               style={{
                                 padding: '0.5rem',
                                 background: 'rgba(239, 68, 68, 0.1)',
@@ -396,6 +463,23 @@ const AdminDashboard: React.FC = () => {
                             </button>
                           </>
                         )}
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleProviderClick(provider);
+                          }}
+                          style={{
+                            padding: '0.5rem',
+                            background: 'rgba(102, 126, 234, 0.1)',
+                            border: '1px solid rgba(102, 126, 234, 0.3)',
+                            borderRadius: '8px',
+                            color: '#8b9aef',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <Eye size={16} />
+                        </button>
                       </div>
                     </div>
                   ))
@@ -407,7 +491,7 @@ const AdminDashboard: React.FC = () => {
           {activeTab === 'quotes' && (
             <div>
               <h2 style={{ color: 'white', marginBottom: '1.5rem', fontSize: '1.25rem' }}>Quote Requests</h2>
-              
+
               <div style={{
                 background: 'rgba(255, 255, 255, 0.05)',
                 backdropFilter: 'blur(20px)',
@@ -423,22 +507,68 @@ const AdminDashboard: React.FC = () => {
                   quoteRequests.map((quote, index) => (
                     <div
                       key={quote.id}
+                      onClick={() => handleQuoteClick(quote)}
                       style={{
                         padding: '1.5rem',
-                        borderBottom: index < quoteRequests.length - 1 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none'
+                        borderBottom: index < quoteRequests.length - 1 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
                       }}
                     >
-                      <h3 style={{ color: 'white', margin: '0 0 0.5rem 0', fontSize: '1.1rem' }}>
-                        {quote.name}
-                      </h3>
-                      <div style={{ display: 'flex', gap: '1rem' }}>
-                        <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <Mail size={14} />
-                          {quote.email}
-                        </span>
-                        <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem' }}>
-                          Contact: {quote.contactMethod}
-                        </span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div style={{ flex: 1 }}>
+                          <h3 style={{ color: 'white', margin: '0 0 0.5rem 0', fontSize: '1.1rem' }}>
+                            {quote.name}
+                          </h3>
+                          <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem' }}>
+                            <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <Mail size={14} />
+                              {quote.email}
+                            </span>
+                            <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem' }}>
+                              Contact: {quote.contactMethod}
+                            </span>
+                          </div>
+                          {quote.description && (
+                            <p style={{
+                              color: 'rgba(255, 255, 255, 0.7)',
+                              fontSize: '0.85rem',
+                              margin: '0.5rem 0 0 0',
+                              overflow: 'hidden',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical'
+                            }}>
+                              {quote.description}
+                            </p>
+                          )}
+                        </div>
+                        <div style={{ marginLeft: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          {quote.fileUrl && (
+                            <span style={{
+                              padding: '0.25rem 0.5rem',
+                              backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                              color: '#fbbf24',
+                              borderRadius: '12px',
+                              fontSize: '0.75rem',
+                              fontWeight: '500'
+                            }}>
+                              📎 FILE
+                            </span>
+                          )}
+                          <span style={{
+                            color: 'rgba(255, 255, 255, 0.5)',
+                            fontSize: '0.75rem'
+                          }}>
+                            Click to view
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ))
@@ -448,6 +578,20 @@ const AdminDashboard: React.FC = () => {
           )}
         </main>
       </div>
+
+      {/* Modals */}
+      <QuoteRequestModal
+        isOpen={showQuoteModal}
+        onClose={() => setShowQuoteModal(false)}
+        quote={selectedQuoteRequest}
+      />
+
+      <ServiceProviderModal
+        isOpen={showProviderModal}
+        onClose={() => setShowProviderModal(false)}
+        provider={selectedProvider}
+        onSave={updateServiceProvider}
+      />
 
       <style>{`
         @keyframes spin {
