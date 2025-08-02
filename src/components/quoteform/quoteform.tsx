@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Upload } from "lucide-react";
+import { Upload, CheckCircle, AlertCircle, Zap, RefreshCw } from "lucide-react";
 
 // ↓— swap this with your real Firebase helper
 import submitQuote from "../../firebase/submitQuote";
@@ -230,393 +230,789 @@ const QuoteForm = () => {
   return (
     <section
       id="quote-form"
-      className="relative bg-gradient-to-b from-blue-600 to-blue-800 text-white py-12 px-6 overflow-hidden"
       style={{
         position: 'relative',
-        padding: '3rem 1.5rem',
-        backgroundColor: '#1E40AF',
-        background: 'linear-gradient(180deg, #1E40AF, #1E3A8A)',
-        color: '#333',
-        overflow: 'hidden'
+        padding: '6rem 1.5rem',
+        background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
+        color: '#fff',
+        overflow: 'hidden',
+        fontFamily: 'Inter, system-ui, sans-serif'
       }}
     >
-      {/* Circuit pattern background - Updated to match header style with off-white color */}
+      {/* Enhanced geometric background */}
       <div 
-        className="absolute inset-0 opacity-30"
         style={{
           position: 'absolute',
           inset: 0,
-          opacity: 0.3
+          opacity: 0.1
         }}
       >
         <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-          <pattern id="circuit-quote" width="50" height="50" patternUnits="userSpaceOnUse">
-            <path d="M10 10 L40 10 L40 40 L10 40 Z" fill="none" stroke="#F5F5F5" strokeWidth="1.5" />
-            <circle cx="10" cy="10" r="2" fill="#F5F5F5" />
-            <circle cx="40" cy="40" r="2" fill="#F5F5F5" />
-            <path d="M10 25 H30 V40" fill="none" stroke="#F5F5F5" strokeWidth="1.5" />
-            <path d="M25 10 V30 H40" fill="none" stroke="#F5F5F5" strokeWidth="1.5" />
-          </pattern>
-          <rect width="100%" height="100%" fill="url(#circuit-quote)" />
+          <defs>
+            <pattern id="circuit-quote-modern" width="100" height="100" patternUnits="userSpaceOnUse">
+              {/* Main circuit structure */}
+              <path d="M25 25 L75 25 L75 75 L25 75 Z" fill="none" stroke="#667eea" strokeWidth="2" opacity="0.5" />
+              <path d="M0 50 L25 50" fill="none" stroke="#8b9aef" strokeWidth="1.5" opacity="0.3" />
+              <path d="M75 50 L100 50" fill="none" stroke="#8b9aef" strokeWidth="1.5" opacity="0.3" />
+              <path d="M50 0 L50 25" fill="none" stroke="#8b9aef" strokeWidth="1.5" opacity="0.3" />
+              <path d="M50 75 L50 100" fill="none" stroke="#8b9aef" strokeWidth="1.5" opacity="0.3" />
+              
+              {/* Connection points */}
+              <circle cx="25" cy="25" r="3" fill="#FFD300" opacity="0.8" />
+              <circle cx="75" cy="75" r="3" fill="#667eea" opacity="0.6" />
+              <circle cx="75" cy="25" r="2" fill="#8b9aef" opacity="0.5" />
+              <circle cx="25" cy="75" r="2" fill="#8b9aef" opacity="0.5" />
+              
+              {/* Internal pathways */}
+              <path d="M25 50 H50 V75" fill="none" stroke="#FFD300" strokeWidth="1.5" opacity="0.4" />
+              <path d="M50 25 V50 H75" fill="none" stroke="#FFD300" strokeWidth="1.5" opacity="0.4" />
+              
+              {/* Detail elements */}
+              <rect x="40" y="40" width="20" height="20" fill="none" stroke="#667eea" strokeWidth="1" opacity="0.3" />
+              <circle cx="35" cy="35" r="1.5" fill="#8b9aef" opacity="0.4" />
+              <circle cx="65" cy="65" r="1.5" fill="#8b9aef" opacity="0.4" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#circuit-quote-modern)" />
         </svg>
       </div>
       
       <div style={{
         position: 'relative',
         zIndex: 1,
-        maxWidth: '650px',
-        margin: '0 auto',
-        backgroundColor: 'white',
-        borderRadius: '0.5rem',
-        padding: '2rem',
-        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
+        maxWidth: '800px',
+        margin: '0 auto'
       }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          marginBottom: '1.5rem'
-        }}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFD300" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-          </svg>
-          <h2 style={{
-            fontSize: '1.75rem',
-            fontWeight: 'bold',
-            marginLeft: '0.5rem',
-            textTransform: 'uppercase',
-            color: '#1E3A8A'
-          }}>
+        {/* Section Header */}
+        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+          <div
+            style={{
+              display: 'inline-block',
+              padding: '0.5rem 1.5rem',
+              background: 'rgba(255, 211, 0, 0.1)',
+              border: '1px solid rgba(255, 211, 0, 0.3)',
+              borderRadius: '50px',
+              color: '#FFD300',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              marginBottom: '1.5rem'
+            }}
+          >
+            Get Your Quote
+          </div>
+          
+          <h2
+            style={{
+              fontSize: 'clamp(2rem, 4vw, 2.5rem)',
+              fontWeight: '800',
+              marginBottom: '1rem',
+              background: 'linear-gradient(135deg, #ffffff 0%, #8b9aef 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              lineHeight: '1.2'
+            }}
+          >
             REQUEST A FREE QUOTE
           </h2>
+          
+          <p
+            style={{
+              fontSize: '1.125rem',
+              color: 'rgba(255, 255, 255, 0.8)',
+              maxWidth: '600px',
+              margin: '0 auto',
+              lineHeight: '1.6'
+            }}
+          >
+            Tell us about your electrical project and get a transparent, no-obligation quote within 2 hours.
+          </p>
         </div>
 
-        {success && (
+        {/* Main Form Card */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '24px',
+          padding: '3rem',
+          boxShadow: '0 25px 50px rgba(0, 0, 0, 0.2)',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Form header icon */}
           <div style={{
-            marginBottom: '1rem',
-            padding: '0.75rem',
-            backgroundColor: '#d1fae5',
-            border: '1px solid #a7f3d0',
-            borderRadius: '0.25rem',
+            position: 'absolute',
+            top: '-20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '40px',
+            height: '40px',
+            background: 'linear-gradient(135deg, #FFD300 0%, #f59e0b 100%)',
+            borderRadius: '50%',
             display: 'flex',
-            alignItems: 'center'
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 10px 25px rgba(255, 211, 0, 0.3)'
           }}>
-            <span style={{ color: '#065f46' }}>
-              Thanks! We'll get back to you ASAP.
-            </span>
-          </div>
-        )}
-
-        {error && (
-          <div style={{
-            marginBottom: '1rem',
-            padding: '0.75rem',
-            backgroundColor: '#fee2e2',
-            border: '1px solid #fecaca',
-            borderRadius: '0.25rem',
-            display: 'flex',
-            alignItems: 'center'
-          }}>
-            <span style={{ color: '#991b1b', whiteSpace: 'pre-line' }}>{error}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1rem' }}>
-            <input
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: `1px solid ${formErrors.name ? '#EF4444' : '#ccc'}`,
-                borderRadius: '0.25rem',
-                fontSize: '1rem'
-              }}
-              type="text"
-              name="name"
-              placeholder="Name *"
-              value={values.name}
-              required
-              onChange={handleChange}
-              onBlur={handleBlur}
-            />
-            {formErrors.name && (
-              <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{formErrors.name}</p>
-            )}
+            <Zap size={20} style={{ color: '#1a1a2e' }} />
           </div>
 
-          <div style={{ marginBottom: '1rem' }}>
-            <input
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: `1px solid ${formErrors.email ? '#EF4444' : '#ccc'}`,
-                borderRadius: '0.25rem',
-                fontSize: '1rem'
-              }}
-              type="email"
-              name="email"
-              placeholder="Email *"
-              value={values.email}
-              required
-              onChange={handleChange}
-              onBlur={handleBlur}
-            />
-            {formErrors.email && (
-              <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{formErrors.email}</p>
-            )}
-          </div>
-
-          <div style={{ marginBottom: '1rem' }}>
-            <input
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: `1px solid ${formErrors.phone ? '#EF4444' : '#ccc'}`,
-                borderRadius: '0.25rem',
-                fontSize: '1rem'
-              }}
-              type="tel"
-              name="phone"
-              placeholder="Phone *"
-              value={values.phone}
-              required
-              onChange={handleChange}
-              onBlur={handleBlur}
-            />
-            {formErrors.phone && (
-              <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{formErrors.phone}</p>
-            )}
-          </div>
-
-          {/* Address fields */}
-          <div style={{ marginBottom: '1rem' }}>
-            <input
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: `1px solid ${formErrors.houseFlatNumber ? '#EF4444' : '#ccc'}`,
-                borderRadius: '0.25rem',
-                fontSize: '1rem'
-              }}
-              type="text"
-              name="houseFlatNumber"
-              placeholder="House/Flat Name or Number *"
-              value={values.houseFlatNumber}
-              required
-              onChange={handleChange}
-              onBlur={handleBlur}
-            />
-            {formErrors.houseFlatNumber && (
-              <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{formErrors.houseFlatNumber}</p>
-            )}
-          </div>
-
-          <div style={{ marginBottom: '1rem' }}>
-            <input
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: `1px solid ${formErrors.streetName ? '#EF4444' : '#ccc'}`,
-                borderRadius: '0.25rem',
-                fontSize: '1rem'
-              }}
-              type="text"
-              name="streetName"
-              placeholder="Street Name *"
-              value={values.streetName}
-              required
-              onChange={handleChange}
-              onBlur={handleBlur}
-            />
-            {formErrors.streetName && (
-              <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{formErrors.streetName}</p>
-            )}
-          </div>
-
-          <div style={{ marginBottom: '1rem' }}>
-            <input
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: `1px solid ${formErrors.postcode ? '#EF4444' : '#ccc'}`,
-                borderRadius: '0.25rem',
-                fontSize: '1rem'
-              }}
-              type="text"
-              name="postcode"
-              placeholder="Postcode *"
-              value={values.postcode}
-              required
-              onChange={handleChange}
-              onBlur={handleBlur}
-            />
-            {formErrors.postcode && (
-              <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{formErrors.postcode}</p>
-            )}
-          </div>
-
-          {/* Contact Method Selection */}
-          <div style={{ marginBottom: '1rem' }}>
-            <p style={{ 
-              marginBottom: '0.5rem',
-              fontSize: '1rem'
+          {/* Success Message */}
+          {success && (
+            <div style={{
+              marginBottom: '2rem',
+              padding: '1.5rem',
+              background: 'rgba(16, 185, 129, 0.1)',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+              borderRadius: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem'
             }}>
-              Preferred contact method:
-            </p>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <label style={{ display: 'flex', alignItems: 'center' }}>
-                <input
-                  type="radio"
-                  name="contactMethod"
-                  value="phone"
-                  checked={values.contactMethod === "phone"}
-                  onChange={() => handleContactMethodChange("phone")}
-                  style={{ marginRight: '0.25rem' }}
-                />
-                <span>Phone</span>
-              </label>
-
-              <label style={{ display: 'flex', alignItems: 'center' }}>
-                <input
-                  type="radio"
-                  name="contactMethod"
-                  value="text"
-                  checked={values.contactMethod === "text"}
-                  onChange={() => handleContactMethodChange("text")}
-                  style={{ marginRight: '0.25rem' }}
-                />
-                <span>Text</span>
-              </label>
-
-              <label style={{ display: 'flex', alignItems: 'center' }}>
-                <input
-                  type="radio"
-                  name="contactMethod"
-                  value="email"
-                  checked={values.contactMethod === "email"}
-                  onChange={() => handleContactMethodChange("email")}
-                  style={{ marginRight: '0.25rem' }}
-                />
-                <span>Email</span>
-              </label>
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '1rem' }}>
-            <textarea
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: `1px solid ${formErrors.description ? '#EF4444' : '#ccc'}`,
-                borderRadius: '0.25rem',
-                fontSize: '1rem',
-                minHeight: '100px',
-                resize: 'vertical'
-              }}
-              name="description"
-              placeholder="Tell us what electrical work you need... (min 10 words) *"
-              value={values.description}
-              required
-              onChange={handleChange}
-              onBlur={handleBlur}
-            />
-            {formErrors.description && (
-              <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{formErrors.description}</p>
-            )}
-          </div>
-
-          {/* File uploader with standard HTML file input */}
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <Upload size={16} style={{ marginRight: '0.5rem' }} />
-              Attach photo or diagram
-            </label>
-            <input
-              type="file"
-              accept="image/*,application/pdf,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-              onChange={handleFile}
-              style={{ 
-                width: '100%',
-                padding: '0.25rem 0'
-              }}
-            />
-            <p style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.25rem' }}>
-              Optional - Images, PDF, text, or Word documents (10MB max)
-            </p>
-          </div>
-
-          {/* Simple Captcha */}
-          <div style={{ marginBottom: '1.5rem' }}>
-            <p style={{ marginBottom: '0.5rem' }}>Security Check:</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <CheckCircle size={24} style={{ color: '#10b981' }} />
               <div>
-                {captchaValue} = ?
+                <h4 style={{ color: '#10b981', margin: '0 0 0.25rem 0', fontWeight: '600' }}>
+                  Quote Request Submitted!
+                </h4>
+                <p style={{ color: 'rgba(16, 185, 129, 0.8)', margin: 0, fontSize: '0.875rem' }}>
+                  Thanks! We'll get back to you within 2 hours with your free quote.
+                </p>
               </div>
+            </div>
+          )}
+
+          {/* Error Message */}
+          {error && (
+            <div style={{
+              marginBottom: '2rem',
+              padding: '1.5rem',
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: '16px',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '1rem'
+            }}>
+              <AlertCircle size={24} style={{ color: '#ef4444', flexShrink: 0, marginTop: '2px' }} />
               <div>
+                <h4 style={{ color: '#ef4444', margin: '0 0 0.25rem 0', fontWeight: '600' }}>
+                  Please Fix These Issues:
+                </h4>
+                <pre style={{ 
+                  color: 'rgba(239, 68, 68, 0.8)', 
+                  margin: 0, 
+                  fontSize: '0.875rem',
+                  whiteSpace: 'pre-line',
+                  fontFamily: 'inherit'
+                }}>
+                  {error}
+                </pre>
+              </div>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {/* Personal Information Section */}
+            <div style={{ marginBottom: '1rem' }}>
+              <h3 style={{
+                color: '#8b9aef',
+                fontSize: '1.125rem',
+                fontWeight: '600',
+                marginBottom: '1.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                📋 Contact Information
+              </h3>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                <div>
+                  <input
+                    style={{
+                      width: '100%',
+                      padding: '1rem',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: `2px solid ${formErrors.name ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)'}`,
+                      borderRadius: '12px',
+                      color: '#fff',
+                      fontSize: '1rem',
+                      outline: 'none',
+                      transition: 'all 0.3s ease',
+                      backdropFilter: 'blur(10px)'
+                    }}
+                    type="text"
+                    name="name"
+                    placeholder="Full Name *"
+                    value={values.name}
+                    required
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                      e.target.style.background = 'rgba(255, 255, 255, 0.08)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = formErrors.name ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
+                      e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+                      handleBlur(e);
+                    }}
+                  />
+                  {formErrors.name && (
+                    <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
+                      {formErrors.name}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <input
+                    style={{
+                      width: '100%',
+                      padding: '1rem',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: `2px solid ${formErrors.email ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)'}`,
+                      borderRadius: '12px',
+                      color: '#fff',
+                      fontSize: '1rem',
+                      outline: 'none',
+                      transition: 'all 0.3s ease',
+                      backdropFilter: 'blur(10px)'
+                    }}
+                    type="email"
+                    name="email"
+                    placeholder="Email Address *"
+                    value={values.email}
+                    required
+                    onChange={handleChange}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                      e.target.style.background = 'rgba(255, 255, 255, 0.08)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = formErrors.email ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
+                      e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+                      handleBlur(e);
+                    }}
+                  />
+                  {formErrors.email && (
+                    <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
+                      {formErrors.email}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <input
+                    style={{
+                      width: '100%',
+                      padding: '1rem',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: `2px solid ${formErrors.phone ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)'}`,
+                      borderRadius: '12px',
+                      color: '#fff',
+                      fontSize: '1rem',
+                      outline: 'none',
+                      transition: 'all 0.3s ease',
+                      backdropFilter: 'blur(10px)'
+                    }}
+                    type="tel"
+                    name="phone"
+                    placeholder="Phone Number *"
+                    value={values.phone}
+                    required
+                    onChange={handleChange}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                      e.target.style.background = 'rgba(255, 255, 255, 0.08)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = formErrors.phone ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
+                      e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+                      handleBlur(e);
+                    }}
+                  />
+                  {formErrors.phone && (
+                    <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
+                      {formErrors.phone}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Address Section */}
+            <div style={{ marginBottom: '1rem' }}>
+              <h3 style={{
+                color: '#8b9aef',
+                fontSize: '1.125rem',
+                fontWeight: '600',
+                marginBottom: '1.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                📍 Property Address
+              </h3>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                <div>
+                  <input
+                    style={{
+                      width: '100%',
+                      padding: '1rem',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: `2px solid ${formErrors.houseFlatNumber ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)'}`,
+                      borderRadius: '12px',
+                      color: '#fff',
+                      fontSize: '1rem',
+                      outline: 'none',
+                      transition: 'all 0.3s ease',
+                      backdropFilter: 'blur(10px)'
+                    }}
+                    type="text"
+                    name="houseFlatNumber"
+                    placeholder="House/Flat Number *"
+                    value={values.houseFlatNumber}
+                    required
+                    onChange={handleChange}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                      e.target.style.background = 'rgba(255, 255, 255, 0.08)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = formErrors.houseFlatNumber ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
+                      e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+                      handleBlur(e);
+                    }}
+                  />
+                  {formErrors.houseFlatNumber && (
+                    <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
+                      {formErrors.houseFlatNumber}
+                    </p>
+                  )}
+                </div>
+
+                <div style={{ gridColumn: 'span 2' }}>
+                  <input
+                    style={{
+                      width: '100%',
+                      padding: '1rem',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: `2px solid ${formErrors.streetName ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)'}`,
+                      borderRadius: '12px',
+                      color: '#fff',
+                      fontSize: '1rem',
+                      outline: 'none',
+                      transition: 'all 0.3s ease',
+                      backdropFilter: 'blur(10px)'
+                    }}
+                    type="text"
+                    name="streetName"
+                    placeholder="Street Name *"
+                    value={values.streetName}
+                    required
+                    onChange={handleChange}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                      e.target.style.background = 'rgba(255, 255, 255, 0.08)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = formErrors.streetName ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
+                      e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+                      handleBlur(e);
+                    }}
+                  />
+                  {formErrors.streetName && (
+                    <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
+                      {formErrors.streetName}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <input
+                    style={{
+                      width: '100%',
+                      padding: '1rem',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: `2px solid ${formErrors.postcode ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)'}`,
+                      borderRadius: '12px',
+                      color: '#fff',
+                      fontSize: '1rem',
+                      outline: 'none',
+                      transition: 'all 0.3s ease',
+                      backdropFilter: 'blur(10px)'
+                    }}
+                    type="text"
+                    name="postcode"
+                    placeholder="Postcode *"
+                    value={values.postcode}
+                    required
+                    onChange={handleChange}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                      e.target.style.background = 'rgba(255, 255, 255, 0.08)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = formErrors.postcode ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
+                      e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+                      handleBlur(e);
+                    }}
+                  />
+                  {formErrors.postcode && (
+                    <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
+                      {formErrors.postcode}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Contact Method Selection */}
+            <div style={{ marginBottom: '1rem' }}>
+              <h3 style={{
+                color: '#8b9aef',
+                fontSize: '1.125rem',
+                fontWeight: '600',
+                marginBottom: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                📞 Preferred Contact Method
+              </h3>
+              
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', 
+                gap: '1rem' 
+              }}>
+                {['phone', 'text', 'email'].map((method) => (
+                  <label 
+                    key={method}
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      padding: '1rem',
+                      background: values.contactMethod === method 
+                        ? 'rgba(255, 211, 0, 0.1)' 
+                        : 'rgba(255, 255, 255, 0.05)',
+                      border: values.contactMethod === method 
+                        ? '2px solid rgba(255, 211, 0, 0.5)' 
+                        : '2px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '12px',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      backdropFilter: 'blur(10px)'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (values.contactMethod !== method) {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (values.contactMethod !== method) {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                      }
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="contactMethod"
+                      value={method}
+                      checked={values.contactMethod === method}
+                      onChange={() => handleContactMethodChange(method)}
+                      style={{ margin: 0, accentColor: '#FFD300' }}
+                    />
+                    <span style={{ 
+                      color: values.contactMethod === method ? '#FFD300' : '#fff',
+                      fontWeight: values.contactMethod === method ? '600' : '400',
+                      textTransform: 'capitalize'
+                    }}>
+                      {method}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Project Description */}
+            <div style={{ marginBottom: '1rem' }}>
+              <h3 style={{
+                color: '#8b9aef',
+                fontSize: '1.125rem',
+                fontWeight: '600',
+                marginBottom: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                ⚡ Project Details
+              </h3>
+              
+              <textarea
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: `2px solid ${formErrors.description ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)'}`,
+                  borderRadius: '12px',
+                  color: '#fff',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  transition: 'all 0.3s ease',
+                  backdropFilter: 'blur(10px)',
+                  minHeight: '120px',
+                  resize: 'vertical',
+                  fontFamily: 'inherit'
+                }}
+                name="description"
+                placeholder="Tell us about your electrical project... (minimum 10 words) *"
+                value={values.description}
+                required
+                onChange={handleChange}
+                onFocus={(e) => {
+                  e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                  e.target.style.background = 'rgba(255, 255, 255, 0.08)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = formErrors.description ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
+                  e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+                  handleBlur(e);
+                }}
+              />
+              {formErrors.description && (
+                <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
+                  {formErrors.description}
+                </p>
+              )}
+            </div>
+
+            {/* File Upload */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.75rem',
+                marginBottom: '1rem',
+                color: '#8b9aef',
+                fontSize: '1.125rem',
+                fontWeight: '600'
+              }}>
+                📎 Attach Photos (Optional)
+              </label>
+              
+              <div
+                style={{
+                  position: 'relative',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '2px dashed rgba(255, 255, 255, 0.2)',
+                  borderRadius: '12px',
+                  padding: '2rem',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  backdropFilter: 'blur(10px)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 211, 0, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                }}
+              >
+                <input
+                  type="file"
+                  accept="image/*,application/pdf,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  onChange={handleFile}
+                  style={{ 
+                    position: 'absolute',
+                    inset: 0,
+                    opacity: 0,
+                    cursor: 'pointer'
+                  }}
+                />
+                <Upload size={32} style={{ color: '#8b9aef', marginBottom: '1rem' }} />
+                <div>
+                  <p style={{ color: '#fff', marginBottom: '0.5rem', fontWeight: '500' }}>
+                    {values.file ? values.file.name : 'Click to upload or drag & drop'}
+                  </p>
+                  <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', margin: 0 }}>
+                    Images, PDF, text, or Word documents (10MB max)
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Security Check */}
+            <div style={{ marginBottom: '2rem' }}>
+              <h3 style={{
+                color: '#8b9aef',
+                fontSize: '1.125rem',
+                fontWeight: '600',
+                marginBottom: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                🔒 Security Check
+              </h3>
+              
+              <div style={{ 
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '12px',
+                padding: '1.5rem',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '1rem',
+                  marginBottom: '1rem'
+                }}>
+                  <div style={{
+                    fontSize: '1.25rem',
+                    fontWeight: '600',
+                    color: '#FFD300'
+                  }}>
+                    What is {captchaValue}?
+                  </div>
+                  
+                  <button
+                    type="button"
+                    onClick={generateCaptcha}
+                    style={{
+                      padding: '0.5rem',
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '8px',
+                      color: '#8b9aef',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                    }}
+                  >
+                    <RefreshCw size={16} />
+                  </button>
+                </div>
+                
                 <input
                   type="text"
                   name="captcha"
-                  placeholder="Enter result"
+                  placeholder="Enter your answer"
                   required
                   style={{
                     width: '100%',
                     maxWidth: '200px',
-                    padding: '0.5rem',
-                    border: `1px solid ${captchaError ? '#EF4444' : '#ccc'}`,
-                    borderRadius: '0.25rem'
+                    padding: '0.75rem',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: `2px solid ${captchaError ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)'}`,
+                    borderRadius: '8px',
+                    color: '#fff',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'all 0.3s ease'
                   }}
                   onChange={() => captchaError && setCaptchaError(false)}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = captchaError ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
+                  }}
                 />
+                
                 {captchaError && (
-                  <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+                  <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
                     Incorrect answer, please try again
                   </p>
                 )}
               </div>
-              <button
-                type="button"
-                onClick={generateCaptcha}
-                style={{
-                  width: 'fit-content',
-                  padding: '0.25rem 0.5rem',
-                  backgroundColor: '#f3f4f6',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.25rem',
-                  cursor: 'pointer'
-                }}
-              >
-                Regenerate
-              </button>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={sending}
-            style={{
-              width: 'fit-content',
-              backgroundColor: '#FFD300',
-              color: '#1E3A8A',
-              fontWeight: 'bold',
-              padding: '0.5rem 1rem',
-              borderRadius: '0.25rem',
-              border: 'none',
-              cursor: sending ? 'not-allowed' : 'pointer',
-              opacity: sending ? 0.7 : 1,
-              textTransform: 'uppercase'
-            }}
-          >
-            {sending ? "SUBMITTING..." : "GET YOUR FREE QUOTE"}
-          </button>
-        </form>
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={sending}
+              style={{
+                width: '100%',
+                padding: '1.25rem 2rem',
+                background: sending 
+                  ? 'rgba(255, 255, 255, 0.1)' 
+                  : 'linear-gradient(135deg, #FFD300 0%, #f59e0b 100%)',
+                color: sending ? 'rgba(255, 255, 255, 0.5)' : '#1a1a2e',
+                fontWeight: '700',
+                borderRadius: '12px',
+                border: 'none',
+                cursor: sending ? 'not-allowed' : 'pointer',
+                fontSize: '1.125rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                transition: 'all 0.3s ease',
+                boxShadow: sending ? 'none' : '0 10px 30px rgba(255, 211, 0, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.75rem'
+              }}
+              onMouseOver={(e) => {
+                if (!sending) {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 15px 40px rgba(255, 211, 0, 0.4)';
+                }
+              }}
+              onMouseOut={(e) => {
+                if (!sending) {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 10px 30px rgba(255, 211, 0, 0.3)';
+                }
+              }}
+            >
+              {sending ? (
+                <>
+                  <div style={{
+                    width: '20px',
+                    height: '20px',
+                    border: '2px solid rgba(255, 255, 255, 0.3)',
+                    borderTop: '2px solid rgba(255, 255, 255, 0.8)',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }} />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  Get Your Free Quote
+                  <Zap size={20} />
+                </>
+              )}
+            </button>
+          </form>
+        </div>
       </div>
-      
-      {/* Wave divider at bottom */}
+
+      {/* Modern wave divider */}
       <div style={{
-        position: 'absolute', 
-        bottom: 0, 
-        left: 0, 
-        right: 0, 
-        height: '4rem', 
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: '6rem',
         overflow: 'hidden'
       }}>
         <svg
@@ -627,15 +1023,47 @@ const QuoteForm = () => {
             position: 'absolute',
             bottom: 0,
             width: '100%',
-            height: '5rem'
+            height: '8rem'
           }}
         >
+          <defs>
+            <linearGradient id="waveGradientQuote" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="rgba(255, 255, 255, 0.1)" />
+              <stop offset="100%" stopColor="white" />
+            </linearGradient>
+          </defs>
           <path
             d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
-            fill="white"
+            fill="url(#waveGradientQuote)"
           />
         </svg>
       </div>
+
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        
+        input::placeholder,
+        textarea::placeholder {
+          color: rgba(255, 255, 255, 0.4);
+        }
+        
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus {
+          -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.05) inset;
+          -webkit-text-fill-color: white;
+          transition: background-color 5000s ease-in-out 0s;
+        }
+        
+        @media (max-width: 768px) {
+          .form-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </section>
   );
 };

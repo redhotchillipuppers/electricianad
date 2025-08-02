@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { UserPlus, MapPin, Wrench, CheckCircle2, ArrowLeft, ChevronDown } from "lucide-react";
+import { UserPlus, MapPin, Wrench, CheckCircle, ArrowLeft, ChevronDown, RefreshCw, Zap, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import submitServiceProvider from "../../firebase/submitServiceProvider";
 
@@ -66,7 +66,7 @@ const ServiceProviderForm = () => {
       description: "Work on vetted projects with customers ready to hire qualified electricians"
     },
     {
-      icon: <CheckCircle2 size={24} />,
+      icon: <CheckCircle size={24} />,
       title: "Verified Platform",
       description: "Join a trusted network that values licensed, professional electricians"
     }
@@ -234,13 +234,17 @@ const ServiceProviderForm = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F5F5F5' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#0f0f23' }}>
       {/* Navigation Header */}
       <header
         style={{
-          backgroundColor: '#1E3A8A',
+          background: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(20px)',
           padding: '1rem 1.5rem',
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 100
         }}
       >
         <div
@@ -261,7 +265,15 @@ const ServiceProviderForm = () => {
               color: '#FFD300',
               textDecoration: 'none',
               fontWeight: '600',
-              transition: 'color 0.2s'
+              transition: 'all 0.3s ease',
+              padding: '0.5rem 1rem',
+              borderRadius: '8px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 211, 0, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
             }}
           >
             <ArrowLeft size={20} />
@@ -270,33 +282,52 @@ const ServiceProviderForm = () => {
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* Hero Section */}
       <section
         style={{
           position: 'relative',
-          background: 'linear-gradient(135deg, #1E40AF, #1E3A8A)',
+          background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
           color: '#fff',
           padding: '4rem 1.5rem',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          fontFamily: 'Inter, system-ui, sans-serif'
         }}
       >
-        {/* Circuit pattern background */}
-        <div
+        {/* Enhanced geometric background */}
+        <div 
           style={{
             position: 'absolute',
             inset: 0,
-            opacity: 0.2
+            opacity: 0.1
           }}
         >
           <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-            <pattern id="circuit-providers" width="60" height="60" patternUnits="userSpaceOnUse">
-              <path d="M15 15 L45 15 L45 45 L15 45 Z" fill="none" stroke="#FFD300" strokeWidth="2" />
-              <circle cx="15" cy="15" r="3" fill="#FFD300" />
-              <circle cx="45" cy="45" r="3" fill="#FFD300" />
-              <path d="M15 30 H35 V45" fill="none" stroke="#FFD300" strokeWidth="2" />
-              <path d="M30 15 V35 H45" fill="none" stroke="#FFD300" strokeWidth="2" />
-            </pattern>
-            <rect width="100%" height="100%" fill="url(#circuit-providers)" />
+            <defs>
+              <pattern id="circuit-providers-modern" width="100" height="100" patternUnits="userSpaceOnUse">
+                {/* Main circuit structure */}
+                <path d="M25 25 L75 25 L75 75 L25 75 Z" fill="none" stroke="#667eea" strokeWidth="2" opacity="0.5" />
+                <path d="M0 50 L25 50" fill="none" stroke="#8b9aef" strokeWidth="1.5" opacity="0.3" />
+                <path d="M75 50 L100 50" fill="none" stroke="#8b9aef" strokeWidth="1.5" opacity="0.3" />
+                <path d="M50 0 L50 25" fill="none" stroke="#8b9aef" strokeWidth="1.5" opacity="0.3" />
+                <path d="M50 75 L50 100" fill="none" stroke="#8b9aef" strokeWidth="1.5" opacity="0.3" />
+                
+                {/* Connection points */}
+                <circle cx="25" cy="25" r="3" fill="#FFD300" opacity="0.8" />
+                <circle cx="75" cy="75" r="3" fill="#667eea" opacity="0.6" />
+                <circle cx="75" cy="25" r="2" fill="#8b9aef" opacity="0.5" />
+                <circle cx="25" cy="75" r="2" fill="#8b9aef" opacity="0.5" />
+                
+                {/* Internal pathways */}
+                <path d="M25 50 H50 V75" fill="none" stroke="#FFD300" strokeWidth="1.5" opacity="0.4" />
+                <path d="M50 25 V50 H75" fill="none" stroke="#FFD300" strokeWidth="1.5" opacity="0.4" />
+                
+                {/* Detail elements */}
+                <rect x="40" y="40" width="20" height="20" fill="none" stroke="#667eea" strokeWidth="1" opacity="0.3" />
+                <circle cx="35" cy="35" r="1.5" fill="#8b9aef" opacity="0.4" />
+                <circle cx="65" cy="65" r="1.5" fill="#8b9aef" opacity="0.4" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#circuit-providers-modern)" />
           </svg>
         </div>
 
@@ -310,44 +341,49 @@ const ServiceProviderForm = () => {
         >
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <span
+            <div
               style={{
                 display: 'inline-block',
-                padding: '0.25rem 1rem',
-                backgroundColor: 'rgba(255, 211, 0, 0.2)',
+                padding: '0.5rem 1.5rem',
+                background: 'rgba(255, 211, 0, 0.1)',
+                border: '1px solid rgba(255, 211, 0, 0.3)',
+                borderRadius: '50px',
                 color: '#FFD300',
-                fontWeight: '600',
-                borderRadius: '9999px',
                 fontSize: '0.875rem',
-                marginBottom: '1rem',
+                fontWeight: '600',
                 textTransform: 'uppercase',
-                border: '1px solid rgba(255, 211, 0, 0.3)'
+                letterSpacing: '0.1em',
+                marginBottom: '1.5rem'
               }}
             >
-              Service Providers
-            </span>
+              Service Provider Network
+            </div>
+            
             <h1
               style={{
-                fontSize: '2.5rem',
-                fontWeight: 'bold',
+                fontSize: 'clamp(2rem, 4vw, 2.5rem)',
+                fontWeight: '800',
                 marginBottom: '1rem',
-                fontFamily: 'Electrolize, sans-serif',
-                textTransform: 'uppercase'
+                background: 'linear-gradient(135deg, #ffffff 0%, #8b9aef 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                lineHeight: '1.2'
               }}
             >
-              Join Our Network
+              JOIN OUR NETWORK
             </h1>
+            
             <p
               style={{
                 fontSize: '1.125rem',
-                color: 'rgba(255, 255, 255, 0.9)',
+                color: 'rgba(255, 255, 255, 0.8)',
                 maxWidth: '600px',
                 margin: '0 auto',
                 lineHeight: '1.6'
               }}
             >
-              Partner with us to grow your electrical contracting business.
-              Connect with customers who need quality electrical services.
+              Partner with us to grow your electrical contracting business. Connect with customers who need quality electrical services.
             </p>
           </div>
 
@@ -364,37 +400,50 @@ const ServiceProviderForm = () => {
               <div
                 key={index}
                 style={{
-                  backgroundColor: 'rgba(30, 64, 175, 0.3)',
-                  backdropFilter: 'blur(8px)',
-                  borderRadius: '0.75rem',
-                  padding: '1.5rem',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  backdropFilter: 'blur(20px)',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
-                  textAlign: 'center'
+                  borderRadius: '16px',
+                  padding: '2rem',
+                  textAlign: 'center',
+                  transition: 'all 0.3s ease',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-5px)';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 211, 0, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
                 }}
               >
                 <div
                   style={{
-                    backgroundColor: '#FFD300',
-                    color: '#1E3A8A',
-                    borderRadius: '9999px',
-                    padding: '0.75rem',
-                    width: '3.5rem',
-                    height: '3.5rem',
+                    background: 'linear-gradient(135deg, #FFD300 0%, #f59e0b 100%)',
+                    color: '#1a1a2e',
+                    borderRadius: '50%',
+                    padding: '1rem',
+                    width: '4rem',
+                    height: '4rem',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    margin: '0 auto 1rem auto',
-                    boxShadow: '0 10px 15px rgba(0, 0, 0, 0.1)'
+                    margin: '0 auto 1.5rem auto',
+                    boxShadow: '0 10px 25px rgba(255, 211, 0, 0.3)'
                   }}
                 >
                   {benefit.icon}
                 </div>
                 <h3
                   style={{
-                    fontSize: '1.125rem',
-                    fontWeight: '600',
-                    marginBottom: '0.5rem',
-                    fontFamily: 'Electrolize, sans-serif'
+                    fontSize: '1.25rem',
+                    fontWeight: '700',
+                    marginBottom: '0.75rem',
+                    color: '#8b9aef'
                   }}
                 >
                   {benefit.title}
@@ -402,8 +451,9 @@ const ServiceProviderForm = () => {
                 <p
                   style={{
                     color: 'rgba(255, 255, 255, 0.8)',
-                    fontSize: '0.875rem',
-                    lineHeight: '1.5'
+                    fontSize: '0.95rem',
+                    lineHeight: '1.6',
+                    margin: 0
                   }}
                 >
                   {benefit.description}
@@ -411,205 +461,437 @@ const ServiceProviderForm = () => {
               </div>
             ))}
           </div>
+        </div>
+      </section>
 
-          {/* Application Form */}
-          <div
-            style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(8px)',
-              borderRadius: '1rem',
-              padding: '2rem',
-              maxWidth: '600px',
-              margin: '0 auto',
-              boxShadow: '0 20px 25px rgba(0, 0, 0, 0.15)'
-            }}
-          >
-            <h2
+      {/* Application Form Section */}
+      <section
+        style={{
+          position: 'relative',
+          background: 'linear-gradient(135deg, #16213e 0%, #1a1a2e 50%, #0f0f23 100%)',
+          color: '#fff',
+          padding: '6rem 1.5rem',
+          overflow: 'hidden',
+          fontFamily: 'Inter, system-ui, sans-serif'
+        }}
+      >
+        {/* Circuit background for form section */}
+        <div 
+          style={{
+            position: 'absolute',
+            inset: 0,
+            opacity: 0.08
+          }}
+        >
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="circuit-form-modern" width="80" height="80" patternUnits="userSpaceOnUse">
+                <path d="M20 20 L60 20 L60 60 L20 60 Z" fill="none" stroke="#667eea" strokeWidth="1.5" opacity="0.4" />
+                <circle cx="20" cy="20" r="2" fill="#FFD300" opacity="0.6" />
+                <circle cx="60" cy="60" r="2" fill="#8b9aef" opacity="0.5" />
+                <path d="M20 40 H40 V60" fill="none" stroke="#FFD300" strokeWidth="1" opacity="0.3" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#circuit-form-modern)" />
+          </svg>
+        </div>
+
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 1,
+            maxWidth: '800px',
+            margin: '0 auto'
+          }}
+        >
+          {/* Section Header */}
+          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <div
               style={{
-                fontSize: '1.5rem',
-                fontWeight: 'bold',
-                color: '#1E3A8A',
-                marginBottom: '1rem',
-                textAlign: 'center',
-                fontFamily: 'Electrolize, sans-serif'
+                display: 'inline-block',
+                padding: '0.5rem 1.5rem',
+                background: 'rgba(102, 126, 234, 0.1)',
+                border: '1px solid rgba(102, 126, 234, 0.3)',
+                borderRadius: '50px',
+                color: '#8b9aef',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                marginBottom: '1.5rem'
               }}
             >
-              APPLICATION FORM
+              Application Form
+            </div>
+            
+            <h2
+              style={{
+                fontSize: 'clamp(1.75rem, 3vw, 2.25rem)',
+                fontWeight: '800',
+                marginBottom: '1rem',
+                background: 'linear-gradient(135deg, #ffffff 0%, #8b9aef 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                lineHeight: '1.2'
+              }}
+            >
+              START YOUR PARTNERSHIP
             </h2>
+            
+            <p
+              style={{
+                fontSize: '1.125rem',
+                color: 'rgba(255, 255, 255, 0.8)',
+                maxWidth: '500px',
+                margin: '0 auto',
+                lineHeight: '1.6'
+              }}
+            >
+              Fill out the form below and we'll review your application to join our trusted network.
+            </p>
+          </div>
 
+          {/* Main Form Card */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.05)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '24px',
+            padding: '3rem',
+            boxShadow: '0 25px 50px rgba(0, 0, 0, 0.2)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            {/* Form header icon */}
+            <div style={{
+              position: 'absolute',
+              top: '-20px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '40px',
+              height: '40px',
+              background: 'linear-gradient(135deg, #8b9aef 0%, #667eea 100%)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 10px 25px rgba(139, 154, 239, 0.3)'
+            }}>
+              <UserPlus size={20} style={{ color: '#fff' }} />
+            </div>
+
+            {/* Success Message */}
             {success && (
               <div style={{
-                marginBottom: '1rem',
-                padding: '0.75rem',
-                backgroundColor: '#d1fae5',
-                border: '1px solid #a7f3d0',
-                borderRadius: '0.25rem',
+                marginBottom: '2rem',
+                padding: '1.5rem',
+                background: 'rgba(16, 185, 129, 0.1)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                borderRadius: '16px',
                 display: 'flex',
-                alignItems: 'center'
+                alignItems: 'center',
+                gap: '1rem'
               }}>
-                <span style={{ color: '#065f46' }}>
-                  Thank you! Your application has been submitted successfully. We'll review it and get back to you soon.
-                </span>
+                <CheckCircle size={24} style={{ color: '#10b981' }} />
+                <div>
+                  <h4 style={{ color: '#10b981', margin: '0 0 0.25rem 0', fontWeight: '600' }}>
+                    Application Submitted!
+                  </h4>
+                  <p style={{ color: 'rgba(16, 185, 129, 0.8)', margin: 0, fontSize: '0.875rem' }}>
+                    Thank you! We'll review your application and get back to you soon.
+                  </p>
+                </div>
               </div>
             )}
 
+            {/* Error Message */}
             {error && (
               <div style={{
-                marginBottom: '1rem',
-                padding: '0.75rem',
-                backgroundColor: '#fee2e2',
-                border: '1px solid #fecaca',
-                borderRadius: '0.25rem',
+                marginBottom: '2rem',
+                padding: '1.5rem',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: '16px',
                 display: 'flex',
-                alignItems: 'center'
+                alignItems: 'flex-start',
+                gap: '1rem'
               }}>
-                <span style={{ color: '#991b1b', whiteSpace: 'pre-line' }}>{error}</span>
+                <AlertCircle size={24} style={{ color: '#ef4444', flexShrink: 0, marginTop: '2px' }} />
+                <div>
+                  <h4 style={{ color: '#ef4444', margin: '0 0 0.25rem 0', fontWeight: '600' }}>
+                    Please Fix These Issues:
+                  </h4>
+                  <pre style={{ 
+                    color: 'rgba(239, 68, 68, 0.8)', 
+                    margin: 0, 
+                    fontSize: '0.875rem',
+                    whiteSpace: 'pre-line',
+                    fontFamily: 'inherit'
+                  }}>
+                    {error}
+                  </pre>
+                </div>
               </div>
             )}
 
-            <form onSubmit={handleSubmit}>
-              {/* First Name */}
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {/* Personal Information Section */}
               <div style={{ marginBottom: '1rem' }}>
-                <input
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: `2px solid ${formErrors.firstName ? '#EF4444' : '#E5E7EB'}`,
-                    borderRadius: '0.5rem',
-                    fontSize: '1rem'
-                  }}
-                  type="text"
-                  name="firstName"
-                  placeholder="First Name *"
-                  value={values.firstName}
-                  required
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                />
-                {formErrors.firstName && (
-                  <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{formErrors.firstName}</p>
-                )}
-              </div>
-
-              {/* Last Name */}
-              <div style={{ marginBottom: '1rem' }}>
-                <input
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: `2px solid ${formErrors.lastName ? '#EF4444' : '#E5E7EB'}`,
-                    borderRadius: '0.5rem',
-                    fontSize: '1rem'
-                  }}
-                  type="text"
-                  name="lastName"
-                  placeholder="Last Name *"
-                  value={values.lastName}
-                  required
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                />
-                {formErrors.lastName && (
-                  <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{formErrors.lastName}</p>
-                )}
-              </div>
-
-              {/* Company Name */}
-              <div style={{ marginBottom: '1rem' }}>
-                <input
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: '2px solid #E5E7EB',
-                    borderRadius: '0.5rem',
-                    fontSize: '1rem'
-                  }}
-                  type="text"
-                  name="companyName"
-                  placeholder="Company Name (Optional)"
-                  value={values.companyName}
-                  onChange={handleChange}
-                />
-              </div>
-
-              {/* Primary Contact Number */}
-              <div style={{ marginBottom: '1rem' }}>
-                <input
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: `2px solid ${formErrors.primaryContactNumber ? '#EF4444' : '#E5E7EB'}`,
-                    borderRadius: '0.5rem',
-                    fontSize: '1rem'
-                  }}
-                  type="tel"
-                  name="primaryContactNumber"
-                  placeholder="Primary Contact Number *"
-                  value={values.primaryContactNumber}
-                  required
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                />
-                {formErrors.primaryContactNumber && (
-                  <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{formErrors.primaryContactNumber}</p>
-                )}
-              </div>
-
-              {/* Email */}
-              <div style={{ marginBottom: '1rem' }}>
-                <input
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: `2px solid ${formErrors.email ? '#EF4444' : '#E5E7EB'}`,
-                    borderRadius: '0.5rem',
-                    fontSize: '1rem'
-                  }}
-                  type="email"
-                  name="email"
-                  placeholder="Email Address *"
-                  value={values.email}
-                  required
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                />
-                {formErrors.email && (
-                  <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{formErrors.email}</p>
-                )}
-              </div>
-
-              {/* Service Areas Dropdown */}
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{
-                  display: 'block',
-                  fontSize: '0.875rem',
+                <h3 style={{
+                  color: '#8b9aef',
+                  fontSize: '1.125rem',
                   fontWeight: '600',
-                  color: '#374151',
-                  marginBottom: '0.5rem'
+                  marginBottom: '1.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
                 }}>
-                  Service Areas *
-                </label>
+                  👤 Personal Information
+                </h3>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                  <div>
+                    <input
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: `2px solid ${formErrors.firstName ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)'}`,
+                        borderRadius: '12px',
+                        color: '#fff',
+                        fontSize: '1rem',
+                        outline: 'none',
+                        transition: 'all 0.3s ease',
+                        backdropFilter: 'blur(10px)'
+                      }}
+                      type="text"
+                      name="firstName"
+                      placeholder="First Name *"
+                      value={values.firstName}
+                      required
+                      onChange={handleChange}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                        e.target.style.background = 'rgba(255, 255, 255, 0.08)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = formErrors.firstName ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
+                        e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+                        handleBlur(e);
+                      }}
+                    />
+                    {formErrors.firstName && (
+                      <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
+                        {formErrors.firstName}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <input
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: `2px solid ${formErrors.lastName ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)'}`,
+                        borderRadius: '12px',
+                        color: '#fff',
+                        fontSize: '1rem',
+                        outline: 'none',
+                        transition: 'all 0.3s ease',
+                        backdropFilter: 'blur(10px)'
+                      }}
+                      type="text"
+                      name="lastName"
+                      placeholder="Last Name *"
+                      value={values.lastName}
+                      required
+                      onChange={handleChange}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                        e.target.style.background = 'rgba(255, 255, 255, 0.08)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = formErrors.lastName ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
+                        e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+                        handleBlur(e);
+                      }}
+                    />
+                    {formErrors.lastName && (
+                      <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
+                        {formErrors.lastName}
+                      </p>
+                    )}
+                  </div>
+
+                  <div style={{ gridColumn: 'span 2' }}>
+                    <input
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '2px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '12px',
+                        color: '#fff',
+                        fontSize: '1rem',
+                        outline: 'none',
+                        transition: 'all 0.3s ease',
+                        backdropFilter: 'blur(10px)'
+                      }}
+                      type="text"
+                      name="companyName"
+                      placeholder="Company Name (Optional)"
+                      value={values.companyName}
+                      onChange={handleChange}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                        e.target.style.background = 'rgba(255, 255, 255, 0.08)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                        e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Information Section */}
+              <div style={{ marginBottom: '1rem' }}>
+                <h3 style={{
+                  color: '#8b9aef',
+                  fontSize: '1.125rem',
+                  fontWeight: '600',
+                  marginBottom: '1.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  📞 Contact Information
+                </h3>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                  <div>
+                    <input
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: `2px solid ${formErrors.primaryContactNumber ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)'}`,
+                        borderRadius: '12px',
+                        color: '#fff',
+                        fontSize: '1rem',
+                        outline: 'none',
+                        transition: 'all 0.3s ease',
+                        backdropFilter: 'blur(10px)'
+                      }}
+                      type="tel"
+                      name="primaryContactNumber"
+                      placeholder="Primary Contact Number *"
+                      value={values.primaryContactNumber}
+                      required
+                      onChange={handleChange}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                        e.target.style.background = 'rgba(255, 255, 255, 0.08)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = formErrors.primaryContactNumber ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
+                        e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+                        handleBlur(e);
+                      }}
+                    />
+                    {formErrors.primaryContactNumber && (
+                      <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
+                        {formErrors.primaryContactNumber}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <input
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: `2px solid ${formErrors.email ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)'}`,
+                        borderRadius: '12px',
+                        color: '#fff',
+                        fontSize: '1rem',
+                        outline: 'none',
+                        transition: 'all 0.3s ease',
+                        backdropFilter: 'blur(10px)'
+                      }}
+                      type="email"
+                      name="email"
+                      placeholder="Email Address *"
+                      value={values.email}
+                      required
+                      onChange={handleChange}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                        e.target.style.background = 'rgba(255, 255, 255, 0.08)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = formErrors.email ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
+                        e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+                        handleBlur(e);
+                      }}
+                    />
+                    {formErrors.email && (
+                      <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
+                        {formErrors.email}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Service Areas Section */}
+              <div style={{ marginBottom: '1rem' }}>
+                <h3 style={{
+                  color: '#8b9aef',
+                  fontSize: '1.125rem',
+                  fontWeight: '600',
+                  marginBottom: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  📍 Service Areas
+                </h3>
+                
                 <div style={{ position: 'relative' }}>
                   <button
                     type="button"
                     onClick={() => setServiceAreasOpen(!serviceAreasOpen)}
                     style={{
                       width: '100%',
-                      padding: '0.75rem',
-                      border: `2px solid ${formErrors.serviceAreas ? '#EF4444' : '#E5E7EB'}`,
-                      borderRadius: '0.5rem',
+                      padding: '1rem',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: `2px solid ${formErrors.serviceAreas ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)'}`,
+                      borderRadius: '12px',
+                      color: '#fff',
                       fontSize: '1rem',
-                      backgroundColor: 'white',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      backdropFilter: 'blur(10px)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
                     }}
                   >
-                    <span style={{ color: values.serviceAreas.length > 0 ? '#000' : '#9CA3AF' }}>
+                    <span style={{ color: values.serviceAreas.length > 0 ? '#fff' : 'rgba(255, 255, 255, 0.4)' }}>
                       {values.serviceAreas.length > 0
                         ? `${values.serviceAreas.length} area${values.serviceAreas.length > 1 ? 's' : ''} selected`
-                        : 'Select service areas'
+                        : 'Select service areas *'
                       }
                     </span>
                     <ChevronDown size={16} style={{
@@ -624,14 +906,15 @@ const ServiceProviderForm = () => {
                       top: '100%',
                       left: 0,
                       right: 0,
-                      backgroundColor: 'white',
-                      border: '2px solid #E5E7EB',
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      backdropFilter: 'blur(20px)',
+                      border: '2px solid rgba(255, 255, 255, 0.2)',
                       borderTop: 'none',
-                      borderRadius: '0 0 0.5rem 0.5rem',
+                      borderRadius: '0 0 12px 12px',
                       maxHeight: '200px',
                       overflowY: 'auto',
                       zIndex: 10,
-                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)'
                     }}>
                       {availableServiceAreas.map((area) => (
                         <label
@@ -639,41 +922,54 @@ const ServiceProviderForm = () => {
                           style={{
                             display: 'flex',
                             alignItems: 'center',
-                            padding: '0.5rem 0.75rem',
+                            padding: '0.75rem 1rem',
                             cursor: 'pointer',
-                            borderBottom: '1px solid #f3f4f6'
+                            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                            color: '#1a1a2e',
+                            transition: 'background-color 0.2s'
                           }}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(139, 154, 239, 0.1)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
                           <input
                             type="checkbox"
                             checked={values.serviceAreas.includes(area)}
                             onChange={() => handleServiceAreaChange(area)}
-                            style={{ marginRight: '0.5rem' }}
+                            style={{ 
+                              marginRight: '0.75rem',
+                              accentColor: '#667eea',
+                              transform: 'scale(1.1)'
+                            }}
                           />
-                          <span style={{ fontSize: '0.875rem', color: '#000' }}>{area}</span>
+                          <span style={{ fontSize: '0.95rem', fontWeight: '500' }}>{area}</span>
                         </label>
                       ))}
                     </div>
                   )}
                 </div>
+                
                 {formErrors.serviceAreas && (
-                  <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{formErrors.serviceAreas}</p>
+                  <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
+                    {formErrors.serviceAreas}
+                  </p>
                 )}
+                
                 {values.serviceAreas.length > 0 && (
-                  <div style={{ marginTop: '0.5rem' }}>
-                    <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>Selected areas:</p>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+                  <div style={{ marginTop: '1rem' }}>
+                    <p style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.7)', marginBottom: '0.5rem' }}>
+                      Selected areas:
+                    </p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                       {values.serviceAreas.map((area) => (
                         <span
                           key={area}
                           style={{
-                            fontSize: '0.75rem',
-                            backgroundColor: '#1E3A8A',
+                            fontSize: '0.875rem',
+                            background: 'linear-gradient(135deg, #667eea 0%, #8b9aef 100%)',
                             color: 'white',
-                            padding: '0.125rem 0.5rem',
-                            borderRadius: '9999px'
+                            padding: '0.25rem 0.75rem',
+                            borderRadius: '20px',
+                            fontWeight: '500'
                           }}
                         >
                           {area}
@@ -684,85 +980,170 @@ const ServiceProviderForm = () => {
                 )}
               </div>
 
-              {/* Simple Captcha */}
-              <div style={{ marginBottom: '1.5rem' }}>
-                <p style={{ marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600', color: '#000' }}>Security Check:</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <div style={{ color: '#000' }}>
-                    {captchaValue} = ?
-                  </div>
-                  <div>
-                    <input
-                      type="text"
-                      name="captcha"
-                      placeholder="Enter result"
-                      required
+              {/* Security Check */}
+              <div style={{ marginBottom: '2rem' }}>
+                <h3 style={{
+                  color: '#8b9aef',
+                  fontSize: '1.125rem',
+                  fontWeight: '600',
+                  marginBottom: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  🔒 Security Check
+                </h3>
+                
+                <div style={{ 
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '12px',
+                  padding: '1.5rem',
+                  backdropFilter: 'blur(10px)'
+                }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '1rem',
+                    marginBottom: '1rem'
+                  }}>
+                    <div style={{
+                      fontSize: '1.25rem',
+                      fontWeight: '600',
+                      color: '#8b9aef'
+                    }}>
+                      What is {captchaValue}?
+                    </div>
+                    
+                    <button
+                      type="button"
+                      onClick={generateCaptcha}
                       style={{
-                        width: '100%',
-                        maxWidth: '200px',
                         padding: '0.5rem',
-                        border: `2px solid ${captchaError ? '#EF4444' : '#E5E7EB'}`,
-                        borderRadius: '0.5rem'
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        borderRadius: '8px',
+                        color: '#8b9aef',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        transition: 'all 0.3s ease'
                       }}
-                      onChange={() => captchaError && setCaptchaError(false)}
-                    />
-                    {captchaError && (
-                      <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-                        Incorrect answer, please try again
-                      </p>
-                    )}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                      }}
+                    >
+                      <RefreshCw size={16} />
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={generateCaptcha}
+                  
+                  <input
+                    type="text"
+                    name="captcha"
+                    placeholder="Enter your answer"
+                    required
                     style={{
-                      width: 'fit-content',
-                      padding: '0.25rem 0.5rem',
-                      backgroundColor: '#f3f4f6',
-                      border: '2px solid #d1d5db',
-                      borderRadius: '0.25rem',
-                      cursor: 'pointer',
-                      fontSize: '0.875rem'
+                      width: '100%',
+                      maxWidth: '200px',
+                      padding: '0.75rem',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: `2px solid ${captchaError ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)'}`,
+                      borderRadius: '8px',
+                      color: '#fff',
+                      fontSize: '1rem',
+                      outline: 'none',
+                      transition: 'all 0.3s ease'
                     }}
-                  >
-                    Regenerate
-                  </button>
+                    onChange={() => captchaError && setCaptchaError(false)}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = captchaError ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
+                    }}
+                  />
+                  
+                  {captchaError && (
+                    <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
+                      Incorrect answer, please try again
+                    </p>
+                  )}
                 </div>
               </div>
 
+              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={sending}
                 style={{
                   width: '100%',
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: sending ? '#E5E7EB' : '#FFD300',
-                  color: sending ? '#9CA3AF' : '#1E3A8A',
-                  fontWeight: '600',
-                  borderRadius: '0.5rem',
+                  padding: '1.25rem 2rem',
+                  background: sending 
+                    ? 'rgba(255, 255, 255, 0.1)' 
+                    : 'linear-gradient(135deg, #8b9aef 0%, #667eea 100%)',
+                  color: sending ? 'rgba(255, 255, 255, 0.5)' : '#fff',
+                  fontWeight: '700',
+                  borderRadius: '12px',
                   border: 'none',
                   cursor: sending ? 'not-allowed' : 'pointer',
+                  fontSize: '1.125rem',
                   textTransform: 'uppercase',
-                  fontSize: '1rem'
+                  letterSpacing: '0.05em',
+                  transition: 'all 0.3s ease',
+                  boxShadow: sending ? 'none' : '0 10px 30px rgba(139, 154, 239, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.75rem'
+                }}
+                onMouseOver={(e) => {
+                  if (!sending) {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 15px 40px rgba(139, 154, 239, 0.4)';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!sending) {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 10px 30px rgba(139, 154, 239, 0.3)';
+                  }
                 }}
               >
-                {sending ? "SUBMITTING..." : "SUBMIT APPLICATION"}
+                {sending ? (
+                  <>
+                    <div style={{
+                      width: '20px',
+                      height: '20px',
+                      border: '2px solid rgba(255, 255, 255, 0.3)',
+                      borderTop: '2px solid rgba(255, 255, 255, 0.8)',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }} />
+                    Submitting Application...
+                  </>
+                ) : (
+                  <>
+                    Submit Application
+                    <UserPlus size={20} />
+                  </>
+                )}
               </button>
             </form>
           </div>
         </div>
 
-        {/* Wave divider at bottom */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: '4rem',
-            overflow: 'hidden'
-          }}
-        >
+        {/* Modern wave divider */}
+        <div style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: '6rem',
+          overflow: 'hidden'
+        }}>
           <svg
             viewBox="0 0 1200 120"
             preserveAspectRatio="none"
@@ -771,27 +1152,77 @@ const ServiceProviderForm = () => {
               position: 'absolute',
               bottom: 0,
               width: '100%',
-              height: '5rem'
+              height: '8rem'
             }}
           >
+            <defs>
+              <linearGradient id="waveGradientProvider" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="rgba(255, 255, 255, 0.1)" />
+                <stop offset="100%" stopColor="#F5F5F5" />
+              </linearGradient>
+            </defs>
             <path
               d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
-              fill="#F5F5F5"
+              fill="url(#waveGradientProvider)"
             />
           </svg>
         </div>
+
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+          
+          input::placeholder,
+          textarea::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+          }
+          
+          input:-webkit-autofill,
+          input:-webkit-autofill:hover,
+          input:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.05) inset;
+            -webkit-text-fill-color: white;
+            transition: background-color 5000s ease-in-out 0s;
+          }
+          
+          /* Custom scrollbar for dropdown */
+          div[style*="overflowY: auto"]::-webkit-scrollbar {
+            width: 6px;
+          }
+          
+          div[style*="overflowY: auto"]::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+          }
+          
+          div[style*="overflowY: auto"]::-webkit-scrollbar-thumb {
+            background: rgba(139, 154, 239, 0.5);
+            border-radius: 3px;
+          }
+          
+          div[style*="overflowY: auto"]::-webkit-scrollbar-thumb:hover {
+            background: rgba(139, 154, 239, 0.7);
+          }
+          
+          @media (max-width: 768px) {
+            .form-grid {
+              grid-template-columns: 1fr !important;
+            }
+          }
+        `}</style>
       </section>
 
       {/* Footer */}
       <footer
         style={{
           padding: '2rem',
-          backgroundColor: '#1E3A8A',
+          background: 'rgba(255, 255, 255, 0.05)',
           color: 'white',
           textAlign: 'center'
         }}
       >
-        <p>© 2025. All rights reserved.</p>
+        <p style={{ margin: 0 }}>© 2025. All rights reserved.</p>
       </footer>
     </div>
   );
