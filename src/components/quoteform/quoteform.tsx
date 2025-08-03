@@ -327,7 +327,7 @@ const QuoteForm = () => {
               lineHeight: '1.6'
             }}
           >
-            Tell us about your electrical project and get a transparent, no-obligation quote within 2 hours.
+            Tell us about your electrical project and get a transparent, no-obligation quote.
           </p>
         </div>
 
@@ -378,7 +378,7 @@ const QuoteForm = () => {
                   Quote Request Submitted!
                 </h4>
                 <p style={{ color: 'rgba(16, 185, 129, 0.8)', margin: 0, fontSize: '0.875rem' }}>
-                  Thanks! We'll get back to you within 2 hours with your free quote.
+                  Thanks! We'll get back to you with your free quote.
                 </p>
               </div>
             </div>
