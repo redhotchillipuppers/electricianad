@@ -3,28 +3,36 @@ const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { logger } = require('firebase-functions');
 const nodemailer = require('nodemailer');
 const { defineString } = require('firebase-functions/params');
-const functions = require('firebase-functions');
 const emailConfig = require('./emailConfig');
 
-// Environment variables (hybrid approach: config + secrets)
-const config = functions.config();
-
-// Keep password as secret, others as config
-const SMTP_PASS = defineString('SMTP_PASS');
+// Environment variables (all using v2 parameter system)
+const SMTP_HOST = defineString('SMTP_HOST');
+const SMTP_PORT = defineString('SMTP_PORT'); 
+const SMTP_USER = defineString('SMTP_USER');
+const SMTP_PASS = defineSecret('SMTP_PASS');
+const ADMIN_EMAIL = defineString('ADMIN_EMAIL');
+const FROM_EMAIL = defineString('FROM_EMAIL');
 
 // Create transporter for Namecheap SMTP
 const createTransporter = () => {
-  console.log('SMTP_HOST:', config.smtp.host);
-  console.log('SMTP_PORT:', config.smtp.port);
-  console.log('SMTP_USER:', config.smtp.user);
-  console.log('SMTP_PASS exists:', SMTP_PASS.value() ? 'YES' : 'NO');
+  console.log('=== DEBUGGING SMTP SETUP ===');
+  console.log('Starting createTransporter function');
   
+  try {
+    console.log('SMTP_HOST:', SMTP_HOST.value());
+    console.log('SMTP_PORT:', SMTP_PORT.value());
+    console.log('SMTP_USER:', SMTP_USER.value());
+    console.log('SMTP_PASS exists:', SMTP_PASS.value() ? 'YES' : 'NO');
+    console.log('SMTP_PASS length:', SMTP_PASS.value() ? SMTP_PASS.value().length : 0);
+  } catch (error) {
+    console.log('ERROR accessing parameters:', error.message);
+  }
   return nodemailer.createTransport({
-    host: config.smtp.host,
-    port: parseInt(config.smtp.port),
-    secure: config.smtp.port === '465', // true for 465, false for other ports
+    host: SMTP_HOST.value(),
+    port: parseInt(SMTP_PORT.value()),
+    secure: SMTP_PORT.value() === '465', // true for 465, false for other ports
     auth: {
-      user: config.smtp.user,
+      user: SMTP_USER.value(),
       pass: SMTP_PASS.value(),
     },
   });
@@ -40,35 +48,35 @@ const replaceTemplateVars = (template, variables) => {
 // Generate email templates using configuration
 const getQuoteConfirmationEmail = (data) => {
   const { name, email, description, houseFlatNumber, streetName, postcode } = data;
-  const emailConf = emailConfig;
+  const config = emailConfig;
   
   const templateVars = {
     name,
-    responseTime: emailConf.settings.quoteResponseTime,
-    phone: emailConf.company.phone,
-    companyName: emailConf.company.name
+    responseTime: config.settings.quoteResponseTime,
+    phone: config.company.phone,
+    companyName: config.company.name
   };
   
-  const greeting = replaceTemplateVars(emailConf.content.quote.greeting, templateVars);
-  const thankYou = replaceTemplateVars(emailConf.content.quote.thankYou, templateVars);
-  const contactInfo = replaceTemplateVars(emailConf.content.quote.contactInfo, templateVars);
-  const signature = replaceTemplateVars(emailConf.content.quote.signature, templateVars);
+  const greeting = replaceTemplateVars(config.content.quote.greeting, templateVars);
+  const thankYou = replaceTemplateVars(config.content.quote.thankYou, templateVars);
+  const contactInfo = replaceTemplateVars(config.content.quote.contactInfo, templateVars);
+  const signature = replaceTemplateVars(config.content.quote.signature, templateVars);
   
   return {
-    subject: emailConf.templates.quote.subject,
+    subject: config.templates.quote.subject,
     html: `
       <!DOCTYPE html>
       <html>
         <head>
           <meta charset="utf-8">
           <style>
-            body { font-family: ${emailConf.styling.fonts.primary}; line-height: 1.6; color: ${emailConf.styling.textColor}; }
-            .container { max-width: ${emailConf.styling.containerMaxWidth}; margin: 0 auto; padding: ${emailConf.styling.containerPadding}; }
-            .header { background: linear-gradient(135deg, ${emailConf.styling.primaryColor}, ${emailConf.styling.secondaryColor}); color: white; padding: ${emailConf.styling.containerPadding}; text-align: center; border-radius: ${emailConf.styling.spacing.borderRadius} ${emailConf.styling.spacing.borderRadius} 0 0; }
-            .content { background: ${emailConf.styling.backgroundColor}; padding: ${emailConf.styling.containerPadding}; border-radius: 0 0 ${emailConf.styling.spacing.borderRadius} ${emailConf.styling.spacing.borderRadius}; }
-            .details { background: white; padding: ${emailConf.styling.spacing.sectionPadding}; border-radius: 4px; margin: 15px 0; }
+            body { font-family: ${config.styling.fonts.primary}; line-height: 1.6; color: ${config.styling.textColor}; }
+            .container { max-width: ${config.styling.containerMaxWidth}; margin: 0 auto; padding: ${config.styling.containerPadding}; }
+            .header { background: linear-gradient(135deg, ${config.styling.primaryColor}, ${config.styling.secondaryColor}); color: white; padding: ${config.styling.containerPadding}; text-align: center; border-radius: ${config.styling.spacing.borderRadius} ${config.styling.spacing.borderRadius} 0 0; }
+            .content { background: ${config.styling.backgroundColor}; padding: ${config.styling.containerPadding}; border-radius: 0 0 ${config.styling.spacing.borderRadius} ${config.styling.spacing.borderRadius}; }
+            .details { background: white; padding: ${config.styling.spacing.sectionPadding}; border-radius: 4px; margin: 15px 0; }
             .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
-            .next-steps { background: white; padding: ${emailConf.styling.spacing.sectionPadding}; border-radius: 4px; margin: 15px 0; }
+            .next-steps { background: white; padding: ${config.styling.spacing.sectionPadding}; border-radius: 4px; margin: 15px 0; }
           </style>
         </head>
         <body>
@@ -80,7 +88,7 @@ const getQuoteConfirmationEmail = (data) => {
               <p>${greeting}</p>
               
               <p>${thankYou}</p>
-              ${emailConf.templates.quote.customMessage ? `<p>${emailConf.templates.quote.customMessage}</p>` : ''}
+              ${config.templates.quote.customMessage ? `<p>${config.templates.quote.customMessage}</p>` : ''}
               
               <div class="details">
                 <h3>Your Request Details:</h3>
@@ -89,11 +97,11 @@ const getQuoteConfirmationEmail = (data) => {
                 <p><strong>Contact Email:</strong> ${email}</p>
               </div>
               
-              ${emailConf.templates.quote.includeNextSteps ? `
+              ${config.templates.quote.includeNextSteps ? `
               <div class="next-steps">
                 <p>In the meantime, here's what happens next:</p>
                 <ul>
-                  ${emailConf.content.quote.nextSteps.map(step => `<li>${step}</li>`).join('')}
+                  ${config.content.quote.nextSteps.map(step => `<li>${step}</li>`).join('')}
                 </ul>
               </div>
               ` : ''}
@@ -103,7 +111,7 @@ const getQuoteConfirmationEmail = (data) => {
               <p>${signature.replace('\n', '<br>')}</p>
             </div>
             <div class="footer">
-              <p>${emailConf.content.quote.footer}</p>
+              <p>${config.content.quote.footer}</p>
             </div>
           </div>
         </body>
@@ -113,16 +121,16 @@ const getQuoteConfirmationEmail = (data) => {
 ${greeting}
 
 ${thankYou}
-${emailConf.templates.quote.customMessage || ''}
+${config.templates.quote.customMessage || ''}
 
 Your Request Details:
 - Address: ${houseFlatNumber} ${streetName}, ${postcode}
 - Work Description: ${description}
 - Contact Email: ${email}
 
-${emailConf.templates.quote.includeNextSteps ? `
+${config.templates.quote.includeNextSteps ? `
 What happens next:
-${emailConf.content.quote.nextSteps.map((step, index) => `${index + 1}. ${step}`).join('\n')}
+${config.content.quote.nextSteps.map((step, index) => `${index + 1}. ${step}`).join('\n')}
 ` : ''}
 
 ${contactInfo}
@@ -134,30 +142,30 @@ ${signature}
 
 const getServiceProviderConfirmationEmail = (data) => {
   const { firstName, lastName, email, companyName, serviceAreas } = data;
-  const emailConf = emailConfig;
+  const config = emailConfig;
   
   const templateVars = {
     firstName,
-    reviewTime: emailConf.settings.applicationReviewTime
+    reviewTime: config.settings.applicationReviewTime
   };
   
-  const greeting = replaceTemplateVars(emailConf.content.serviceProvider.greeting, templateVars);
-  const thankYou = replaceTemplateVars(emailConf.content.serviceProvider.thankYou, templateVars);
-  const reviewTime = replaceTemplateVars(emailConf.content.serviceProvider.reviewTime, templateVars);
+  const greeting = replaceTemplateVars(config.content.serviceProvider.greeting, templateVars);
+  const thankYou = replaceTemplateVars(config.content.serviceProvider.thankYou, templateVars);
+  const reviewTime = replaceTemplateVars(config.content.serviceProvider.reviewTime, templateVars);
   
   return {
-    subject: emailConf.templates.serviceProvider.subject,
+    subject: config.templates.serviceProvider.subject,
     html: `
       <!DOCTYPE html>
       <html>
         <head>
           <meta charset="utf-8">
           <style>
-            body { font-family: ${emailConf.styling.fonts.primary}; line-height: 1.6; color: ${emailConf.styling.textColor}; }
-            .container { max-width: ${emailConf.styling.containerMaxWidth}; margin: 0 auto; padding: ${emailConf.styling.containerPadding}; }
-            .header { background: linear-gradient(135deg, ${emailConf.styling.primaryColor}, ${emailConf.styling.secondaryColor}); color: white; padding: ${emailConf.styling.containerPadding}; text-align: center; border-radius: ${emailConf.styling.spacing.borderRadius} ${emailConf.styling.spacing.borderRadius} 0 0; }
-            .content { background: ${emailConf.styling.backgroundColor}; padding: ${emailConf.styling.containerPadding}; border-radius: 0 0 ${emailConf.styling.spacing.borderRadius} ${emailConf.styling.spacing.borderRadius}; }
-            .details { background: white; padding: ${emailConf.styling.spacing.sectionPadding}; border-radius: 4px; margin: 15px 0; }
+            body { font-family: ${config.styling.fonts.primary}; line-height: 1.6; color: ${config.styling.textColor}; }
+            .container { max-width: ${config.styling.containerMaxWidth}; margin: 0 auto; padding: ${config.styling.containerPadding}; }
+            .header { background: linear-gradient(135deg, ${config.styling.primaryColor}, ${config.styling.secondaryColor}); color: white; padding: ${config.styling.containerPadding}; text-align: center; border-radius: ${config.styling.spacing.borderRadius} ${config.styling.spacing.borderRadius} 0 0; }
+            .content { background: ${config.styling.backgroundColor}; padding: ${config.styling.containerPadding}; border-radius: 0 0 ${config.styling.spacing.borderRadius} ${config.styling.spacing.borderRadius}; }
+            .details { background: white; padding: ${config.styling.spacing.sectionPadding}; border-radius: 4px; margin: 15px 0; }
             .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
           </style>
         </head>
@@ -170,7 +178,7 @@ const getServiceProviderConfirmationEmail = (data) => {
               <p>${greeting}</p>
               
               <p>${thankYou}</p>
-              ${emailConf.templates.serviceProvider.customMessage ? `<p>${emailConf.templates.serviceProvider.customMessage}</p>` : ''}
+              ${config.templates.serviceProvider.customMessage ? `<p>${config.templates.serviceProvider.customMessage}</p>` : ''}
               
               <div class="details">
                 <h3>Application Details:</h3>
@@ -180,19 +188,19 @@ const getServiceProviderConfirmationEmail = (data) => {
                 <p><strong>Contact Email:</strong> ${email}</p>
               </div>
               
-              ${emailConf.templates.serviceProvider.includeApplicationProcess ? `
+              ${config.templates.serviceProvider.includeApplicationProcess ? `
               <p>${reviewTime}</p>
               <ul>
-                ${emailConf.content.serviceProvider.reviewProcess.map(step => `<li>${step}</li>`).join('')}
+                ${config.content.serviceProvider.reviewProcess.map(step => `<li>${step}</li>`).join('')}
               </ul>
               ` : ''}
               
               <p>If you have any questions about the process, please feel free to reach out.</p>
               
-              <p>${emailConf.content.serviceProvider.signature.replace('\n', '<br>')}</p>
+              <p>${config.content.serviceProvider.signature.replace('\n', '<br>')}</p>
             </div>
             <div class="footer">
-              <p>${emailConf.content.serviceProvider.footer}</p>
+              <p>${config.content.serviceProvider.footer}</p>
             </div>
           </div>
         </body>
@@ -202,7 +210,7 @@ const getServiceProviderConfirmationEmail = (data) => {
 ${greeting}
 
 ${thankYou}
-${emailConf.templates.serviceProvider.customMessage || ''}
+${config.templates.serviceProvider.customMessage || ''}
 
 Application Details:
 - Name: ${firstName} ${lastName}
@@ -210,32 +218,32 @@ ${companyName ? `- Company: ${companyName}` : ''}
 - Service Areas: ${serviceAreas.join(', ')}
 - Contact Email: ${email}
 
-${emailConf.templates.serviceProvider.includeApplicationProcess ? `
+${config.templates.serviceProvider.includeApplicationProcess ? `
 ${reviewTime}
-${emailConf.content.serviceProvider.reviewProcess.map((step, index) => `${index + 1}. ${step}`).join('\n')}
+${config.content.serviceProvider.reviewProcess.map((step, index) => `${index + 1}. ${step}`).join('\n')}
 ` : ''}
 
-${emailConf.content.serviceProvider.signature}
+${config.content.serviceProvider.signature}
     `
   };
 };
 
 const getAdminNotificationEmail = (type, data) => {
-  const emailConf = emailConfig;
+  const config = emailConfig;
   const isQuote = type === 'quote';
   
   // Check for priority flags
-  const isUrgent = isQuote && emailConf.templates.admin.customNotifications.urgentKeywords.some(keyword => 
+  const isUrgent = isQuote && config.templates.admin.customNotifications.urgentKeywords.some(keyword => 
     data.description?.toLowerCase().includes(keyword.toLowerCase())
   );
   
-  const isPriorityArea = isQuote && emailConf.templates.admin.customNotifications.priorityAreas.some(area => 
+  const isPriorityArea = isQuote && config.templates.admin.customNotifications.priorityAreas.some(area => 
     data.postcode?.toLowerCase().includes(area.toLowerCase())
   );
   
   if (isQuote) {
     const { name, email, phone, description, contactMethod, houseFlatNumber, streetName, postcode, fileUrl } = data;
-    const subjectPrefix = emailConf.templates.admin.quoteSubjectPrefix;
+    const subjectPrefix = config.templates.admin.quoteSubjectPrefix;
     
     return {
       subject: `${subjectPrefix} from ${name}${isUrgent ? ' [URGENT]' : ''}${isPriorityArea ? ' [PRIORITY AREA]' : ''}`,
@@ -245,11 +253,11 @@ const getAdminNotificationEmail = (type, data) => {
           <head>
             <meta charset="utf-8">
             <style>
-              body { font-family: ${emailConf.styling.fonts.primary}; line-height: 1.6; color: ${emailConf.styling.textColor}; }
-              .container { max-width: ${emailConf.styling.containerMaxWidth}; margin: 0 auto; padding: ${emailConf.styling.containerPadding}; }
-              .header { background: ${emailConf.styling.accentColor}; color: ${emailConf.styling.primaryColor}; padding: ${emailConf.styling.containerPadding}; text-align: center; border-radius: ${emailConf.styling.spacing.borderRadius} ${emailConf.styling.spacing.borderRadius} 0 0; }
-              .content { background: ${emailConf.styling.backgroundColor}; padding: ${emailConf.styling.containerPadding}; border-radius: 0 0 ${emailConf.styling.spacing.borderRadius} ${emailConf.styling.spacing.borderRadius}; }
-              .details { background: white; padding: ${emailConf.styling.spacing.sectionPadding}; border-radius: 4px; margin: 15px 0; }
+              body { font-family: ${config.styling.fonts.primary}; line-height: 1.6; color: ${config.styling.textColor}; }
+              .container { max-width: ${config.styling.containerMaxWidth}; margin: 0 auto; padding: ${config.styling.containerPadding}; }
+              .header { background: ${config.styling.accentColor}; color: ${config.styling.primaryColor}; padding: ${config.styling.containerPadding}; text-align: center; border-radius: ${config.styling.spacing.borderRadius} ${config.styling.spacing.borderRadius} 0 0; }
+              .content { background: ${config.styling.backgroundColor}; padding: ${config.styling.containerPadding}; border-radius: 0 0 ${config.styling.spacing.borderRadius} ${config.styling.spacing.borderRadius}; }
+              .details { background: white; padding: ${config.styling.spacing.sectionPadding}; border-radius: 4px; margin: 15px 0; }
               .urgent { background: #fee2e2; border-left: 4px solid #ef4444; padding: 10px; margin: 10px 0; }
               .priority { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 10px; margin: 10px 0; }
             </style>
@@ -267,9 +275,9 @@ const getAdminNotificationEmail = (type, data) => {
                   </div>
                 ` : ''}
                 
-                ${emailConf.templates.admin.urgentFlag ? `
+                ${config.templates.admin.urgentFlag ? `
                 <div class="urgent">
-                  <strong>Action Required:</strong> New customer quote request needs response within ${emailConf.settings.quoteResponseTime}
+                  <strong>Action Required:</strong> New customer quote request needs response within ${config.settings.quoteResponseTime}
                 </div>
                 ` : ''}
                 
@@ -328,7 +336,7 @@ ${isPriorityArea ? 'NOTE: Request from priority service area' : ''}
     };
   } else {
     const { firstName, lastName, email, companyName, primaryContactNumber, serviceAreas } = data;
-    const subjectPrefix = emailConf.templates.admin.serviceProviderSubjectPrefix;
+    const subjectPrefix = config.templates.admin.serviceProviderSubjectPrefix;
     
     return {
       subject: `${subjectPrefix} from ${firstName} ${lastName}`,
@@ -338,11 +346,11 @@ ${isPriorityArea ? 'NOTE: Request from priority service area' : ''}
           <head>
             <meta charset="utf-8">
             <style>
-              body { font-family: ${emailConf.styling.fonts.primary}; line-height: 1.6; color: ${emailConf.styling.textColor}; }
-              .container { max-width: ${emailConf.styling.containerMaxWidth}; margin: 0 auto; padding: ${emailConf.styling.containerPadding}; }
-              .header { background: ${emailConf.styling.accentColor}; color: ${emailConf.styling.primaryColor}; padding: ${emailConf.styling.containerPadding}; text-align: center; border-radius: ${emailConf.styling.spacing.borderRadius} ${emailConf.styling.spacing.borderRadius} 0 0; }
-              .content { background: ${emailConf.styling.backgroundColor}; padding: ${emailConf.styling.containerPadding}; border-radius: 0 0 ${emailConf.styling.spacing.borderRadius} ${emailConf.styling.spacing.borderRadius}; }
-              .details { background: white; padding: ${emailConf.styling.spacing.sectionPadding}; border-radius: 4px; margin: 15px 0; }
+              body { font-family: ${config.styling.fonts.primary}; line-height: 1.6; color: ${config.styling.textColor}; }
+              .container { max-width: ${config.styling.containerMaxWidth}; margin: 0 auto; padding: ${config.styling.containerPadding}; }
+              .header { background: ${config.styling.accentColor}; color: ${config.styling.primaryColor}; padding: ${config.styling.containerPadding}; text-align: center; border-radius: ${config.styling.spacing.borderRadius} ${config.styling.spacing.borderRadius} 0 0; }
+              .content { background: ${config.styling.backgroundColor}; padding: ${config.styling.containerPadding}; border-radius: 0 0 ${config.styling.spacing.borderRadius} ${config.styling.spacing.borderRadius}; }
+              .details { background: white; padding: ${config.styling.spacing.sectionPadding}; border-radius: 4px; margin: 15px 0; }
             </style>
           </head>
           <body>
@@ -386,16 +394,17 @@ Status: Pending Review
 };
 
 // Cloud Function for quote submissions
-exports.onQuoteCreated = onDocumentCreated('quotes/{quoteId}', async (event) => {
-  try {
+exports.onQuoteCreated = onDocumentCreated(
+  { document: 'quotes/{quoteId}', secrets: [SMTP_PASS] }, 
+  async (event) => {  try {
     const quoteData = event.data.data();
     const transporter = createTransporter();
-    const emailConf = emailConfig;
+    const config = emailConfig;
     
     // Send confirmation email to customer
     const confirmationEmail = getQuoteConfirmationEmail(quoteData);
     await transporter.sendMail({
-      from: config.email.from,
+      from: FROM_EMAIL.value(),
       to: quoteData.email,
       subject: confirmationEmail.subject,
       html: confirmationEmail.html,
@@ -404,14 +413,14 @@ exports.onQuoteCreated = onDocumentCreated('quotes/{quoteId}', async (event) => 
     
     // Send notification emails to all admins
     const adminEmail = getAdminNotificationEmail('quote', quoteData);
-    const adminEmails = emailConf.settings.adminEmails.length > 0 
-      ? emailConf.settings.adminEmails 
-      : [config.email.admin];
+    const adminEmails = config.settings.adminEmails.length > 0 
+      ? config.settings.adminEmails 
+      : [ADMIN_EMAIL.value()];
     
     // Send to all admin emails
     for (const adminAddress of adminEmails) {
       await transporter.sendMail({
-        from: config.email.from,
+        from: FROM_EMAIL.value(),
         to: adminAddress,
         subject: adminEmail.subject,
         html: adminEmail.html,
@@ -435,16 +444,18 @@ exports.onQuoteCreated = onDocumentCreated('quotes/{quoteId}', async (event) => 
 });
 
 // Cloud Function for service provider applications
-exports.onServiceProviderCreated = onDocumentCreated('serviceProviders/{providerId}', async (event) => {
+exports.onServiceProviderCreated = onDocumentCreated(
+  { document: 'serviceProviders/{providerId}', secrets: [SMTP_PASS] }, 
+  async (event) => {
   try {
     const providerData = event.data.data();
     const transporter = createTransporter();
-    const emailConf = emailConfig;
+    const config = emailConfig;
     
     // Send confirmation email to applicant
     const confirmationEmail = getServiceProviderConfirmationEmail(providerData);
     await transporter.sendMail({
-      from: config.email.from,
+      from: FROM_EMAIL.value(),
       to: providerData.email,
       subject: confirmationEmail.subject,
       html: confirmationEmail.html,
@@ -453,14 +464,14 @@ exports.onServiceProviderCreated = onDocumentCreated('serviceProviders/{provider
     
     // Send notification emails to all admins
     const adminEmail = getAdminNotificationEmail('serviceProvider', providerData);
-    const adminEmails = emailConf.settings.adminEmails.length > 0 
-      ? emailConf.settings.adminEmails 
-      : [config.email.admin];
+    const adminEmails = config.settings.adminEmails.length > 0 
+      ? config.settings.adminEmails 
+      : [ADMIN_EMAIL.value()];
     
     // Send to all admin emails
     for (const adminAddress of adminEmails) {
       await transporter.sendMail({
-        from: config.email.from,
+        from: FROM_EMAIL.value(),
         to: adminAddress,
         subject: adminEmail.subject,
         html: adminEmail.html,

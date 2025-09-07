@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { UserPlus, MapPin, Wrench, CheckCircle, ArrowLeft, ChevronDown, RefreshCw, Zap, AlertCircle } from "lucide-react";
+import { UserPlus, MapPin, Wrench, CheckCircle, ArrowLeft, ChevronDown, Zap, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import submitServiceProvider from "../../firebase/submitServiceProvider";
 
@@ -7,9 +7,6 @@ const ServiceProviderForm = () => {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [captchaValue, setCaptchaValue] = useState("");
-  const [captchaAnswer, setCaptchaAnswer] = useState("");
-  const [captchaError, setCaptchaError] = useState(false);
   const [serviceAreasOpen, setServiceAreasOpen] = useState(false);
 
   const [formErrors, setFormErrors] = useState({
@@ -72,18 +69,6 @@ const ServiceProviderForm = () => {
     }
   ];
 
-  // Generate a simple math captcha
-  const generateCaptcha = () => {
-    const num1 = Math.floor(Math.random() * 10);
-    const num2 = Math.floor(Math.random() * 10);
-    setCaptchaValue(`${num1} + ${num2}`);
-    setCaptchaAnswer((num1 + num2).toString());
-  };
-
-  // Generate captcha on component mount
-  useEffect(() => {
-    generateCaptcha();
-  }, []);
 
   const validateField = (name: string, value: string | string[]) => {
     let errorMessage = "";
@@ -165,7 +150,6 @@ const ServiceProviderForm = () => {
       email: "",
       serviceAreas: [],
     });
-    setCaptchaError(false);
     setFormErrors({
       firstName: "",
       lastName: "",
@@ -173,7 +157,6 @@ const ServiceProviderForm = () => {
       email: "",
       serviceAreas: "",
     });
-    generateCaptcha();
   };
 
   const validateForm = (formData: typeof values) => {
@@ -201,15 +184,6 @@ const ServiceProviderForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
-    // Validate the captcha
-    const captchaInput = (e.target as HTMLFormElement).querySelector('input[name="captcha"]') as HTMLInputElement;
-    if (captchaAnswer !== captchaInput?.value) {
-      setCaptchaError(true);
-      return;
-    } else {
-      setCaptchaError(false);
-    }
 
     // Use the enhanced validation function
     const errors = validateForm(values);
@@ -978,100 +952,6 @@ const ServiceProviderForm = () => {
                     </div>
                   </div>
                 )}
-              </div>
-
-              {/* Security Check */}
-              <div style={{ marginBottom: '2rem' }}>
-                <h3 style={{
-                  color: '#8b9aef',
-                  fontSize: '1.125rem',
-                  fontWeight: '600',
-                  marginBottom: '1rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}>
-                  🔒 Security Check
-                </h3>
-                
-                <div style={{ 
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '12px',
-                  padding: '1.5rem',
-                  backdropFilter: 'blur(10px)'
-                }}>
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '1rem',
-                    marginBottom: '1rem'
-                  }}>
-                    <div style={{
-                      fontSize: '1.25rem',
-                      fontWeight: '600',
-                      color: '#8b9aef'
-                    }}>
-                      What is {captchaValue}?
-                    </div>
-                    
-                    <button
-                      type="button"
-                      onClick={generateCaptcha}
-                      style={{
-                        padding: '0.5rem',
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        borderRadius: '8px',
-                        color: '#8b9aef',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        transition: 'all 0.3s ease'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                      }}
-                    >
-                      <RefreshCw size={16} />
-                    </button>
-                  </div>
-                  
-                  <input
-                    type="text"
-                    name="captcha"
-                    placeholder="Enter your answer"
-                    required
-                    style={{
-                      width: '100%',
-                      maxWidth: '200px',
-                      padding: '0.75rem',
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      border: `2px solid ${captchaError ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)'}`,
-                      borderRadius: '8px',
-                      color: '#fff',
-                      fontSize: '1rem',
-                      outline: 'none',
-                      transition: 'all 0.3s ease'
-                    }}
-                    onChange={() => captchaError && setCaptchaError(false)}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = captchaError ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
-                    }}
-                  />
-                  
-                  {captchaError && (
-                    <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
-                      Incorrect answer, please try again
-                    </p>
-                  )}
-                </div>
               </div>
 
               {/* Submit Button */}
