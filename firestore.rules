@@ -24,17 +24,18 @@ service cloud.firestore {
     // Quote requests collection
     match /quotes/{quoteId} {
       // Anyone can create a quote (public submission)
-      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'phone', 'address', 'serviceType', 'description', 'urgency', 'submittedAt'])
+      // Updated to match actual data structure from submitQuote.ts
+      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'contactMethod', 'description', 'houseFlatNumber', 'streetName', 'postcode', 'createdAt'])
                     && isValidEmail(request.resource.data.email)
-                    && isValidPhone(request.resource.data.phone)
                     && request.resource.data.name is string && request.resource.data.name.size() > 0
-                    && request.resource.data.address is string && request.resource.data.address.size() > 0
-                    && request.resource.data.serviceType is string
-                    && request.resource.data.description is string && request.resource.data.description.size() > 0
-                    && request.resource.data.urgency in ['urgent', 'week', 'month']
-                    && request.resource.data.submittedAt is timestamp
-                    && (!request.resource.data.keys().hasAny(['photoUrls']) || request.resource.data.photoUrls is list)
-                    && request.resource.data.status == 'new';
+                    && request.resource.data.contactMethod is string && request.resource.data.contactMethod.size() > 0
+                    && request.resource.data.description is string
+                    && request.resource.data.houseFlatNumber is string
+                    && request.resource.data.streetName is string
+                    && request.resource.data.postcode is string
+                    && request.resource.data.createdAt is string
+                    && (!request.resource.data.keys().hasAny(['phone']) || request.resource.data.phone is string)
+                    && (!request.resource.data.keys().hasAny(['fileUrl']) || request.resource.data.fileUrl is string);
 
       // Only admins can read, update, and delete quotes
       allow read, update, delete: if isAdmin();
