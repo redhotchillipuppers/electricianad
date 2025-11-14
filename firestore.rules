@@ -44,16 +44,17 @@ service cloud.firestore {
     // Service providers collection
     match /serviceProviders/{providerId} {
       // Anyone can create a provider application (public submission)
-      allow create: if request.resource.data.keys().hasAll(['businessName', 'contactName', 'email', 'phone', 'experience', 'submittedAt'])
+      // Updated to match actual data structure from submitServiceProvider.ts
+      allow create: if request.resource.data.keys().hasAll(['firstName', 'lastName', 'email', 'primaryContactNumber', 'serviceAreas', 'status', 'createdAt'])
                     && isValidEmail(request.resource.data.email)
-                    && isValidPhone(request.resource.data.phone)
-                    && request.resource.data.businessName is string && request.resource.data.businessName.size() > 0
-                    && request.resource.data.contactName is string && request.resource.data.contactName.size() > 0
-                    && request.resource.data.experience is string
-                    && request.resource.data.submittedAt is timestamp
-                    && (!request.resource.data.keys().hasAny(['certifications']) || request.resource.data.certifications is list)
-                    && (!request.resource.data.keys().hasAny(['serviceAreas']) || request.resource.data.serviceAreas is list)
-                    && request.resource.data.status == 'pending';
+                    && isValidPhone(request.resource.data.primaryContactNumber)
+                    && request.resource.data.firstName is string && request.resource.data.firstName.size() > 0
+                    && request.resource.data.lastName is string && request.resource.data.lastName.size() > 0
+                    && request.resource.data.primaryContactNumber is string && request.resource.data.primaryContactNumber.size() > 0
+                    && request.resource.data.serviceAreas is list && request.resource.data.serviceAreas.size() > 0
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.createdAt is string
+                    && (!request.resource.data.keys().hasAny(['companyName']) || request.resource.data.companyName is string);
 
       // Only admins can read, update, and delete provider applications
       allow read, update, delete: if isAdmin();
