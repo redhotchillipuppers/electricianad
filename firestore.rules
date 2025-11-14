@@ -1,0 +1,84 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for validation
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'superadmin'];
+    }
+
+    function isValidEmail(email) {
+      return email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$');
+    }
+
+    function isValidPhone(phone) {
+      return phone.matches('^[0-9\\s\\-\\+\\(\\)]+$');
+    }
+
+    // Quote requests collection
+    match /quotes/{quoteId} {
+      // Anyone can create a quote (public submission)
+      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'phone', 'address', 'serviceType', 'description', 'urgency', 'submittedAt'])
+                    && isValidEmail(request.resource.data.email)
+                    && isValidPhone(request.resource.data.phone)
+                    && request.resource.data.name is string && request.resource.data.name.size() > 0
+                    && request.resource.data.address is string && request.resource.data.address.size() > 0
+                    && request.resource.data.serviceType is string
+                    && request.resource.data.description is string && request.resource.data.description.size() > 0
+                    && request.resource.data.urgency in ['urgent', 'week', 'month']
+                    && request.resource.data.submittedAt is timestamp
+                    && (!request.resource.data.keys().hasAny(['photoUrls']) || request.resource.data.photoUrls is list)
+                    && request.resource.data.status == 'new';
+
+      // Only admins can read, update, and delete quotes
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Service providers collection
+    match /serviceProviders/{providerId} {
+      // Anyone can create a provider application (public submission)
+      allow create: if request.resource.data.keys().hasAll(['businessName', 'contactName', 'email', 'phone', 'experience', 'submittedAt'])
+                    && isValidEmail(request.resource.data.email)
+                    && isValidPhone(request.resource.data.phone)
+                    && request.resource.data.businessName is string && request.resource.data.businessName.size() > 0
+                    && request.resource.data.contactName is string && request.resource.data.contactName.size() > 0
+                    && request.resource.data.experience is string
+                    && request.resource.data.submittedAt is timestamp
+                    && (!request.resource.data.keys().hasAny(['certifications']) || request.resource.data.certifications is list)
+                    && (!request.resource.data.keys().hasAny(['serviceAreas']) || request.resource.data.serviceAreas is list)
+                    && request.resource.data.status == 'pending';
+
+      // Only admins can read, update, and delete provider applications
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Users collection (admin accounts)
+    match /users/{userId} {
+      // Users can only read their own document
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+
+      // Only admins can create new admin users
+      allow create: if isAdmin()
+                    && request.resource.data.keys().hasAll(['email', 'role', 'createdAt'])
+                    && isValidEmail(request.resource.data.email)
+                    && request.resource.data.role in ['admin', 'superadmin']
+                    && request.resource.data.createdAt is timestamp;
+
+      // Users cannot update or delete their own document
+      // Only superadmins can update/delete user documents
+      allow update, delete: if isAdmin() &&
+                             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin';
+    }
+
+    // Deny access to all other documents
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
