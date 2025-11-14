@@ -2,7 +2,7 @@
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { logger } = require('firebase-functions');
 const nodemailer = require('nodemailer');
-const { defineString } = require('firebase-functions/params');
+const { defineString, defineSecret } = require('firebase-functions/params');
 const emailConfig = require('./emailConfig');
 
 // Environment variables (all using v2 parameter system)
@@ -265,7 +265,7 @@ const getAdminNotificationEmail = (type, data) => {
           <body>
             <div class="container">
               <div class="header">
-                <h1>🔔 New Quote Request</h1>
+                <h1>📧 New Quote Request</h1>
               </div>
               <div class="content">
                 ${isUrgent || isPriorityArea ? `
@@ -356,7 +356,7 @@ ${isPriorityArea ? 'NOTE: Request from priority service area' : ''}
           <body>
             <div class="container">
               <div class="header">
-                <h1>🔔 New Service Provider Application</h1>
+                <h1>📧 New Service Provider Application</h1>
               </div>
               <div class="content">
                 <div class="details">
@@ -396,100 +396,101 @@ Status: Pending Review
 // Cloud Function for quote submissions
 exports.onQuoteCreated = onDocumentCreated(
   { document: 'quotes/{quoteId}', secrets: [SMTP_PASS] }, 
-  async (event) => {  try {
-    const quoteData = event.data.data();
-    const transporter = createTransporter();
-    const config = emailConfig;
-    
-    // Send confirmation email to customer
-    const confirmationEmail = getQuoteConfirmationEmail(quoteData);
-    await transporter.sendMail({
-      from: FROM_EMAIL.value(),
-      to: quoteData.email,
-      subject: confirmationEmail.subject,
-      html: confirmationEmail.html,
-      text: confirmationEmail.text,
-    });
-    
-    // Send notification emails to all admins
-    const adminEmail = getAdminNotificationEmail('quote', quoteData);
-    const adminEmails = config.settings.adminEmails.length > 0 
-      ? config.settings.adminEmails 
-      : [ADMIN_EMAIL.value()];
-    
-    // Send to all admin emails
-    for (const adminAddress of adminEmails) {
+  async (event) => {
+    try {
+      const quoteData = event.data.data();
+      const transporter = createTransporter();
+      const config = emailConfig;
+      
+      // Send confirmation email to customer
+      const confirmationEmail = getQuoteConfirmationEmail(quoteData);
       await transporter.sendMail({
         from: FROM_EMAIL.value(),
-        to: adminAddress,
-        subject: adminEmail.subject,
-        html: adminEmail.html,
-        text: adminEmail.text,
+        to: quoteData.email,
+        subject: confirmationEmail.subject,
+        html: confirmationEmail.html,
+        text: confirmationEmail.text,
+      });
+      
+      // Send notification emails to all admins
+      const adminEmail = getAdminNotificationEmail('quote', quoteData);
+      const adminEmails = config.settings.adminEmails.length > 0 
+        ? config.settings.adminEmails 
+        : [ADMIN_EMAIL.value()];
+      
+      // Send to all admin emails
+      for (const adminAddress of adminEmails) {
+        await transporter.sendMail({
+          from: FROM_EMAIL.value(),
+          to: adminAddress,
+          subject: adminEmail.subject,
+          html: adminEmail.html,
+          text: adminEmail.text,
+        });
+      }
+      
+      logger.info(`Quote emails sent successfully for quote ${event.params.quoteId}`, {
+        customerEmail: quoteData.email,
+        adminEmails: adminEmails,
+        hasAttachment: !!quoteData.fileUrl
+      });
+    } catch (error) {
+      logger.error('Error sending quote emails:', {
+        quoteId: event.params.quoteId,
+        error: error.message,
+        stack: error.stack
       });
     }
-    
-    logger.info(`Quote emails sent successfully for quote ${event.params.quoteId}`, {
-      customerEmail: quoteData.email,
-      adminEmails: adminEmails,
-      hasAttachment: !!quoteData.fileUrl
-    });
-  } catch (error) {
-    logger.error('Error sending quote emails:', {
-      quoteId: event.params.quoteId,
-      error: error.message,
-      stack: error.stack
-    });
-    // Don't throw - we don't want to prevent the quote from being saved
   }
-});
+);
 
 // Cloud Function for service provider applications
 exports.onServiceProviderCreated = onDocumentCreated(
   { document: 'serviceProviders/{providerId}', secrets: [SMTP_PASS] }, 
   async (event) => {
-  try {
-    const providerData = event.data.data();
-    const transporter = createTransporter();
-    const config = emailConfig;
-    
-    // Send confirmation email to applicant
-    const confirmationEmail = getServiceProviderConfirmationEmail(providerData);
-    await transporter.sendMail({
-      from: FROM_EMAIL.value(),
-      to: providerData.email,
-      subject: confirmationEmail.subject,
-      html: confirmationEmail.html,
-      text: confirmationEmail.text,
-    });
-    
-    // Send notification emails to all admins
-    const adminEmail = getAdminNotificationEmail('serviceProvider', providerData);
-    const adminEmails = config.settings.adminEmails.length > 0 
-      ? config.settings.adminEmails 
-      : [ADMIN_EMAIL.value()];
-    
-    // Send to all admin emails
-    for (const adminAddress of adminEmails) {
+    try {
+      const providerData = event.data.data();
+      const transporter = createTransporter();
+      const config = emailConfig;
+      
+      // Send confirmation email to applicant
+      const confirmationEmail = getServiceProviderConfirmationEmail(providerData);
       await transporter.sendMail({
         from: FROM_EMAIL.value(),
-        to: adminAddress,
-        subject: adminEmail.subject,
-        html: adminEmail.html,
-        text: adminEmail.text,
+        to: providerData.email,
+        subject: confirmationEmail.subject,
+        html: confirmationEmail.html,
+        text: confirmationEmail.text,
+      });
+      
+      // Send notification emails to all admins
+      const adminEmail = getAdminNotificationEmail('serviceProvider', providerData);
+      const adminEmails = config.settings.adminEmails.length > 0 
+        ? config.settings.adminEmails 
+        : [ADMIN_EMAIL.value()];
+      
+      // Send to all admin emails
+      for (const adminAddress of adminEmails) {
+        await transporter.sendMail({
+          from: FROM_EMAIL.value(),
+          to: adminAddress,
+          subject: adminEmail.subject,
+          html: adminEmail.html,
+          text: adminEmail.text,
+        });
+      }
+      
+      logger.info(`Service provider emails sent successfully for provider ${event.params.providerId}`, {
+        applicantEmail: providerData.email,
+        adminEmails: adminEmails,
+        serviceAreas: providerData.serviceAreas
+      });
+    } catch (error) {
+      logger.error('Error sending service provider emails:', {
+        providerId: event.params.providerId,
+        error: error.message,
+        stack: error.stack
       });
     }
-    
-    logger.info(`Service provider emails sent successfully for provider ${event.params.providerId}`, {
-      applicantEmail: providerData.email,
-      adminEmails: adminEmails,
-      serviceAreas: providerData.serviceAreas
-    });
-  } catch (error) {
-    logger.error('Error sending service provider emails:', {
-      providerId: event.params.providerId,
-      error: error.message,
-      stack: error.stack
-    });
-    // Don't throw - we don't want to prevent the application from being saved
   }
-});
+);
