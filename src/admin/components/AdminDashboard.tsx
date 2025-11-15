@@ -479,14 +479,22 @@ const AdminDashboard: React.FC = () => {
                 marginBottom: '2rem'
               }}>
                 {[
-                  { label: 'Total Providers', value: stats.totalProviders, icon: Users, color: '#667eea' },
-                  { label: 'Pending Reviews', value: stats.pendingProviders, icon: Clock, color: '#f59e0b' },
-                  { label: 'Approved Providers', value: stats.approvedProviders, icon: CheckCircle, color: '#10b981' },
-                  { label: 'Quote Requests', value: stats.totalQuotes, icon: FileText, color: '#8b5cf6' },
-                  { label: 'Unassigned Quotes', value: stats.unassignedQuotes, icon: AlertCircle, color: '#ef4444' }
+                  { label: 'Total Providers', value: stats.totalProviders, icon: Users, color: '#667eea', targetTab: 'providers' as const },
+                  { label: 'Pending Reviews', value: stats.pendingProviders, icon: Clock, color: '#f59e0b', targetTab: 'providers' as const, filterStatus: 'pending' as const },
+                  { label: 'Approved Providers', value: stats.approvedProviders, icon: CheckCircle, color: '#10b981', targetTab: 'providers' as const, filterStatus: 'approved' as const },
+                  { label: 'Quote Requests', value: stats.totalQuotes, icon: FileText, color: '#8b5cf6', targetTab: 'quotes' as const },
+                  { label: 'Unassigned Quotes', value: stats.unassignedQuotes, icon: AlertCircle, color: '#ef4444', targetTab: 'quotes' as const }
                 ].map((stat, index) => (
                   <div
                     key={index}
+                    onClick={() => {
+                      setActiveTab(stat.targetTab);
+                      if (stat.filterStatus) {
+                        setProviderFilterBy([stat.filterStatus]);
+                      } else if (stat.targetTab === 'providers') {
+                        setProviderFilterBy([]);
+                      }
+                    }}
                     style={{
                       background: 'rgba(255, 255, 255, 0.05)',
                       backdropFilter: 'blur(20px)',
@@ -494,7 +502,19 @@ const AdminDashboard: React.FC = () => {
                       borderRadius: '16px',
                       padding: '1.5rem',
                       position: 'relative',
-                      overflow: 'hidden'
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.3)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = 'none';
                     }}
                   >
                     <div style={{
