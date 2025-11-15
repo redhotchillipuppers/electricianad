@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, Building, Phone, Mail, MapPin, Calendar, Save, X, AlertCircle, Briefcase, ListPlus } from 'lucide-react';
 import Modal from './Modal';
-import AssignedWorkModal from './AssignedWorkModal';
 
 interface ServiceProvider {
     id: string;
@@ -37,7 +36,6 @@ const ServiceProviderModal: React.FC<ServiceProviderModalProps> = ({
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [hasChanges, setHasChanges] = useState(false);
-    const [showAssignedWork, setShowAssignedWork] = useState(false);
 
     // Reset state when provider changes or modal opens/closes
     useEffect(() => {
@@ -564,62 +562,6 @@ const ServiceProviderModal: React.FC<ServiceProviderModalProps> = ({
                     </div>
                 </div>
 
-                {/* Assigned Work Section */}
-                <div style={{
-                    background: 'rgba(59, 130, 246, 0.05)',
-                    borderRadius: '12px',
-                    padding: '1.5rem',
-                    marginBottom: '2rem',
-                    border: '1px solid rgba(59, 130, 246, 0.1)'
-                }}>
-                    <h3 style={{
-                        color: '#3B82F6',
-                        margin: '0 0 1rem 0',
-                        fontSize: '1.1rem',
-                        fontWeight: '600',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem'
-                    }}>
-                        <Briefcase size={18} />
-                        Assigned Work
-                    </h3>
-                    <p style={{
-                        color: '#6B7280',
-                        fontSize: '0.875rem',
-                        margin: '0 0 1rem 0',
-                        lineHeight: '1.5'
-                    }}>
-                        View all quotes currently assigned to this provider.
-                    </p>
-                    <button
-                        onClick={() => setShowAssignedWork(true)}
-                        style={{
-                            padding: '0.75rem 1.5rem',
-                            backgroundColor: '#3B82F6',
-                            border: '2px solid transparent',
-                            borderRadius: '8px',
-                            color: 'white',
-                            fontSize: '0.9rem',
-                            fontWeight: '500',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#2563EB';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = '#3B82F6';
-                        }}
-                    >
-                        <Briefcase size={16} />
-                        View Assigned Work
-                    </button>
-                </div>
-
                 {/* Action Buttons */}
                 <div style={{
                     display: 'flex',
@@ -801,13 +743,6 @@ const ServiceProviderModal: React.FC<ServiceProviderModalProps> = ({
           }
         `}</style>
             </div>
-
-            {/* Assigned Work Modal */}
-            <AssignedWorkModal
-                isOpen={showAssignedWork}
-                onClose={() => setShowAssignedWork(false)}
-                provider={provider}
-            />
         </Modal>
     );
 };
