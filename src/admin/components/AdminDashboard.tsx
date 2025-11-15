@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Users,
   FileText,
@@ -11,7 +11,8 @@ import {
   Phone,
   CheckCircle,
   XCircle,
-  Eye
+  Eye,
+  ArrowUpDown
 } from 'lucide-react';
 import { signOutAdmin, getCurrentAdminUser, AdminUser } from '../utils/adminAuth';
 import { getFirebase, collection, getDocs, doc, updateDoc } from '../../firebase/firebase';
@@ -57,6 +58,10 @@ const AdminDashboard: React.FC = () => {
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showProviderModal, setShowProviderModal] = useState(false);
   const [selectedQuoteRequest, setSelectedQuoteRequest] = useState<QuoteRequest | null>(null);
+
+  // Sorting states
+  const [providerSortBy, setProviderSortBy] = useState<'date-new' | 'date-old' | 'alphabetical'>('date-new');
+  const [quoteSortBy, setQuoteSortBy] = useState<'date-new' | 'date-old' | 'alphabetical'>('date-new');
 
   // Load current user and data
   useEffect(() => {
@@ -146,6 +151,62 @@ const AdminDashboard: React.FC = () => {
     setSelectedProvider(provider);
     setShowProviderModal(true);
   };
+
+  // Sorted service providers
+  const sortedProviders = useMemo(() => {
+    const providers = [...serviceProviders];
+
+    switch (providerSortBy) {
+      case 'date-new':
+        return providers.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0).getTime();
+          const dateB = new Date(b.createdAt || 0).getTime();
+          return dateB - dateA; // newest first
+        });
+      case 'date-old':
+        return providers.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0).getTime();
+          const dateB = new Date(b.createdAt || 0).getTime();
+          return dateA - dateB; // oldest first
+        });
+      case 'alphabetical':
+        return providers.sort((a, b) => {
+          const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+          const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+          return nameA.localeCompare(nameB);
+        });
+      default:
+        return providers;
+    }
+  }, [serviceProviders, providerSortBy]);
+
+  // Sorted quote requests
+  const sortedQuotes = useMemo(() => {
+    const quotes = [...quoteRequests];
+
+    switch (quoteSortBy) {
+      case 'date-new':
+        return quotes.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0).getTime();
+          const dateB = new Date(b.createdAt || 0).getTime();
+          return dateB - dateA; // newest first
+        });
+      case 'date-old':
+        return quotes.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0).getTime();
+          const dateB = new Date(b.createdAt || 0).getTime();
+          return dateA - dateB; // oldest first
+        });
+      case 'alphabetical':
+        return quotes.sort((a, b) => {
+          const nameA = a.name.toLowerCase();
+          const nameB = b.name.toLowerCase();
+          return nameA.localeCompare(nameB);
+        });
+      default:
+        return quotes;
+    }
+  }, [quoteRequests, quoteSortBy]);
 
   const stats = {
     totalProviders: serviceProviders.length,
@@ -345,7 +406,31 @@ const AdminDashboard: React.FC = () => {
 
           {activeTab === 'providers' && (
             <div>
-              <h2 style={{ color: 'white', marginBottom: '1.5rem', fontSize: '1.25rem' }}>Service Providers</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h2 style={{ color: 'white', margin: 0, fontSize: '1.25rem' }}>Service Providers</h2>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <ArrowUpDown size={16} color="rgba(255, 255, 255, 0.6)" />
+                  <select
+                    value={providerSortBy}
+                    onChange={(e) => setProviderSortBy(e.target.value as any)}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '8px',
+                      color: 'white',
+                      fontSize: '0.9rem',
+                      cursor: 'pointer',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="date-new" style={{ background: '#1a1a2e', color: 'white' }}>Newest First</option>
+                    <option value="date-old" style={{ background: '#1a1a2e', color: 'white' }}>Oldest First</option>
+                    <option value="alphabetical" style={{ background: '#1a1a2e', color: 'white' }}>Alphabetical (A-Z)</option>
+                  </select>
+                </div>
+              </div>
 
               <div style={{
                 background: 'rgba(255, 255, 255, 0.05)',
@@ -354,17 +439,17 @@ const AdminDashboard: React.FC = () => {
                 borderRadius: '16px',
                 overflow: 'hidden'
               }}>
-                {serviceProviders.length === 0 ? (
+                {sortedProviders.length === 0 ? (
                   <div style={{ padding: '3rem', textAlign: 'center', color: 'rgba(255, 255, 255, 0.6)' }}>
                     No service providers yet
                   </div>
                 ) : (
-                  serviceProviders.map((provider, index) => (
+                  sortedProviders.map((provider, index) => (
                     <div
                       key={provider.id}
                       style={{
                         padding: '1.5rem',
-                        borderBottom: index < serviceProviders.length - 1 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
+                        borderBottom: index < sortedProviders.length - 1 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center'
@@ -490,7 +575,31 @@ const AdminDashboard: React.FC = () => {
 
           {activeTab === 'quotes' && (
             <div>
-              <h2 style={{ color: 'white', marginBottom: '1.5rem', fontSize: '1.25rem' }}>Quote Requests</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h2 style={{ color: 'white', margin: 0, fontSize: '1.25rem' }}>Quote Requests</h2>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <ArrowUpDown size={16} color="rgba(255, 255, 255, 0.6)" />
+                  <select
+                    value={quoteSortBy}
+                    onChange={(e) => setQuoteSortBy(e.target.value as any)}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '8px',
+                      color: 'white',
+                      fontSize: '0.9rem',
+                      cursor: 'pointer',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="date-new" style={{ background: '#1a1a2e', color: 'white' }}>Newest First</option>
+                    <option value="date-old" style={{ background: '#1a1a2e', color: 'white' }}>Oldest First</option>
+                    <option value="alphabetical" style={{ background: '#1a1a2e', color: 'white' }}>Alphabetical (A-Z)</option>
+                  </select>
+                </div>
+              </div>
 
               <div style={{
                 background: 'rgba(255, 255, 255, 0.05)',
@@ -499,18 +608,18 @@ const AdminDashboard: React.FC = () => {
                 borderRadius: '16px',
                 overflow: 'hidden'
               }}>
-                {quoteRequests.length === 0 ? (
+                {sortedQuotes.length === 0 ? (
                   <div style={{ padding: '3rem', textAlign: 'center', color: 'rgba(255, 255, 255, 0.6)' }}>
                     No quote requests yet
                   </div>
                 ) : (
-                  quoteRequests.map((quote, index) => (
+                  sortedQuotes.map((quote, index) => (
                     <div
                       key={quote.id}
                       onClick={() => handleQuoteClick(quote)}
                       style={{
                         padding: '1.5rem',
-                        borderBottom: index < quoteRequests.length - 1 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
+                        borderBottom: index < sortedQuotes.length - 1 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
                         cursor: 'pointer',
                         transition: 'background-color 0.2s ease'
                       }}
