@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Building, Phone, Mail, MapPin, Calendar, Save, X, AlertCircle, Briefcase } from 'lucide-react';
+import { User, Building, Phone, Mail, MapPin, Calendar, Save, X, AlertCircle, Briefcase, ListPlus } from 'lucide-react';
 import Modal from './Modal';
 import AssignedWorkModal from './AssignedWorkModal';
 
