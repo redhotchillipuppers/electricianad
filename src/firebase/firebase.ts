@@ -15,8 +15,9 @@ import {
   doc,
   setDoc,
   getDoc,
-  getDocs, 
-  updateDoc 
+  getDocs,
+  updateDoc,
+  deleteDoc
 } from "firebase/firestore";
 import {
   getStorage,
@@ -63,15 +64,16 @@ export function getFirebase(): FirebaseServices {
   return services;
 }
 
-export { 
-  collection, 
-  doc, 
-  setDoc, 
+export {
+  collection,
+  doc,
+  setDoc,
   getDoc, // ← ADD these
   getDocs,
   updateDoc,
-  ref, 
-  uploadBytes, 
+  deleteDoc,
+  ref,
+  uploadBytes,
   getDownloadURL,
   signInWithEmailAndPassword,
   signOut,

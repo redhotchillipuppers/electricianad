@@ -1,5 +1,5 @@
-import React from 'react';
-import { Mail, Phone, MapPin, MessageSquare, Calendar, FileText, Image as ImageIcon } from 'lucide-react';
+import React, { useState } from 'react';
+import { Mail, Phone, MapPin, MessageSquare, Calendar, FileText, Image as ImageIcon, Trash2 } from 'lucide-react';
 import Modal from './Modal';
 
 interface QuoteRequest {
@@ -21,10 +21,36 @@ interface QuoteRequestModalProps {
     isOpen: boolean;
     onClose: () => void;
     quote: QuoteRequest | null;
+    onDelete?: (quoteId: string) => Promise<void>;
 }
 
-const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({ isOpen, onClose, quote }) => {
+const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({ isOpen, onClose, quote, onDelete }) => {
+    const [deleting, setDeleting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
     if (!quote) return null;
+
+    // Handle delete
+    const handleDelete = async () => {
+        if (!onDelete) return;
+
+        const confirmMessage = `Are you sure you want to delete the quote request from ${quote.name}? This action cannot be undone.`;
+
+        if (!window.confirm(confirmMessage)) {
+            return;
+        }
+
+        setDeleting(true);
+        setError(null);
+
+        try {
+            await onDelete(quote.id);
+            // Modal will be closed by the parent component after successful deletion
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to delete quote request');
+            setDeleting(false);
+        }
+    };
 
     // Format the creation date
     const formatDate = (dateString?: string) => {
@@ -76,6 +102,21 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({ isOpen, onClose, 
             maxWidth="900px"
         >
             <div style={{ padding: '2rem' }}>
+                {/* Error Message */}
+                {error && (
+                    <div style={{
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        borderRadius: '8px',
+                        padding: '1rem',
+                        marginBottom: '1.5rem',
+                        color: '#EF4444',
+                        fontSize: '0.9rem'
+                    }}>
+                        {error}
+                    </div>
+                )}
+
                 {/* Contact Information Section */}
                 <div style={{
                     background: 'rgba(30, 64, 175, 0.05)',
@@ -316,6 +357,51 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({ isOpen, onClose, 
                                 </a>
                             </div>
                         )}
+                    </div>
+                )}
+
+                {/* Action Buttons */}
+                {onDelete && (
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        gap: '1rem',
+                        paddingTop: '1.5rem',
+                        marginTop: '1.5rem',
+                        borderTop: '1px solid rgba(0, 0, 0, 0.1)'
+                    }}>
+                        <button
+                            onClick={handleDelete}
+                            disabled={deleting}
+                            style={{
+                                padding: '0.75rem 1.5rem',
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                border: '2px solid rgba(239, 68, 68, 0.3)',
+                                borderRadius: '8px',
+                                color: '#EF4444',
+                                fontSize: '0.9rem',
+                                fontWeight: '500',
+                                cursor: deleting ? 'not-allowed' : 'pointer',
+                                opacity: deleting ? 0.6 : 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                                if (!deleting) {
+                                    e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                if (!deleting) {
+                                    e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                                }
+                            }}
+                        >
+                            <Trash2 size={16} />
+                            {deleting ? 'Deleting...' : 'Delete Quote Request'}
+                        </button>
                     </div>
                 )}
 
