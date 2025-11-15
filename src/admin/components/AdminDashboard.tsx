@@ -17,6 +17,7 @@ import { signOutAdmin, getCurrentAdminUser, AdminUser } from '../utils/adminAuth
 import { getFirebase, collection, getDocs, doc, updateDoc } from '../../firebase/firebase';
 import QuoteRequestModal from './QuoteRequestModal';
 import ServiceProviderModal from './ServiceProviderModal';
+import EligibleJobsModal from './EligibleJobsModal';
 
 interface ServiceProvider {
   id: string;
@@ -56,6 +57,7 @@ const AdminDashboard: React.FC = () => {
   // Modal states
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showProviderModal, setShowProviderModal] = useState(false);
+  const [showEligibleJobsModal, setShowEligibleJobsModal] = useState(false);
   const [selectedQuoteRequest, setSelectedQuoteRequest] = useState<QuoteRequest | null>(null);
 
   // Load current user and data
@@ -145,6 +147,30 @@ const AdminDashboard: React.FC = () => {
   const handleProviderClick = (provider: ServiceProvider) => {
     setSelectedProvider(provider);
     setShowProviderModal(true);
+  };
+
+  const handleViewAssignedJobs = () => {
+    // For now, just show an alert - can implement AssignedJobsModal later
+    alert('Assigned Jobs view - To be implemented');
+  };
+
+  const handleViewEligibleJobs = () => {
+    setShowEligibleJobsModal(true);
+  };
+
+  const handleJobAssigned = async () => {
+    // Reload quote requests after a job is assigned
+    try {
+      const { db } = getFirebase();
+      const quotesSnapshot = await getDocs(collection(db, 'quotes'));
+      const quotesData = quotesSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as QuoteRequest[];
+      setQuoteRequests(quotesData);
+    } catch (error) {
+      console.error('Error reloading quotes:', error);
+    }
   };
 
   const stats = {
@@ -591,6 +617,15 @@ const AdminDashboard: React.FC = () => {
         onClose={() => setShowProviderModal(false)}
         provider={selectedProvider}
         onSave={updateServiceProvider}
+        onViewAssignedJobs={handleViewAssignedJobs}
+        onViewEligibleJobs={handleViewEligibleJobs}
+      />
+
+      <EligibleJobsModal
+        isOpen={showEligibleJobsModal}
+        onClose={() => setShowEligibleJobsModal(false)}
+        provider={selectedProvider}
+        onJobAssigned={handleJobAssigned}
       />
 
       <style>{`

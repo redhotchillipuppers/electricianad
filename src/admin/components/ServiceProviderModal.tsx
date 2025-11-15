@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Building, Phone, Mail, MapPin, Calendar, Save, X, AlertCircle } from 'lucide-react';
+import { User, Building, Phone, Mail, MapPin, Calendar, Save, X, AlertCircle, Briefcase, ListPlus } from 'lucide-react';
 import Modal from './Modal';
 
 interface ServiceProvider {
@@ -20,13 +20,17 @@ interface ServiceProviderModalProps {
     onClose: () => void;
     provider: ServiceProvider | null;
     onSave: (providerId: string, updatedData: Partial<ServiceProvider>) => Promise<void>;
+    onViewAssignedJobs?: () => void;
+    onViewEligibleJobs?: () => void;
 }
 
 const ServiceProviderModal: React.FC<ServiceProviderModalProps> = ({
     isOpen,
     onClose,
     provider,
-    onSave
+    onSave,
+    onViewAssignedJobs,
+    onViewEligibleJobs
 }) => {
     const [editedProvider, setEditedProvider] = useState<ServiceProvider | null>(null);
     const [saving, setSaving] = useState(false);
@@ -561,11 +565,86 @@ const ServiceProviderModal: React.FC<ServiceProviderModalProps> = ({
                 {/* Action Buttons */}
                 <div style={{
                     display: 'flex',
-                    justifyContent: 'flex-end',
+                    justifyContent: 'space-between',
                     gap: '1rem',
                     paddingTop: '1rem',
                     borderTop: '1px solid rgba(0, 0, 0, 0.1)'
                 }}>
+                    {/* Left side - Job buttons */}
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        {onViewAssignedJobs && (
+                            <button
+                                onClick={onViewAssignedJobs}
+                                disabled={saving}
+                                style={{
+                                    padding: '0.75rem 1.25rem',
+                                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                                    border: '2px solid rgba(139, 92, 246, 0.3)',
+                                    borderRadius: '8px',
+                                    color: '#8B5CF6',
+                                    fontSize: '0.9rem',
+                                    fontWeight: '500',
+                                    cursor: saving ? 'not-allowed' : 'pointer',
+                                    opacity: saving ? 0.6 : 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (!saving) {
+                                        e.currentTarget.style.backgroundColor = 'rgba(139, 92, 246, 0.2)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!saving) {
+                                        e.currentTarget.style.backgroundColor = 'rgba(139, 92, 246, 0.1)';
+                                    }
+                                }}
+                            >
+                                <Briefcase size={16} />
+                                Assigned Jobs
+                            </button>
+                        )}
+
+                        {onViewEligibleJobs && (
+                            <button
+                                onClick={onViewEligibleJobs}
+                                disabled={saving}
+                                style={{
+                                    padding: '0.75rem 1.25rem',
+                                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                    border: '2px solid rgba(16, 185, 129, 0.3)',
+                                    borderRadius: '8px',
+                                    color: '#10B981',
+                                    fontSize: '0.9rem',
+                                    fontWeight: '500',
+                                    cursor: saving ? 'not-allowed' : 'pointer',
+                                    opacity: saving ? 0.6 : 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (!saving) {
+                                        e.currentTarget.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!saving) {
+                                        e.currentTarget.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+                                    }
+                                }}
+                            >
+                                <ListPlus size={16} />
+                                Eligible Jobs
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Right side - Save/Cancel buttons */}
+                    <div style={{ display: 'flex', gap: '1rem' }}>
                     <button
                         onClick={handleClose}
                         disabled={saving}
@@ -632,6 +711,7 @@ const ServiceProviderModal: React.FC<ServiceProviderModalProps> = ({
                         <Save size={16} />
                         {saving ? 'Saving...' : 'Save Changes'}
                     </button>
+                    </div>
                 </div>
 
                 {/* Mobile responsive styles */}
