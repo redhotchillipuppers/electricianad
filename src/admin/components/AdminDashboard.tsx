@@ -510,16 +510,23 @@ const AdminDashboard: React.FC = () => {
                   { label: 'Pending Reviews', value: stats.pendingProviders, icon: Clock, color: '#f59e0b', targetTab: 'providers' as const, filterStatus: 'pending' as const },
                   { label: 'Approved Providers', value: stats.approvedProviders, icon: CheckCircle, color: '#10b981', targetTab: 'providers' as const, filterStatus: 'approved' as const },
                   { label: 'Quote Requests', value: stats.totalQuotes, icon: FileText, color: '#8b5cf6', targetTab: 'quotes' as const },
-                  { label: 'Unassigned Quotes', value: stats.unassignedQuotes, icon: AlertCircle, color: '#ef4444', targetTab: 'quotes' as const }
+                  { label: 'Unassigned Quotes', value: stats.unassignedQuotes, icon: AlertCircle, color: '#ef4444', targetTab: 'quotes' as const, quoteFilterStatus: 'unassigned' as const }
                 ].map((stat, index) => (
                   <div
                     key={index}
                     onClick={() => {
                       setActiveTab(stat.targetTab);
+                      // Handle provider filters
                       if (stat.filterStatus) {
                         setProviderFilterBy([stat.filterStatus]);
                       } else if (stat.targetTab === 'providers') {
                         setProviderFilterBy([]);
+                      }
+                      // Handle quote filters
+                      if ((stat as any).quoteFilterStatus) {
+                        setQuoteFilterBy([(stat as any).quoteFilterStatus]);
+                      } else if (stat.targetTab === 'quotes') {
+                        setQuoteFilterBy([]);
                       }
                     }}
                     style={{
