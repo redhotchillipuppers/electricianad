@@ -2,7 +2,7 @@
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { logger } = require('firebase-functions');
 const nodemailer = require('nodemailer');
-const { defineString } = require('firebase-functions/params');
+const { defineString, defineSecret } = require('firebase-functions/params');
 const emailConfig = require('./emailConfig');
 
 // Environment variables (all using v2 parameter system)

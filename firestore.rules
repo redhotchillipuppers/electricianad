@@ -1,0 +1,86 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for validation
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'superadmin'];
+    }
+
+    function isValidEmail(email) {
+      return email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$');
+    }
+
+    function isValidPhone(phone) {
+      return phone.matches('^[0-9\\s\\-\\+\\(\\)]+$');
+    }
+
+    // Quote requests collection
+    match /quotes/{quoteId} {
+      // Anyone can create a quote (public submission)
+      // Updated to match actual data structure from submitQuote.ts
+      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'contactMethod', 'description', 'houseFlatNumber', 'streetName', 'postcode', 'createdAt'])
+                    && isValidEmail(request.resource.data.email)
+                    && request.resource.data.name is string && request.resource.data.name.size() > 0
+                    && request.resource.data.contactMethod is string && request.resource.data.contactMethod.size() > 0
+                    && request.resource.data.description is string
+                    && request.resource.data.houseFlatNumber is string
+                    && request.resource.data.streetName is string
+                    && request.resource.data.postcode is string
+                    && request.resource.data.createdAt is string
+                    && (!request.resource.data.keys().hasAny(['phone']) || request.resource.data.phone is string)
+                    && (!request.resource.data.keys().hasAny(['fileUrl']) || request.resource.data.fileUrl is string);
+
+      // Only admins can read, update, and delete quotes
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Service providers collection
+    match /serviceProviders/{providerId} {
+      // Anyone can create a provider application (public submission)
+      // Updated to match actual data structure from submitServiceProvider.ts
+      allow create: if request.resource.data.keys().hasAll(['firstName', 'lastName', 'email', 'primaryContactNumber', 'serviceAreas', 'status', 'createdAt'])
+                    && isValidEmail(request.resource.data.email)
+                    && isValidPhone(request.resource.data.primaryContactNumber)
+                    && request.resource.data.firstName is string && request.resource.data.firstName.size() > 0
+                    && request.resource.data.lastName is string && request.resource.data.lastName.size() > 0
+                    && request.resource.data.primaryContactNumber is string && request.resource.data.primaryContactNumber.size() > 0
+                    && request.resource.data.serviceAreas is list && request.resource.data.serviceAreas.size() > 0
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.createdAt is string
+                    && (!request.resource.data.keys().hasAny(['companyName']) || request.resource.data.companyName is string);
+
+      // Only admins can read, update, and delete provider applications
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Users collection (admin accounts)
+    match /users/{userId} {
+      // Users can only read their own document
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+
+      // Only admins can create new admin users
+      allow create: if isAdmin()
+                    && request.resource.data.keys().hasAll(['email', 'role', 'createdAt'])
+                    && isValidEmail(request.resource.data.email)
+                    && request.resource.data.role in ['admin', 'superadmin']
+                    && request.resource.data.createdAt is timestamp;
+
+      // Users cannot update or delete their own document
+      // Only superadmins can update/delete user documents
+      allow update, delete: if isAdmin() &&
+                             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin';
+    }
+
+    // Deny access to all other documents
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

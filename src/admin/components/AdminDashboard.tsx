@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Users,
   FileText,
@@ -11,13 +11,17 @@ import {
   Phone,
   CheckCircle,
   XCircle,
-  Eye
+  Eye,
+  ArrowUpDown,
+  Filter,
+  UserPlus,
+  AlertCircle
 } from 'lucide-react';
 import { signOutAdmin, getCurrentAdminUser, AdminUser } from '../utils/adminAuth';
 import { getFirebase, collection, getDocs, doc, updateDoc } from '../../firebase/firebase';
 import QuoteRequestModal from './QuoteRequestModal';
 import ServiceProviderModal from './ServiceProviderModal';
-import EligibleJobsModal from './EligibleJobsModal';
+import AssignQuoteModal from './AssignQuoteModal';
 
 interface ServiceProvider {
   id: string;
@@ -43,6 +47,12 @@ interface QuoteRequest {
   postcode?: string;
   fileUrl?: string;
   createdAt?: string;
+  assignedProviderId?: string | null;
+  assignedProviderName?: string | null;
+  assignedBy?: string;
+  assignedAt?: string;
+  assignmentNotes?: string;
+  assignmentStatus?: 'unassigned' | 'assigned';
   [key: string]: any; // For other quote fields
 }
 
@@ -57,8 +67,16 @@ const AdminDashboard: React.FC = () => {
   // Modal states
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showProviderModal, setShowProviderModal] = useState(false);
-  const [showEligibleJobsModal, setShowEligibleJobsModal] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedQuoteRequest, setSelectedQuoteRequest] = useState<QuoteRequest | null>(null);
+
+  // Sorting states
+  const [providerSortBy, setProviderSortBy] = useState<'date-new' | 'date-old' | 'alphabetical'>('date-new');
+  const [quoteSortBy, setQuoteSortBy] = useState<'date-new' | 'date-old' | 'alphabetical'>('date-new');
+
+  // Filter states
+  const [providerFilterBy, setProviderFilterBy] = useState<Array<'pending' | 'approved' | 'rejected' | 'inactive'>>([]);
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
   // Load current user and data
   useEffect(() => {
@@ -93,6 +111,21 @@ const AdminDashboard: React.FC = () => {
 
     loadData();
   }, []);
+
+  // Close filter dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (showFilterDropdown && !target.closest('[data-filter-dropdown]')) {
+        setShowFilterDropdown(false);
+      }
+    };
+
+    if (showFilterDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showFilterDropdown]);
 
   const handleSignOut = async () => {
     try {
@@ -149,17 +182,13 @@ const AdminDashboard: React.FC = () => {
     setShowProviderModal(true);
   };
 
-  const handleViewAssignedJobs = () => {
-    // For now, just show an alert - can implement AssignedJobsModal later
-    alert('Assigned Jobs view - To be implemented');
+  const handleAssignClick = (quote: QuoteRequest) => {
+    setSelectedQuoteRequest(quote);
+    setShowAssignModal(true);
   };
 
-  const handleViewEligibleJobs = () => {
-    setShowEligibleJobsModal(true);
-  };
-
-  const handleJobAssigned = async () => {
-    // Reload quote requests after a job is assigned
+  const handleAssignmentComplete = async () => {
+    // Reload quotes to reflect the assignment
     try {
       const { db } = getFirebase();
       const quotesSnapshot = await getDocs(collection(db, 'quotes'));
@@ -173,11 +202,86 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  // Toggle filter selection
+  const toggleFilterStatus = (status: 'pending' | 'approved' | 'rejected' | 'inactive') => {
+    setProviderFilterBy(prev => {
+      if (prev.includes(status)) {
+        return prev.filter(s => s !== status);
+      } else {
+        return [...prev, status];
+      }
+    });
+  };
+
+  // Sorted and filtered service providers
+  const sortedProviders = useMemo(() => {
+    // First apply filter
+    let providers = [...serviceProviders];
+
+    // If filter array has selections, filter to only those statuses
+    if (providerFilterBy.length > 0) {
+      providers = providers.filter(p => providerFilterBy.includes(p.status));
+    }
+
+    // Then apply sort
+    switch (providerSortBy) {
+      case 'date-new':
+        return providers.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0).getTime();
+          const dateB = new Date(b.createdAt || 0).getTime();
+          return dateB - dateA; // newest first
+        });
+      case 'date-old':
+        return providers.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0).getTime();
+          const dateB = new Date(b.createdAt || 0).getTime();
+          return dateA - dateB; // oldest first
+        });
+      case 'alphabetical':
+        return providers.sort((a, b) => {
+          const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+          const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+          return nameA.localeCompare(nameB);
+        });
+      default:
+        return providers;
+    }
+  }, [serviceProviders, providerSortBy, providerFilterBy]);
+
+  // Sorted quote requests
+  const sortedQuotes = useMemo(() => {
+    const quotes = [...quoteRequests];
+
+    switch (quoteSortBy) {
+      case 'date-new':
+        return quotes.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0).getTime();
+          const dateB = new Date(b.createdAt || 0).getTime();
+          return dateB - dateA; // newest first
+        });
+      case 'date-old':
+        return quotes.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0).getTime();
+          const dateB = new Date(b.createdAt || 0).getTime();
+          return dateA - dateB; // oldest first
+        });
+      case 'alphabetical':
+        return quotes.sort((a, b) => {
+          const nameA = a.name.toLowerCase();
+          const nameB = b.name.toLowerCase();
+          return nameA.localeCompare(nameB);
+        });
+      default:
+        return quotes;
+    }
+  }, [quoteRequests, quoteSortBy]);
+
   const stats = {
     totalProviders: serviceProviders.length,
     pendingProviders: serviceProviders.filter(p => p.status === 'pending').length,
     approvedProviders: serviceProviders.filter(p => p.status === 'approved').length,
-    totalQuotes: quoteRequests.length
+    totalQuotes: quoteRequests.length,
+    unassignedQuotes: quoteRequests.filter(q => !q.assignedProviderId || q.assignmentStatus !== 'assigned').length
   };
 
   if (loading) {
@@ -325,7 +429,8 @@ const AdminDashboard: React.FC = () => {
                   { label: 'Total Providers', value: stats.totalProviders, icon: Users, color: '#667eea' },
                   { label: 'Pending Reviews', value: stats.pendingProviders, icon: Clock, color: '#f59e0b' },
                   { label: 'Approved Providers', value: stats.approvedProviders, icon: CheckCircle, color: '#10b981' },
-                  { label: 'Quote Requests', value: stats.totalQuotes, icon: FileText, color: '#8b5cf6' }
+                  { label: 'Quote Requests', value: stats.totalQuotes, icon: FileText, color: '#8b5cf6' },
+                  { label: 'Unassigned Quotes', value: stats.unassignedQuotes, icon: AlertCircle, color: '#ef4444' }
                 ].map((stat, index) => (
                   <div
                     key={index}
@@ -347,7 +452,8 @@ const AdminDashboard: React.FC = () => {
                       height: '40px',
                       background: `rgba(${stat.color === '#667eea' ? '102, 126, 234' :
                         stat.color === '#f59e0b' ? '245, 158, 11' :
-                          stat.color === '#10b981' ? '16, 185, 129' : '139, 92, 246'}, 0.2)`,
+                          stat.color === '#10b981' ? '16, 185, 129' :
+                            stat.color === '#ef4444' ? '239, 68, 68' : '139, 92, 246'}, 0.2)`,
                       borderRadius: '10px',
                       display: 'flex',
                       alignItems: 'center',
@@ -371,7 +477,137 @@ const AdminDashboard: React.FC = () => {
 
           {activeTab === 'providers' && (
             <div>
-              <h2 style={{ color: 'white', marginBottom: '1.5rem', fontSize: '1.25rem' }}>Service Providers</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h2 style={{ color: 'white', margin: 0, fontSize: '1.25rem' }}>Service Providers</h2>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  {/* Filter Dropdown */}
+                  <div style={{ position: 'relative' }} data-filter-dropdown>
+                    <button
+                      onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.5rem 1rem',
+                        background: providerFilterBy.length > 0 ? 'rgba(102, 126, 234, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                        border: providerFilterBy.length > 0 ? '1px solid rgba(102, 126, 234, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '8px',
+                        color: 'white',
+                        fontSize: '0.9rem',
+                        cursor: 'pointer',
+                        outline: 'none'
+                      }}
+                    >
+                      <Filter size={16} color={providerFilterBy.length > 0 ? '#8b9aef' : 'rgba(255, 255, 255, 0.6)'} />
+                      <span>Filter {providerFilterBy.length > 0 && `(${providerFilterBy.length})`}</span>
+                    </button>
+
+                    {showFilterDropdown && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 'calc(100% + 0.5rem)',
+                          right: 0,
+                          background: 'rgba(26, 26, 46, 0.98)',
+                          backdropFilter: 'blur(20px)',
+                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                          borderRadius: '12px',
+                          padding: '1rem',
+                          zIndex: 1000,
+                          minWidth: '200px',
+                          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
+                        }}
+                      >
+                        <div style={{ marginBottom: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.85rem', fontWeight: '600' }}>
+                            Filter by Status
+                          </span>
+                          {providerFilterBy.length > 0 && (
+                            <button
+                              onClick={() => setProviderFilterBy([])}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#8b9aef',
+                                fontSize: '0.75rem',
+                                cursor: 'pointer',
+                                padding: '0.25rem 0.5rem'
+                              }}
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
+
+                        {[
+                          { value: 'pending' as const, label: 'Pending', color: '#fbbf24' },
+                          { value: 'approved' as const, label: 'Approved', color: '#34d399' },
+                          { value: 'rejected' as const, label: 'Rejected', color: '#f87171' },
+                          { value: 'inactive' as const, label: 'Inactive', color: '#9CA3AF' }
+                        ].map((option) => (
+                          <label
+                            key={option.value}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.75rem',
+                              padding: '0.5rem',
+                              cursor: 'pointer',
+                              borderRadius: '6px',
+                              transition: 'background-color 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={providerFilterBy.includes(option.value)}
+                              onChange={() => toggleFilterStatus(option.value)}
+                              style={{
+                                width: '16px',
+                                height: '16px',
+                                cursor: 'pointer',
+                                accentColor: option.color
+                              }}
+                            />
+                            <span style={{ color: 'white', fontSize: '0.9rem' }}>
+                              {option.label}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Sort Dropdown */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <ArrowUpDown size={16} color="rgba(255, 255, 255, 0.6)" />
+                    <select
+                      value={providerSortBy}
+                      onChange={(e) => setProviderSortBy(e.target.value as any)}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '8px',
+                        color: 'white',
+                        fontSize: '0.9rem',
+                        cursor: 'pointer',
+                        outline: 'none'
+                      }}
+                    >
+                      <option value="date-new" style={{ background: '#1a1a2e', color: 'white' }}>Newest First</option>
+                      <option value="date-old" style={{ background: '#1a1a2e', color: 'white' }}>Oldest First</option>
+                      <option value="alphabetical" style={{ background: '#1a1a2e', color: 'white' }}>Alphabetical (A-Z)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
 
               <div style={{
                 background: 'rgba(255, 255, 255, 0.05)',
@@ -380,17 +616,17 @@ const AdminDashboard: React.FC = () => {
                 borderRadius: '16px',
                 overflow: 'hidden'
               }}>
-                {serviceProviders.length === 0 ? (
+                {sortedProviders.length === 0 ? (
                   <div style={{ padding: '3rem', textAlign: 'center', color: 'rgba(255, 255, 255, 0.6)' }}>
                     No service providers yet
                   </div>
                 ) : (
-                  serviceProviders.map((provider, index) => (
+                  sortedProviders.map((provider, index) => (
                     <div
                       key={provider.id}
                       style={{
                         padding: '1.5rem',
-                        borderBottom: index < serviceProviders.length - 1 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
+                        borderBottom: index < sortedProviders.length - 1 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center'
@@ -516,7 +752,31 @@ const AdminDashboard: React.FC = () => {
 
           {activeTab === 'quotes' && (
             <div>
-              <h2 style={{ color: 'white', marginBottom: '1.5rem', fontSize: '1.25rem' }}>Quote Requests</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h2 style={{ color: 'white', margin: 0, fontSize: '1.25rem' }}>Quote Requests</h2>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <ArrowUpDown size={16} color="rgba(255, 255, 255, 0.6)" />
+                  <select
+                    value={quoteSortBy}
+                    onChange={(e) => setQuoteSortBy(e.target.value as any)}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '8px',
+                      color: 'white',
+                      fontSize: '0.9rem',
+                      cursor: 'pointer',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="date-new" style={{ background: '#1a1a2e', color: 'white' }}>Newest First</option>
+                    <option value="date-old" style={{ background: '#1a1a2e', color: 'white' }}>Oldest First</option>
+                    <option value="alphabetical" style={{ background: '#1a1a2e', color: 'white' }}>Alphabetical (A-Z)</option>
+                  </select>
+                </div>
+              </div>
 
               <div style={{
                 background: 'rgba(255, 255, 255, 0.05)',
@@ -525,34 +785,41 @@ const AdminDashboard: React.FC = () => {
                 borderRadius: '16px',
                 overflow: 'hidden'
               }}>
-                {quoteRequests.length === 0 ? (
+                {sortedQuotes.length === 0 ? (
                   <div style={{ padding: '3rem', textAlign: 'center', color: 'rgba(255, 255, 255, 0.6)' }}>
                     No quote requests yet
                   </div>
                 ) : (
-                  quoteRequests.map((quote, index) => (
+                  sortedQuotes.map((quote, index) => (
                     <div
                       key={quote.id}
-                      onClick={() => handleQuoteClick(quote)}
                       style={{
                         padding: '1.5rem',
-                        borderBottom: index < quoteRequests.length - 1 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
-                        cursor: 'pointer',
+                        borderBottom: index < sortedQuotes.length - 1 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
                         transition: 'background-color 0.2s ease'
                       }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                      }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                        <div
+                          style={{
+                            flex: 1,
+                            cursor: 'pointer',
+                            padding: '0.5rem',
+                            borderRadius: '8px',
+                            transition: 'background-color 0.2s ease'
+                          }}
+                          onClick={() => handleQuoteClick(quote)}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
                           <h3 style={{ color: 'white', margin: '0 0 0.5rem 0', fontSize: '1.1rem' }}>
                             {quote.name}
                           </h3>
-                          <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem' }}>
+                          <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
                             <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                               <Mail size={14} />
                               {quote.email}
@@ -574,8 +841,34 @@ const AdminDashboard: React.FC = () => {
                               {quote.description}
                             </p>
                           )}
+
+                          {/* Assignment Status */}
+                          {quote.assignmentStatus === 'assigned' && quote.assignedProviderName && (
+                            <div style={{
+                              marginTop: '0.75rem',
+                              padding: '0.5rem 0.75rem',
+                              background: 'rgba(16, 185, 129, 0.1)',
+                              borderRadius: '6px',
+                              border: '1px solid rgba(16, 185, 129, 0.2)'
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <UserPlus size={14} color="#34d399" />
+                                <span style={{ fontSize: '0.85rem', color: '#34d399', fontWeight: '500' }}>
+                                  Assigned to: {quote.assignedProviderName}
+                                </span>
+                              </div>
+                              {quote.assignedAt && (
+                                <span style={{ fontSize: '0.75rem', color: 'rgba(52, 211, 153, 0.7)', marginLeft: '1.25rem' }}>
+                                  {new Date(quote.assignedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        <div style={{ marginLeft: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+
+                        {/* Actions Column */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end' }}>
+                          {/* File Indicator */}
                           {quote.fileUrl && (
                             <span style={{
                               padding: '0.25rem 0.5rem',
@@ -588,12 +881,72 @@ const AdminDashboard: React.FC = () => {
                               📎 FILE
                             </span>
                           )}
-                          <span style={{
-                            color: 'rgba(255, 255, 255, 0.5)',
-                            fontSize: '0.75rem'
-                          }}>
-                            Click to view
-                          </span>
+
+                          {/* Assignment Button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAssignClick(quote);
+                            }}
+                            style={{
+                              padding: '0.5rem 1rem',
+                              background: quote.assignmentStatus === 'assigned'
+                                ? 'rgba(102, 126, 234, 0.1)'
+                                : 'rgba(16, 185, 129, 0.1)',
+                              border: quote.assignmentStatus === 'assigned'
+                                ? '1px solid rgba(102, 126, 234, 0.3)'
+                                : '1px solid rgba(16, 185, 129, 0.3)',
+                              borderRadius: '8px',
+                              color: quote.assignmentStatus === 'assigned' ? '#8b9aef' : '#34d399',
+                              cursor: 'pointer',
+                              fontSize: '0.85rem',
+                              fontWeight: '500',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              transition: 'all 0.2s ease',
+                              whiteSpace: 'nowrap'
+                            }}
+                            onMouseEnter={(e) => {
+                              if (quote.assignmentStatus === 'assigned') {
+                                e.currentTarget.style.background = 'rgba(102, 126, 234, 0.2)';
+                              } else {
+                                e.currentTarget.style.background = 'rgba(16, 185, 129, 0.2)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (quote.assignmentStatus === 'assigned') {
+                                e.currentTarget.style.background = 'rgba(102, 126, 234, 0.1)';
+                              } else {
+                                e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)';
+                              }
+                            }}
+                          >
+                            <UserPlus size={14} />
+                            {quote.assignmentStatus === 'assigned' ? 'Reassign' : 'Assign'}
+                          </button>
+
+                          {/* View Button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleQuoteClick(quote);
+                            }}
+                            style={{
+                              padding: '0.5rem',
+                              background: 'rgba(102, 126, 234, 0.1)',
+                              border: '1px solid rgba(102, 126, 234, 0.3)',
+                              borderRadius: '8px',
+                              color: '#8b9aef',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                              fontSize: '0.75rem'
+                            }}
+                          >
+                            <Eye size={14} />
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -626,6 +979,14 @@ const AdminDashboard: React.FC = () => {
         onClose={() => setShowEligibleJobsModal(false)}
         provider={selectedProvider}
         onJobAssigned={handleJobAssigned}
+      />
+
+      <AssignQuoteModal
+        isOpen={showAssignModal}
+        onClose={() => setShowAssignModal(false)}
+        quote={selectedQuoteRequest}
+        currentUserEmail={currentUser?.email || ''}
+        onAssignmentComplete={handleAssignmentComplete}
       />
 
       <style>{`
