@@ -65,7 +65,8 @@ const AdminDashboard: React.FC = () => {
   const [quoteSortBy, setQuoteSortBy] = useState<'date-new' | 'date-old' | 'alphabetical'>('date-new');
 
   // Filter states
-  const [providerFilterBy, setProviderFilterBy] = useState<'all' | 'pending' | 'approved' | 'rejected' | 'inactive'>('all');
+  const [providerFilterBy, setProviderFilterBy] = useState<Array<'pending' | 'approved' | 'rejected' | 'inactive'>>([]);
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
   // Load current user and data
   useEffect(() => {
@@ -100,6 +101,21 @@ const AdminDashboard: React.FC = () => {
 
     loadData();
   }, []);
+
+  // Close filter dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (showFilterDropdown && !target.closest('[data-filter-dropdown]')) {
+        setShowFilterDropdown(false);
+      }
+    };
+
+    if (showFilterDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showFilterDropdown]);
 
   const handleSignOut = async () => {
     try {
@@ -156,13 +172,25 @@ const AdminDashboard: React.FC = () => {
     setShowProviderModal(true);
   };
 
+  // Toggle filter selection
+  const toggleFilterStatus = (status: 'pending' | 'approved' | 'rejected' | 'inactive') => {
+    setProviderFilterBy(prev => {
+      if (prev.includes(status)) {
+        return prev.filter(s => s !== status);
+      } else {
+        return [...prev, status];
+      }
+    });
+  };
+
   // Sorted and filtered service providers
   const sortedProviders = useMemo(() => {
     // First apply filter
     let providers = [...serviceProviders];
 
-    if (providerFilterBy !== 'all') {
-      providers = providers.filter(p => p.status === providerFilterBy);
+    // If filter array has selections, filter to only those statuses
+    if (providerFilterBy.length > 0) {
+      providers = providers.filter(p => providerFilterBy.includes(p.status));
     }
 
     // Then apply sort
@@ -421,15 +449,16 @@ const AdminDashboard: React.FC = () => {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   {/* Filter Dropdown */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Filter size={16} color="rgba(255, 255, 255, 0.6)" />
-                    <select
-                      value={providerFilterBy}
-                      onChange={(e) => setProviderFilterBy(e.target.value as any)}
+                  <div style={{ position: 'relative' }} data-filter-dropdown>
+                    <button
+                      onClick={() => setShowFilterDropdown(!showFilterDropdown)}
                       style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
                         padding: '0.5rem 1rem',
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        background: providerFilterBy.length > 0 ? 'rgba(102, 126, 234, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                        border: providerFilterBy.length > 0 ? '1px solid rgba(102, 126, 234, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)',
                         borderRadius: '8px',
                         color: 'white',
                         fontSize: '0.9rem',
@@ -437,12 +466,89 @@ const AdminDashboard: React.FC = () => {
                         outline: 'none'
                       }}
                     >
-                      <option value="all" style={{ background: '#1a1a2e', color: 'white' }}>All Providers</option>
-                      <option value="pending" style={{ background: '#1a1a2e', color: 'white' }}>Pending</option>
-                      <option value="approved" style={{ background: '#1a1a2e', color: 'white' }}>Approved</option>
-                      <option value="rejected" style={{ background: '#1a1a2e', color: 'white' }}>Rejected</option>
-                      <option value="inactive" style={{ background: '#1a1a2e', color: 'white' }}>Inactive</option>
-                    </select>
+                      <Filter size={16} color={providerFilterBy.length > 0 ? '#8b9aef' : 'rgba(255, 255, 255, 0.6)'} />
+                      <span>Filter {providerFilterBy.length > 0 && `(${providerFilterBy.length})`}</span>
+                    </button>
+
+                    {showFilterDropdown && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 'calc(100% + 0.5rem)',
+                          right: 0,
+                          background: 'rgba(26, 26, 46, 0.98)',
+                          backdropFilter: 'blur(20px)',
+                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                          borderRadius: '12px',
+                          padding: '1rem',
+                          zIndex: 1000,
+                          minWidth: '200px',
+                          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
+                        }}
+                      >
+                        <div style={{ marginBottom: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.85rem', fontWeight: '600' }}>
+                            Filter by Status
+                          </span>
+                          {providerFilterBy.length > 0 && (
+                            <button
+                              onClick={() => setProviderFilterBy([])}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#8b9aef',
+                                fontSize: '0.75rem',
+                                cursor: 'pointer',
+                                padding: '0.25rem 0.5rem'
+                              }}
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
+
+                        {[
+                          { value: 'pending' as const, label: 'Pending', color: '#fbbf24' },
+                          { value: 'approved' as const, label: 'Approved', color: '#34d399' },
+                          { value: 'rejected' as const, label: 'Rejected', color: '#f87171' },
+                          { value: 'inactive' as const, label: 'Inactive', color: '#9CA3AF' }
+                        ].map((option) => (
+                          <label
+                            key={option.value}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.75rem',
+                              padding: '0.5rem',
+                              cursor: 'pointer',
+                              borderRadius: '6px',
+                              transition: 'background-color 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={providerFilterBy.includes(option.value)}
+                              onChange={() => toggleFilterStatus(option.value)}
+                              style={{
+                                width: '16px',
+                                height: '16px',
+                                cursor: 'pointer',
+                                accentColor: option.color
+                              }}
+                            />
+                            <span style={{ color: 'white', fontSize: '0.9rem' }}>
+                              {option.label}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Sort Dropdown */}
