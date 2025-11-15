@@ -13,12 +13,15 @@ import {
   XCircle,
   Eye,
   ArrowUpDown,
-  Filter
+  Filter,
+  UserPlus,
+  AlertCircle
 } from 'lucide-react';
 import { signOutAdmin, getCurrentAdminUser, AdminUser } from '../utils/adminAuth';
 import { getFirebase, collection, getDocs, doc, updateDoc } from '../../firebase/firebase';
 import QuoteRequestModal from './QuoteRequestModal';
 import ServiceProviderModal from './ServiceProviderModal';
+import AssignQuoteModal from './AssignQuoteModal';
 
 interface ServiceProvider {
   id: string;
@@ -44,6 +47,12 @@ interface QuoteRequest {
   postcode?: string;
   fileUrl?: string;
   createdAt?: string;
+  assignedProviderId?: string | null;
+  assignedProviderName?: string | null;
+  assignedBy?: string;
+  assignedAt?: string;
+  assignmentNotes?: string;
+  assignmentStatus?: 'unassigned' | 'assigned';
   [key: string]: any; // For other quote fields
 }
 
@@ -58,6 +67,7 @@ const AdminDashboard: React.FC = () => {
   // Modal states
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showProviderModal, setShowProviderModal] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedQuoteRequest, setSelectedQuoteRequest] = useState<QuoteRequest | null>(null);
 
   // Sorting states
@@ -172,6 +182,26 @@ const AdminDashboard: React.FC = () => {
     setShowProviderModal(true);
   };
 
+  const handleAssignClick = (quote: QuoteRequest) => {
+    setSelectedQuoteRequest(quote);
+    setShowAssignModal(true);
+  };
+
+  const handleAssignmentComplete = async () => {
+    // Reload quotes to reflect the assignment
+    try {
+      const { db } = getFirebase();
+      const quotesSnapshot = await getDocs(collection(db, 'quotes'));
+      const quotesData = quotesSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as QuoteRequest[];
+      setQuoteRequests(quotesData);
+    } catch (error) {
+      console.error('Error reloading quotes:', error);
+    }
+  };
+
   // Toggle filter selection
   const toggleFilterStatus = (status: 'pending' | 'approved' | 'rejected' | 'inactive') => {
     setProviderFilterBy(prev => {
@@ -250,7 +280,8 @@ const AdminDashboard: React.FC = () => {
     totalProviders: serviceProviders.length,
     pendingProviders: serviceProviders.filter(p => p.status === 'pending').length,
     approvedProviders: serviceProviders.filter(p => p.status === 'approved').length,
-    totalQuotes: quoteRequests.length
+    totalQuotes: quoteRequests.length,
+    unassignedQuotes: quoteRequests.filter(q => !q.assignedProviderId || q.assignmentStatus !== 'assigned').length
   };
 
   if (loading) {
@@ -398,7 +429,8 @@ const AdminDashboard: React.FC = () => {
                   { label: 'Total Providers', value: stats.totalProviders, icon: Users, color: '#667eea' },
                   { label: 'Pending Reviews', value: stats.pendingProviders, icon: Clock, color: '#f59e0b' },
                   { label: 'Approved Providers', value: stats.approvedProviders, icon: CheckCircle, color: '#10b981' },
-                  { label: 'Quote Requests', value: stats.totalQuotes, icon: FileText, color: '#8b5cf6' }
+                  { label: 'Quote Requests', value: stats.totalQuotes, icon: FileText, color: '#8b5cf6' },
+                  { label: 'Unassigned Quotes', value: stats.unassignedQuotes, icon: AlertCircle, color: '#ef4444' }
                 ].map((stat, index) => (
                   <div
                     key={index}
@@ -420,7 +452,8 @@ const AdminDashboard: React.FC = () => {
                       height: '40px',
                       background: `rgba(${stat.color === '#667eea' ? '102, 126, 234' :
                         stat.color === '#f59e0b' ? '245, 158, 11' :
-                          stat.color === '#10b981' ? '16, 185, 129' : '139, 92, 246'}, 0.2)`,
+                          stat.color === '#10b981' ? '16, 185, 129' :
+                            stat.color === '#ef4444' ? '239, 68, 68' : '139, 92, 246'}, 0.2)`,
                       borderRadius: '10px',
                       display: 'flex',
                       alignItems: 'center',
@@ -760,26 +793,33 @@ const AdminDashboard: React.FC = () => {
                   sortedQuotes.map((quote, index) => (
                     <div
                       key={quote.id}
-                      onClick={() => handleQuoteClick(quote)}
                       style={{
                         padding: '1.5rem',
                         borderBottom: index < sortedQuotes.length - 1 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
-                        cursor: 'pointer',
                         transition: 'background-color 0.2s ease'
                       }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                      }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                        <div
+                          style={{
+                            flex: 1,
+                            cursor: 'pointer',
+                            padding: '0.5rem',
+                            borderRadius: '8px',
+                            transition: 'background-color 0.2s ease'
+                          }}
+                          onClick={() => handleQuoteClick(quote)}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
                           <h3 style={{ color: 'white', margin: '0 0 0.5rem 0', fontSize: '1.1rem' }}>
                             {quote.name}
                           </h3>
-                          <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem' }}>
+                          <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
                             <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                               <Mail size={14} />
                               {quote.email}
@@ -801,8 +841,34 @@ const AdminDashboard: React.FC = () => {
                               {quote.description}
                             </p>
                           )}
+
+                          {/* Assignment Status */}
+                          {quote.assignmentStatus === 'assigned' && quote.assignedProviderName && (
+                            <div style={{
+                              marginTop: '0.75rem',
+                              padding: '0.5rem 0.75rem',
+                              background: 'rgba(16, 185, 129, 0.1)',
+                              borderRadius: '6px',
+                              border: '1px solid rgba(16, 185, 129, 0.2)'
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <UserPlus size={14} color="#34d399" />
+                                <span style={{ fontSize: '0.85rem', color: '#34d399', fontWeight: '500' }}>
+                                  Assigned to: {quote.assignedProviderName}
+                                </span>
+                              </div>
+                              {quote.assignedAt && (
+                                <span style={{ fontSize: '0.75rem', color: 'rgba(52, 211, 153, 0.7)', marginLeft: '1.25rem' }}>
+                                  {new Date(quote.assignedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        <div style={{ marginLeft: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+
+                        {/* Actions Column */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end' }}>
+                          {/* File Indicator */}
                           {quote.fileUrl && (
                             <span style={{
                               padding: '0.25rem 0.5rem',
@@ -815,12 +881,72 @@ const AdminDashboard: React.FC = () => {
                               📎 FILE
                             </span>
                           )}
-                          <span style={{
-                            color: 'rgba(255, 255, 255, 0.5)',
-                            fontSize: '0.75rem'
-                          }}>
-                            Click to view
-                          </span>
+
+                          {/* Assignment Button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAssignClick(quote);
+                            }}
+                            style={{
+                              padding: '0.5rem 1rem',
+                              background: quote.assignmentStatus === 'assigned'
+                                ? 'rgba(102, 126, 234, 0.1)'
+                                : 'rgba(16, 185, 129, 0.1)',
+                              border: quote.assignmentStatus === 'assigned'
+                                ? '1px solid rgba(102, 126, 234, 0.3)'
+                                : '1px solid rgba(16, 185, 129, 0.3)',
+                              borderRadius: '8px',
+                              color: quote.assignmentStatus === 'assigned' ? '#8b9aef' : '#34d399',
+                              cursor: 'pointer',
+                              fontSize: '0.85rem',
+                              fontWeight: '500',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              transition: 'all 0.2s ease',
+                              whiteSpace: 'nowrap'
+                            }}
+                            onMouseEnter={(e) => {
+                              if (quote.assignmentStatus === 'assigned') {
+                                e.currentTarget.style.background = 'rgba(102, 126, 234, 0.2)';
+                              } else {
+                                e.currentTarget.style.background = 'rgba(16, 185, 129, 0.2)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (quote.assignmentStatus === 'assigned') {
+                                e.currentTarget.style.background = 'rgba(102, 126, 234, 0.1)';
+                              } else {
+                                e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)';
+                              }
+                            }}
+                          >
+                            <UserPlus size={14} />
+                            {quote.assignmentStatus === 'assigned' ? 'Reassign' : 'Assign'}
+                          </button>
+
+                          {/* View Button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleQuoteClick(quote);
+                            }}
+                            style={{
+                              padding: '0.5rem',
+                              background: 'rgba(102, 126, 234, 0.1)',
+                              border: '1px solid rgba(102, 126, 234, 0.3)',
+                              borderRadius: '8px',
+                              color: '#8b9aef',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                              fontSize: '0.75rem'
+                            }}
+                          >
+                            <Eye size={14} />
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -844,6 +970,14 @@ const AdminDashboard: React.FC = () => {
         onClose={() => setShowProviderModal(false)}
         provider={selectedProvider}
         onSave={updateServiceProvider}
+      />
+
+      <AssignQuoteModal
+        isOpen={showAssignModal}
+        onClose={() => setShowAssignModal(false)}
+        quote={selectedQuoteRequest}
+        currentUserEmail={currentUser?.email || ''}
+        onAssignmentComplete={handleAssignmentComplete}
       />
 
       <style>{`
