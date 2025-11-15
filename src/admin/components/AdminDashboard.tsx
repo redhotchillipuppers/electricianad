@@ -81,6 +81,8 @@ const AdminDashboard: React.FC = () => {
   // Filter states
   const [providerFilterBy, setProviderFilterBy] = useState<Array<'pending' | 'approved' | 'rejected' | 'inactive'>>([]);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [quoteFilterBy, setQuoteFilterBy] = useState<Array<'assigned' | 'unassigned'>>([]);
+  const [showQuoteFilterDropdown, setShowQuoteFilterDropdown] = useState(false);
 
   // Load current user and data
   useEffect(() => {
@@ -123,13 +125,16 @@ const AdminDashboard: React.FC = () => {
       if (showFilterDropdown && !target.closest('[data-filter-dropdown]')) {
         setShowFilterDropdown(false);
       }
+      if (showQuoteFilterDropdown && !target.closest('[data-quote-filter-dropdown]')) {
+        setShowQuoteFilterDropdown(false);
+      }
     };
 
-    if (showFilterDropdown) {
+    if (showFilterDropdown || showQuoteFilterDropdown) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [showFilterDropdown]);
+  }, [showFilterDropdown, showQuoteFilterDropdown]);
 
   const handleSignOut = async () => {
     try {
@@ -266,6 +271,17 @@ const AdminDashboard: React.FC = () => {
     });
   };
 
+  // Toggle quote filter selection
+  const toggleQuoteFilterStatus = (status: 'assigned' | 'unassigned') => {
+    setQuoteFilterBy(prev => {
+      if (prev.includes(status)) {
+        return prev.filter(s => s !== status);
+      } else {
+        return [...prev, status];
+      }
+    });
+  };
+
   // Sorted and filtered service providers
   const sortedProviders = useMemo(() => {
     // First apply filter
@@ -301,10 +317,21 @@ const AdminDashboard: React.FC = () => {
     }
   }, [serviceProviders, providerSortBy, providerFilterBy]);
 
-  // Sorted quote requests
+  // Sorted and filtered quote requests
   const sortedQuotes = useMemo(() => {
-    const quotes = [...quoteRequests];
+    // First apply filter
+    let quotes = [...quoteRequests];
 
+    // If filter array has selections, filter to only those statuses
+    if (quoteFilterBy.length > 0) {
+      quotes = quotes.filter(q => {
+        const isAssigned = q.assignmentStatus === 'assigned' && q.assignedProviderId;
+        const status = isAssigned ? 'assigned' : 'unassigned';
+        return quoteFilterBy.includes(status);
+      });
+    }
+
+    // Then apply sort
     switch (quoteSortBy) {
       case 'date-new':
         return quotes.sort((a, b) => {
@@ -327,7 +354,7 @@ const AdminDashboard: React.FC = () => {
       default:
         return quotes;
     }
-  }, [quoteRequests, quoteSortBy]);
+  }, [quoteRequests, quoteSortBy, quoteFilterBy]);
 
   const stats = {
     totalProviders: serviceProviders.length,
@@ -828,26 +855,130 @@ const AdminDashboard: React.FC = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <h2 style={{ color: 'white', margin: 0, fontSize: '1.25rem' }}>Quote Requests</h2>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <ArrowUpDown size={16} color="rgba(255, 255, 255, 0.6)" />
-                  <select
-                    value={quoteSortBy}
-                    onChange={(e) => setQuoteSortBy(e.target.value as any)}
-                    style={{
-                      padding: '0.5rem 1rem',
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      borderRadius: '8px',
-                      color: 'white',
-                      fontSize: '0.9rem',
-                      cursor: 'pointer',
-                      outline: 'none'
-                    }}
-                  >
-                    <option value="date-new" style={{ background: '#1a1a2e', color: 'white' }}>Newest First</option>
-                    <option value="date-old" style={{ background: '#1a1a2e', color: 'white' }}>Oldest First</option>
-                    <option value="alphabetical" style={{ background: '#1a1a2e', color: 'white' }}>Alphabetical (A-Z)</option>
-                  </select>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  {/* Filter Dropdown */}
+                  <div style={{ position: 'relative' }} data-quote-filter-dropdown>
+                    <button
+                      onClick={() => setShowQuoteFilterDropdown(!showQuoteFilterDropdown)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.5rem 1rem',
+                        background: quoteFilterBy.length > 0 ? 'rgba(102, 126, 234, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                        border: quoteFilterBy.length > 0 ? '1px solid rgba(102, 126, 234, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '8px',
+                        color: 'white',
+                        fontSize: '0.9rem',
+                        cursor: 'pointer',
+                        outline: 'none'
+                      }}
+                    >
+                      <Filter size={16} color={quoteFilterBy.length > 0 ? '#8b9aef' : 'rgba(255, 255, 255, 0.6)'} />
+                      <span>Filter {quoteFilterBy.length > 0 && `(${quoteFilterBy.length})`}</span>
+                    </button>
+
+                    {showQuoteFilterDropdown && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 'calc(100% + 0.5rem)',
+                          right: 0,
+                          background: 'rgba(26, 26, 46, 0.98)',
+                          backdropFilter: 'blur(20px)',
+                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                          borderRadius: '12px',
+                          padding: '1rem',
+                          zIndex: 1000,
+                          minWidth: '200px',
+                          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
+                        }}
+                      >
+                        <div style={{ marginBottom: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.85rem', fontWeight: '600' }}>
+                            Filter by Status
+                          </span>
+                          {quoteFilterBy.length > 0 && (
+                            <button
+                              onClick={() => setQuoteFilterBy([])}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#8b9aef',
+                                fontSize: '0.75rem',
+                                cursor: 'pointer',
+                                padding: '0.25rem 0.5rem'
+                              }}
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
+
+                        {[
+                          { value: 'assigned' as const, label: 'Assigned', color: '#34d399' },
+                          { value: 'unassigned' as const, label: 'Unassigned', color: '#f87171' }
+                        ].map((option) => (
+                          <label
+                            key={option.value}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.75rem',
+                              padding: '0.5rem',
+                              cursor: 'pointer',
+                              borderRadius: '6px',
+                              transition: 'background-color 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={quoteFilterBy.includes(option.value)}
+                              onChange={() => toggleQuoteFilterStatus(option.value)}
+                              style={{
+                                width: '16px',
+                                height: '16px',
+                                cursor: 'pointer',
+                                accentColor: option.color
+                              }}
+                            />
+                            <span style={{ color: 'white', fontSize: '0.9rem' }}>
+                              {option.label}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Sort Dropdown */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <ArrowUpDown size={16} color="rgba(255, 255, 255, 0.6)" />
+                    <select
+                      value={quoteSortBy}
+                      onChange={(e) => setQuoteSortBy(e.target.value as any)}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '8px',
+                        color: 'white',
+                        fontSize: '0.9rem',
+                        cursor: 'pointer',
+                        outline: 'none'
+                      }}
+                    >
+                      <option value="date-new" style={{ background: '#1a1a2e', color: 'white' }}>Newest First</option>
+                      <option value="date-old" style={{ background: '#1a1a2e', color: 'white' }}>Oldest First</option>
+                      <option value="alphabetical" style={{ background: '#1a1a2e', color: 'white' }}>Alphabetical (A-Z)</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
