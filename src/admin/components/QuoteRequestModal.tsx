@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mail, Phone, MapPin, MessageSquare, Calendar, FileText, Image as ImageIcon, Trash2 } from 'lucide-react';
 import Modal from './Modal';
 
@@ -27,6 +27,14 @@ interface QuoteRequestModalProps {
 const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({ isOpen, onClose, quote, onDelete }) => {
     const [deleting, setDeleting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Reset states when modal closes or quote changes
+    useEffect(() => {
+        if (!isOpen || !quote) {
+            setDeleting(false);
+            setError(null);
+        }
+    }, [isOpen, quote?.id]);
 
     if (!quote) return null;
 
