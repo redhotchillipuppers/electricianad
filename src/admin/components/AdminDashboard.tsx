@@ -12,7 +12,8 @@ import {
   CheckCircle,
   XCircle,
   Eye,
-  ArrowUpDown
+  ArrowUpDown,
+  Filter
 } from 'lucide-react';
 import { signOutAdmin, getCurrentAdminUser, AdminUser } from '../utils/adminAuth';
 import { getFirebase, collection, getDocs, doc, updateDoc } from '../../firebase/firebase';
@@ -62,6 +63,9 @@ const AdminDashboard: React.FC = () => {
   // Sorting states
   const [providerSortBy, setProviderSortBy] = useState<'date-new' | 'date-old' | 'alphabetical'>('date-new');
   const [quoteSortBy, setQuoteSortBy] = useState<'date-new' | 'date-old' | 'alphabetical'>('date-new');
+
+  // Filter states
+  const [providerFilterBy, setProviderFilterBy] = useState<'all' | 'pending' | 'approved' | 'rejected' | 'inactive'>('all');
 
   // Load current user and data
   useEffect(() => {
@@ -152,10 +156,16 @@ const AdminDashboard: React.FC = () => {
     setShowProviderModal(true);
   };
 
-  // Sorted service providers
+  // Sorted and filtered service providers
   const sortedProviders = useMemo(() => {
-    const providers = [...serviceProviders];
+    // First apply filter
+    let providers = [...serviceProviders];
 
+    if (providerFilterBy !== 'all') {
+      providers = providers.filter(p => p.status === providerFilterBy);
+    }
+
+    // Then apply sort
     switch (providerSortBy) {
       case 'date-new':
         return providers.sort((a, b) => {
@@ -178,7 +188,7 @@ const AdminDashboard: React.FC = () => {
       default:
         return providers;
     }
-  }, [serviceProviders, providerSortBy]);
+  }, [serviceProviders, providerSortBy, providerFilterBy]);
 
   // Sorted quote requests
   const sortedQuotes = useMemo(() => {
@@ -409,26 +419,54 @@ const AdminDashboard: React.FC = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <h2 style={{ color: 'white', margin: 0, fontSize: '1.25rem' }}>Service Providers</h2>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <ArrowUpDown size={16} color="rgba(255, 255, 255, 0.6)" />
-                  <select
-                    value={providerSortBy}
-                    onChange={(e) => setProviderSortBy(e.target.value as any)}
-                    style={{
-                      padding: '0.5rem 1rem',
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      borderRadius: '8px',
-                      color: 'white',
-                      fontSize: '0.9rem',
-                      cursor: 'pointer',
-                      outline: 'none'
-                    }}
-                  >
-                    <option value="date-new" style={{ background: '#1a1a2e', color: 'white' }}>Newest First</option>
-                    <option value="date-old" style={{ background: '#1a1a2e', color: 'white' }}>Oldest First</option>
-                    <option value="alphabetical" style={{ background: '#1a1a2e', color: 'white' }}>Alphabetical (A-Z)</option>
-                  </select>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  {/* Filter Dropdown */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Filter size={16} color="rgba(255, 255, 255, 0.6)" />
+                    <select
+                      value={providerFilterBy}
+                      onChange={(e) => setProviderFilterBy(e.target.value as any)}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '8px',
+                        color: 'white',
+                        fontSize: '0.9rem',
+                        cursor: 'pointer',
+                        outline: 'none'
+                      }}
+                    >
+                      <option value="all" style={{ background: '#1a1a2e', color: 'white' }}>All Providers</option>
+                      <option value="pending" style={{ background: '#1a1a2e', color: 'white' }}>Pending</option>
+                      <option value="approved" style={{ background: '#1a1a2e', color: 'white' }}>Approved</option>
+                      <option value="rejected" style={{ background: '#1a1a2e', color: 'white' }}>Rejected</option>
+                      <option value="inactive" style={{ background: '#1a1a2e', color: 'white' }}>Inactive</option>
+                    </select>
+                  </div>
+
+                  {/* Sort Dropdown */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <ArrowUpDown size={16} color="rgba(255, 255, 255, 0.6)" />
+                    <select
+                      value={providerSortBy}
+                      onChange={(e) => setProviderSortBy(e.target.value as any)}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '8px',
+                        color: 'white',
+                        fontSize: '0.9rem',
+                        cursor: 'pointer',
+                        outline: 'none'
+                      }}
+                    >
+                      <option value="date-new" style={{ background: '#1a1a2e', color: 'white' }}>Newest First</option>
+                      <option value="date-old" style={{ background: '#1a1a2e', color: 'white' }}>Oldest First</option>
+                      <option value="alphabetical" style={{ background: '#1a1a2e', color: 'white' }}>Alphabetical (A-Z)</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
