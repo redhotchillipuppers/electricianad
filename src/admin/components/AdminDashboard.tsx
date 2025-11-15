@@ -18,7 +18,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { signOutAdmin, getCurrentAdminUser, AdminUser } from '../utils/adminAuth';
-import { getFirebase, collection, getDocs, doc, updateDoc } from '../../firebase/firebase';
+import { getFirebase, collection, getDocs, doc, updateDoc, deleteDoc } from '../../firebase/firebase';
 import QuoteRequestModal from './QuoteRequestModal';
 import ServiceProviderModal from './ServiceProviderModal';
 import AssignQuoteModal from './AssignQuoteModal';
@@ -172,6 +172,42 @@ const AdminDashboard: React.FC = () => {
     } catch (error) {
       console.error('Error updating service provider:', error);
       throw new Error('Failed to update service provider');
+    }
+  };
+
+  // Handle service provider deletion
+  const deleteServiceProvider = async (providerId: string) => {
+    try {
+      const { db } = getFirebase();
+      await deleteDoc(doc(db, 'serviceProviders', providerId));
+
+      // Update local state
+      setServiceProviders(prev => prev.filter(provider => provider.id !== providerId));
+
+      // Close the modal
+      setShowProviderModal(false);
+      setSelectedProvider(null);
+    } catch (error) {
+      console.error('Error deleting service provider:', error);
+      throw new Error('Failed to delete service provider');
+    }
+  };
+
+  // Handle quote request deletion
+  const deleteQuoteRequest = async (quoteId: string) => {
+    try {
+      const { db } = getFirebase();
+      await deleteDoc(doc(db, 'quotes', quoteId));
+
+      // Update local state
+      setQuoteRequests(prev => prev.filter(quote => quote.id !== quoteId));
+
+      // Close the modal
+      setShowQuoteModal(false);
+      setSelectedQuoteRequest(null);
+    } catch (error) {
+      console.error('Error deleting quote request:', error);
+      throw new Error('Failed to delete quote request');
     }
   };
 
@@ -980,6 +1016,7 @@ const AdminDashboard: React.FC = () => {
         isOpen={showQuoteModal}
         onClose={() => setShowQuoteModal(false)}
         quote={selectedQuoteRequest}
+        onDelete={deleteQuoteRequest}
       />
 
       <ServiceProviderModal
@@ -987,6 +1024,7 @@ const AdminDashboard: React.FC = () => {
         onClose={() => setShowProviderModal(false)}
         provider={selectedProvider}
         onSave={updateServiceProvider}
+        onDelete={deleteServiceProvider}
         onViewAssignedJobs={handleViewAssignedJobs}
         onViewEligibleJobs={handleViewEligibleJobs}
       />

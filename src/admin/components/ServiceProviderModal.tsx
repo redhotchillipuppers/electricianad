@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Building, Phone, Mail, MapPin, Calendar, Save, X, AlertCircle, Briefcase, ListPlus } from 'lucide-react';
+import { User, Building, Phone, Mail, MapPin, Calendar, Save, X, AlertCircle, Briefcase, ListPlus, Trash2 } from 'lucide-react';
 import Modal from './Modal';
 
 interface ServiceProvider {
@@ -20,6 +20,7 @@ interface ServiceProviderModalProps {
     onClose: () => void;
     provider: ServiceProvider | null;
     onSave: (providerId: string, updatedData: Partial<ServiceProvider>) => Promise<void>;
+    onDelete?: (providerId: string) => Promise<void>;
     onViewAssignedJobs?: () => void;
     onViewEligibleJobs?: () => void;
 }
@@ -29,11 +30,13 @@ const ServiceProviderModal: React.FC<ServiceProviderModalProps> = ({
     onClose,
     provider,
     onSave,
+    onDelete,
     onViewAssignedJobs,
     onViewEligibleJobs
 }) => {
     const [editedProvider, setEditedProvider] = useState<ServiceProvider | null>(null);
     const [saving, setSaving] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [hasChanges, setHasChanges] = useState(false);
 
@@ -141,6 +144,28 @@ const ServiceProviderModal: React.FC<ServiceProviderModalProps> = ({
             }
         } else {
             onClose();
+        }
+    };
+
+    // Handle delete
+    const handleDelete = async () => {
+        if (!onDelete) return;
+
+        const confirmMessage = `Are you sure you want to delete ${provider.firstName} ${provider.lastName}? This action cannot be undone.`;
+
+        if (!window.confirm(confirmMessage)) {
+            return;
+        }
+
+        setDeleting(true);
+        setError(null);
+
+        try {
+            await onDelete(provider.id);
+            // Modal will be closed by the parent component after successful deletion
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to delete service provider');
+            setDeleting(false);
         }
     };
 
@@ -570,12 +595,46 @@ const ServiceProviderModal: React.FC<ServiceProviderModalProps> = ({
                     paddingTop: '1rem',
                     borderTop: '1px solid rgba(0, 0, 0, 0.1)'
                 }}>
-                    {/* Left side - Job buttons */}
+                    {/* Left side - Delete and Job buttons */}
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        {onDelete && (
+                            <button
+                                onClick={handleDelete}
+                                disabled={saving || deleting}
+                                style={{
+                                    padding: '0.75rem 1.25rem',
+                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                    border: '2px solid rgba(239, 68, 68, 0.3)',
+                                    borderRadius: '8px',
+                                    color: '#EF4444',
+                                    fontSize: '0.9rem',
+                                    fontWeight: '500',
+                                    cursor: (saving || deleting) ? 'not-allowed' : 'pointer',
+                                    opacity: (saving || deleting) ? 0.6 : 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (!saving && !deleting) {
+                                        e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!saving && !deleting) {
+                                        e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                                    }
+                                }}
+                            >
+                                <Trash2 size={16} />
+                                {deleting ? 'Deleting...' : 'Delete'}
+                            </button>
+                        )}
                         {onViewAssignedJobs && (
                             <button
                                 onClick={onViewAssignedJobs}
-                                disabled={saving}
+                                disabled={saving || deleting}
                                 style={{
                                     padding: '0.75rem 1.25rem',
                                     backgroundColor: 'rgba(139, 92, 246, 0.1)',
@@ -584,20 +643,20 @@ const ServiceProviderModal: React.FC<ServiceProviderModalProps> = ({
                                     color: '#8B5CF6',
                                     fontSize: '0.9rem',
                                     fontWeight: '500',
-                                    cursor: saving ? 'not-allowed' : 'pointer',
-                                    opacity: saving ? 0.6 : 1,
+                                    cursor: (saving || deleting) ? 'not-allowed' : 'pointer',
+                                    opacity: (saving || deleting) ? 0.6 : 1,
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '0.5rem',
                                     transition: 'all 0.2s'
                                 }}
                                 onMouseEnter={(e) => {
-                                    if (!saving) {
+                                    if (!saving && !deleting) {
                                         e.currentTarget.style.backgroundColor = 'rgba(139, 92, 246, 0.2)';
                                     }
                                 }}
                                 onMouseLeave={(e) => {
-                                    if (!saving) {
+                                    if (!saving && !deleting) {
                                         e.currentTarget.style.backgroundColor = 'rgba(139, 92, 246, 0.1)';
                                     }
                                 }}
@@ -610,7 +669,7 @@ const ServiceProviderModal: React.FC<ServiceProviderModalProps> = ({
                         {onViewEligibleJobs && (
                             <button
                                 onClick={onViewEligibleJobs}
-                                disabled={saving}
+                                disabled={saving || deleting}
                                 style={{
                                     padding: '0.75rem 1.25rem',
                                     backgroundColor: 'rgba(16, 185, 129, 0.1)',
@@ -619,20 +678,20 @@ const ServiceProviderModal: React.FC<ServiceProviderModalProps> = ({
                                     color: '#10B981',
                                     fontSize: '0.9rem',
                                     fontWeight: '500',
-                                    cursor: saving ? 'not-allowed' : 'pointer',
-                                    opacity: saving ? 0.6 : 1,
+                                    cursor: (saving || deleting) ? 'not-allowed' : 'pointer',
+                                    opacity: (saving || deleting) ? 0.6 : 1,
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '0.5rem',
                                     transition: 'all 0.2s'
                                 }}
                                 onMouseEnter={(e) => {
-                                    if (!saving) {
+                                    if (!saving && !deleting) {
                                         e.currentTarget.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
                                     }
                                 }}
                                 onMouseLeave={(e) => {
-                                    if (!saving) {
+                                    if (!saving && !deleting) {
                                         e.currentTarget.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
                                     }
                                 }}
@@ -647,7 +706,7 @@ const ServiceProviderModal: React.FC<ServiceProviderModalProps> = ({
                     <div style={{ display: 'flex', gap: '1rem' }}>
                     <button
                         onClick={handleClose}
-                        disabled={saving}
+                        disabled={saving || deleting}
                         style={{
                             padding: '0.75rem 1.5rem',
                             backgroundColor: 'white',
@@ -656,21 +715,21 @@ const ServiceProviderModal: React.FC<ServiceProviderModalProps> = ({
                             color: '#374151',
                             fontSize: '0.9rem',
                             fontWeight: '500',
-                            cursor: saving ? 'not-allowed' : 'pointer',
-                            opacity: saving ? 0.6 : 1,
+                            cursor: (saving || deleting) ? 'not-allowed' : 'pointer',
+                            opacity: (saving || deleting) ? 0.6 : 1,
                             display: 'flex',
                             alignItems: 'center',
                             gap: '0.5rem',
                             transition: 'all 0.2s'
                         }}
                         onMouseEnter={(e) => {
-                            if (!saving) {
+                            if (!saving && !deleting) {
                                 e.currentTarget.style.backgroundColor = '#F9FAFB';
                                 e.currentTarget.style.borderColor = '#D1D5DB';
                             }
                         }}
                         onMouseLeave={(e) => {
-                            if (!saving) {
+                            if (!saving && !deleting) {
                                 e.currentTarget.style.backgroundColor = 'white';
                                 e.currentTarget.style.borderColor = '#E5E7EB';
                             }
@@ -682,28 +741,28 @@ const ServiceProviderModal: React.FC<ServiceProviderModalProps> = ({
 
                     <button
                         onClick={handleSave}
-                        disabled={saving || !hasChanges}
+                        disabled={saving || deleting || !hasChanges}
                         style={{
                             padding: '0.75rem 1.5rem',
-                            backgroundColor: hasChanges && !saving ? '#1E40AF' : '#E5E7EB',
+                            backgroundColor: hasChanges && !saving && !deleting ? '#1E40AF' : '#E5E7EB',
                             border: '2px solid transparent',
                             borderRadius: '8px',
-                            color: hasChanges && !saving ? 'white' : '#9CA3AF',
+                            color: hasChanges && !saving && !deleting ? 'white' : '#9CA3AF',
                             fontSize: '0.9rem',
                             fontWeight: '500',
-                            cursor: (saving || !hasChanges) ? 'not-allowed' : 'pointer',
+                            cursor: (saving || deleting || !hasChanges) ? 'not-allowed' : 'pointer',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '0.5rem',
                             transition: 'all 0.2s'
                         }}
                         onMouseEnter={(e) => {
-                            if (hasChanges && !saving) {
+                            if (hasChanges && !saving && !deleting) {
                                 e.currentTarget.style.backgroundColor = '#1E3A8A';
                             }
                         }}
                         onMouseLeave={(e) => {
-                            if (hasChanges && !saving) {
+                            if (hasChanges && !saving && !deleting) {
                                 e.currentTarget.style.backgroundColor = '#1E40AF';
                             }
                         }}
