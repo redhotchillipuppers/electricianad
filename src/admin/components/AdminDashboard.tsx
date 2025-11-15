@@ -22,6 +22,8 @@ import { getFirebase, collection, getDocs, doc, updateDoc } from '../../firebase
 import QuoteRequestModal from './QuoteRequestModal';
 import ServiceProviderModal from './ServiceProviderModal';
 import AssignQuoteModal from './AssignQuoteModal';
+import EligibleJobsModal from './EligibleJobsModal';
+import AssignedWorkModal from './AssignedWorkModal';
 
 interface ServiceProvider {
   id: string;
@@ -68,6 +70,8 @@ const AdminDashboard: React.FC = () => {
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showProviderModal, setShowProviderModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [showEligibleJobsModal, setShowEligibleJobsModal] = useState(false);
+  const [showAssignedWorkModal, setShowAssignedWorkModal] = useState(false);
   const [selectedQuoteRequest, setSelectedQuoteRequest] = useState<QuoteRequest | null>(null);
 
   // Sorting states
@@ -200,6 +204,19 @@ const AdminDashboard: React.FC = () => {
     } catch (error) {
       console.error('Error reloading quotes:', error);
     }
+  };
+
+  const handleViewAssignedJobs = () => {
+    setShowAssignedWorkModal(true);
+  };
+
+  const handleViewEligibleJobs = () => {
+    setShowEligibleJobsModal(true);
+  };
+
+  const handleJobAssigned = async () => {
+    // Reload quotes after a job is assigned
+    await handleAssignmentComplete();
   };
 
   // Toggle filter selection
@@ -979,6 +996,12 @@ const AdminDashboard: React.FC = () => {
         onClose={() => setShowEligibleJobsModal(false)}
         provider={selectedProvider}
         onJobAssigned={handleJobAssigned}
+      />
+
+      <AssignedWorkModal
+        isOpen={showAssignedWorkModal}
+        onClose={() => setShowAssignedWorkModal(false)}
+        provider={selectedProvider}
       />
 
       <AssignQuoteModal
