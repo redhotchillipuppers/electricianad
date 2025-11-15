@@ -970,6 +970,15 @@ const AdminDashboard: React.FC = () => {
         onClose={() => setShowProviderModal(false)}
         provider={selectedProvider}
         onSave={updateServiceProvider}
+        onViewAssignedJobs={handleViewAssignedJobs}
+        onViewEligibleJobs={handleViewEligibleJobs}
+      />
+
+      <EligibleJobsModal
+        isOpen={showEligibleJobsModal}
+        onClose={() => setShowEligibleJobsModal(false)}
+        provider={selectedProvider}
+        onJobAssigned={handleJobAssigned}
       />
 
       <AssignQuoteModal
