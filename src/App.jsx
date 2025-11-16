@@ -18,6 +18,10 @@ import ServiceProviderForm from "./components/serviceproviders/ServiceProviderFo
 // Import admin panel
 import AdminPanel from "./admin/pages/AdminPanel";
 
+// Import provider components
+import ProviderDashboard from "./provider/components/ProviderDashboard";
+import ProtectedRoute from "./provider/components/ProtectedRoute";
+
 function App() {
   useEffect(() => {
     AOS.init({ duration: 600, once: true, easing: "ease-in-out" });
@@ -85,6 +89,13 @@ function App() {
 
         {/* NEW: Admin Panel Route */}
         <Route path="/admin" element={<AdminPanel />} />
+
+        {/* Provider Dashboard Route */}
+        <Route path="/provider-dashboard" element={
+          <ProtectedRoute>
+            <ProviderDashboard />
+          </ProtectedRoute>
+        } />
       </Routes>
     </Router>
   );
