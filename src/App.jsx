@@ -18,6 +18,9 @@ import ServiceProviderForm from "./components/serviceproviders/ServiceProviderFo
 // Import admin panel
 import AdminPanel from "./admin/pages/AdminPanel";
 
+// Import provider account pages
+import CreateAccount from "./provider/CreateAccount";
+
 function App() {
   useEffect(() => {
     AOS.init({ duration: 600, once: true, easing: "ease-in-out" });
@@ -82,6 +85,9 @@ function App() {
 
         {/* Service Provider Page Route */}
         <Route path="/providers" element={<ServiceProviderForm />} />
+
+        {/* Provider Account Routes */}
+        <Route path="/provider/create-account" element={<CreateAccount />} />
 
         {/* NEW: Admin Panel Route */}
         <Route path="/admin" element={<AdminPanel />} />
