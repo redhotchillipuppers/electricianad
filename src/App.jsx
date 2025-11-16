@@ -15,6 +15,9 @@ import ServiceAreaMap from "./components/servicemap/ServiceAreaMap";
 // Import ServiceProviderForm component
 import ServiceProviderForm from "./components/serviceproviders/ServiceProviderForm";
 
+// Import provider login page
+import ProviderLoginPage from "./provider/pages/ProviderLoginPage";
+
 // Import admin panel
 import AdminPanel from "./admin/pages/AdminPanel";
 
@@ -82,6 +85,9 @@ function App() {
 
         {/* Service Provider Page Route */}
         <Route path="/providers" element={<ServiceProviderForm />} />
+
+        {/* Provider Login Page Route */}
+        <Route path="/provider-login" element={<ProviderLoginPage />} />
 
         {/* NEW: Admin Panel Route */}
         <Route path="/admin" element={<AdminPanel />} />
