@@ -83,9 +83,15 @@ service cloud.firestore {
                       // Authenticated users can create their own provider account
                       isAuthenticated()
                       && request.auth.uid == userId
+                      && request.resource.data.uid == request.auth.uid
                       && request.resource.data.role == 'provider'
                       && isValidEmail(request.resource.data.email)
                       && request.resource.data.email == request.auth.token.email
+                      && request.resource.data.status in ['active', 'inactive']
+                      && request.resource.data.providerId is string
+                      && request.resource.data.firstName is string
+                      && request.resource.data.lastName is string
+                      && request.resource.data.createdAt is string
                     );
 
       // Users cannot update or delete their own document
