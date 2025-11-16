@@ -9,10 +9,11 @@ import {
   FileText,
   Clock,
   Calendar,
-  Zap
+  Zap,
+  CheckCircle
 } from 'lucide-react';
 import { getCurrentProviderUser, signOutProvider, ProviderUser } from '../utils/providerAuth';
-import { getFirebase, collection, getDocs, query, where } from '../../firebase/firebase';
+import { getFirebase, collection, getDocs, query, where, doc, updateDoc } from '../../firebase/firebase';
 import { useNavigate } from 'react-router-dom';
 
 interface QuoteRequest {
@@ -31,6 +32,9 @@ interface QuoteRequest {
   assignedProviderName?: string;
   assignedAt?: string;
   assignmentNotes?: string;
+  completionStatus?: 'pending' | 'completed';
+  completedAt?: string;
+  completedBy?: string;
 }
 
 const ProviderDashboard: React.FC = () => {
@@ -76,6 +80,48 @@ const ProviderDashboard: React.FC = () => {
       navigate('/provider-login');
     } catch (error) {
       console.error('Sign out failed:', error);
+    }
+  };
+
+  const handleCompleteJob = async (quoteId: string) => {
+    if (!currentUser || !currentUser.providerId) {
+      alert('Unable to complete job: User information not available');
+      return;
+    }
+
+    const confirmMessage = 'Are you sure you want to mark this job as completed?';
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      const { db } = getFirebase();
+      const quoteRef = doc(db, 'quotes', quoteId);
+
+      await updateDoc(quoteRef, {
+        completionStatus: 'completed',
+        completedAt: new Date().toISOString(),
+        completedBy: currentUser.providerId
+      });
+
+      // Update local state
+      setAssignedQuotes(prev =>
+        prev.map(quote =>
+          quote.id === quoteId
+            ? {
+                ...quote,
+                completionStatus: 'completed' as const,
+                completedAt: new Date().toISOString(),
+                completedBy: currentUser.providerId
+              }
+            : quote
+        )
+      );
+
+      alert('Job marked as completed successfully!');
+    } catch (error) {
+      console.error('Error completing job:', error);
+      alert('Failed to mark job as completed. Please try again.');
     }
   };
 
@@ -531,7 +577,8 @@ const ProviderDashboard: React.FC = () => {
                       background: 'rgba(255, 211, 0, 0.05)',
                       border: '1px solid rgba(255, 211, 0, 0.2)',
                       borderRadius: '8px',
-                      padding: '1rem'
+                      padding: '1rem',
+                      marginBottom: '1rem'
                     }}>
                       <p style={{
                         color: 'rgba(255, 211, 0, 0.8)',
@@ -553,6 +600,76 @@ const ProviderDashboard: React.FC = () => {
                       </p>
                     </div>
                   )}
+
+                  {/* Completion Status and Button */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '1rem',
+                    flexWrap: 'wrap'
+                  }}>
+                    {quote.completionStatus === 'completed' ? (
+                      <div style={{
+                        flex: 1,
+                        background: 'rgba(16, 185, 129, 0.1)',
+                        border: '1px solid rgba(16, 185, 129, 0.3)',
+                        borderRadius: '8px',
+                        padding: '0.75rem 1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
+                      }}>
+                        <CheckCircle size={18} color="#10b981" />
+                        <div>
+                          <span style={{ color: '#10b981', fontSize: '0.9rem', fontWeight: '600' }}>
+                            Completed
+                          </span>
+                          {quote.completedAt && (
+                            <p style={{
+                              color: 'rgba(16, 185, 129, 0.7)',
+                              fontSize: '0.75rem',
+                              margin: '0.25rem 0 0 0'
+                            }}>
+                              {formatDate(quote.completedAt)}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleCompleteJob(quote.id)}
+                        style={{
+                          flex: 1,
+                          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                          border: 'none',
+                          borderRadius: '8px',
+                          padding: '0.75rem 1.5rem',
+                          color: 'white',
+                          fontSize: '0.9rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.5rem',
+                          transition: 'all 0.2s ease',
+                          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
+                        }}
+                      >
+                        <CheckCircle size={18} />
+                        Mark as Complete
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
