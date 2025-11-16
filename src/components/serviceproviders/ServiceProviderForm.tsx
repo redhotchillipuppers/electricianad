@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { UserPlus, MapPin, Wrench, CheckCircle, ArrowLeft, ChevronDown, Zap, AlertCircle } from "lucide-react";
+import { UserPlus, MapPin, Wrench, CheckCircle, ArrowLeft, ChevronDown, Zap, AlertCircle, LogIn } from "lucide-react";
 import { Link } from "react-router-dom";
 import submitServiceProvider from "../../firebase/submitServiceProvider";
 
@@ -227,6 +227,7 @@ const ServiceProviderForm = () => {
             margin: '0 auto',
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'space-between',
             gap: '1rem'
           }}
         >
@@ -252,6 +253,33 @@ const ServiceProviderForm = () => {
           >
             <ArrowLeft size={20} />
             Back to Home
+          </Link>
+
+          <Link
+            to="/provider-login"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              color: '#8b9aef',
+              textDecoration: 'none',
+              fontWeight: '600',
+              transition: 'all 0.3s ease',
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
+              border: '1px solid rgba(139, 154, 239, 0.3)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(139, 154, 239, 0.1)';
+              e.currentTarget.style.borderColor = 'rgba(139, 154, 239, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.borderColor = 'rgba(139, 154, 239, 0.3)';
+            }}
+          >
+            <LogIn size={20} />
+            Provider Login
           </Link>
         </div>
       </header>
