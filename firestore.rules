@@ -13,6 +13,16 @@ service cloud.firestore {
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'superadmin'];
     }
 
+    function isProvider() {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'provider';
+    }
+
+    function getProviderIdForUser() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.providerId;
+    }
+
     function isValidEmail(email) {
       return email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$');
     }
@@ -37,8 +47,21 @@ service cloud.firestore {
                     && (!request.resource.data.keys().hasAny(['phone']) || request.resource.data.phone is string)
                     && (!request.resource.data.keys().hasAny(['fileUrl']) || request.resource.data.fileUrl is string);
 
-      // Only admins can read, update, and delete quotes
+      // Admins can read, update, and delete all quotes
       allow read, update, delete: if isAdmin();
+
+      // Providers can read quotes assigned to them
+      allow read: if isProvider()
+                  && resource.data.assignedProviderId == getProviderIdForUser();
+
+      // Providers can update completion status on quotes assigned to them
+      // Only allowed to update completionStatus, completedAt, and completedBy fields
+      allow update: if isProvider()
+                    && resource.data.assignedProviderId == getProviderIdForUser()
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['completionStatus', 'completedAt', 'completedBy'])
+                    && request.resource.data.completionStatus == 'completed'
+                    && request.resource.data.completedAt is string
+                    && request.resource.data.completedBy == getProviderIdForUser();
     }
 
     // Service providers collection
