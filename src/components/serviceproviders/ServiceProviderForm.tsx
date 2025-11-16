@@ -601,7 +601,7 @@ const ServiceProviderForm = () => {
                     Application Submitted!
                   </h4>
                   <p style={{ color: 'rgba(16, 185, 129, 0.8)', margin: 0, fontSize: '0.875rem' }}>
-                    Thank you! We'll review your application and get back to you soon.
+                    Thank you for applying! Once approved, you'll receive information about creating your account.
                   </p>
                 </div>
               </div>

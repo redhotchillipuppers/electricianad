@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { Lock, User, Eye, EyeOff, Zap, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { signInProvider } from '../utils/providerAuth';
 
 interface ProviderLoginProps {
   onLoginSuccess: () => void;
 }
 
 const ProviderLogin: React.FC<ProviderLoginProps> = ({ onLoginSuccess }) => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -19,13 +22,10 @@ const ProviderLogin: React.FC<ProviderLoginProps> = ({ onLoginSuccess }) => {
     setLoading(true);
 
     try {
-      // TODO: Implement provider authentication
-      // await signInProvider(email, password, stayLoggedIn);
-
-      // Placeholder - remove when implementing real auth
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      onLoginSuccess();
+      await signInProvider(email, password, stayLoggedIn);
+      setTimeout(() => {
+        onLoginSuccess();
+      }, 100);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
       setLoading(false);
@@ -389,6 +389,34 @@ const ProviderLogin: React.FC<ProviderLoginProps> = ({ onLoginSuccess }) => {
               textAlign: 'center'
             }}
           >
+            <p
+              style={{
+                color: 'rgba(255, 255, 255, 0.6)',
+                fontSize: '0.9rem',
+                margin: '0 0 1rem 0',
+                fontFamily: 'Inter, system-ui, sans-serif'
+              }}
+            >
+              Don't have an account?{' '}
+              <span
+                onClick={() => navigate('/provider-create-account')}
+                style={{
+                  color: '#667eea',
+                  textDecoration: 'none',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  transition: 'color 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#764ba2';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = '#667eea';
+                }}
+              >
+                Create Account
+              </span>
+            </p>
             <p
               style={{
                 color: 'rgba(255, 255, 255, 0.4)',

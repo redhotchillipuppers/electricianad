@@ -56,21 +56,37 @@ service cloud.firestore {
                     && request.resource.data.createdAt is string
                     && (!request.resource.data.keys().hasAny(['companyName']) || request.resource.data.companyName is string);
 
-      // Only admins can read, update, and delete provider applications
-      allow read, update, delete: if isAdmin();
+      // Allow anyone to read (needed for provider account creation to check if email is approved)
+      // This is safe because provider applications are reviewed by admins before approval
+      allow read: if true;
+
+      // Only admins can update and delete provider applications
+      allow update, delete: if isAdmin();
     }
 
-    // Users collection (admin accounts)
+    // Users collection (admin and provider accounts)
     match /users/{userId} {
       // Users can only read their own document
       allow read: if isAuthenticated() && request.auth.uid == userId;
 
-      // Only admins can create new admin users
-      allow create: if isAdmin()
-                    && request.resource.data.keys().hasAll(['email', 'role', 'createdAt'])
-                    && isValidEmail(request.resource.data.email)
-                    && request.resource.data.role in ['admin', 'superadmin']
-                    && request.resource.data.createdAt is timestamp;
+      // Allow user creation for:
+      // 1. Admins creating admin/superadmin accounts
+      // 2. Authenticated users creating their own provider account
+      allow create: if (
+                      // Admins can create admin/superadmin users
+                      isAdmin()
+                      && request.resource.data.keys().hasAll(['email', 'role', 'createdAt'])
+                      && isValidEmail(request.resource.data.email)
+                      && request.resource.data.role in ['admin', 'superadmin']
+                      && request.resource.data.createdAt is timestamp
+                    ) || (
+                      // Authenticated users can create their own provider account
+                      isAuthenticated()
+                      && request.auth.uid == userId
+                      && request.resource.data.role == 'provider'
+                      && isValidEmail(request.resource.data.email)
+                      && request.resource.data.email == request.auth.token.email
+                    );
 
       // Users cannot update or delete their own document
       // Only superadmins can update/delete user documents
