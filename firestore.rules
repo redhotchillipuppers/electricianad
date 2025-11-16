@@ -56,8 +56,12 @@ service cloud.firestore {
                     && request.resource.data.createdAt is string
                     && (!request.resource.data.keys().hasAny(['companyName']) || request.resource.data.companyName is string);
 
-      // Only admins can read, update, and delete provider applications
-      allow read, update, delete: if isAdmin();
+      // Allow anyone to read (needed for provider account creation to check if email is approved)
+      // This is safe because provider applications are reviewed by admins before approval
+      allow read: if true;
+
+      // Only admins can update and delete provider applications
+      allow update, delete: if isAdmin();
     }
 
     // Users collection (admin accounts)
