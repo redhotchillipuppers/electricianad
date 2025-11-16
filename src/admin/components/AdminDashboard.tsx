@@ -55,6 +55,9 @@ interface QuoteRequest {
   assignedAt?: string;
   assignmentNotes?: string;
   assignmentStatus?: 'unassigned' | 'assigned';
+  completionStatus?: 'pending' | 'completed';
+  completedAt?: string;
+  completedBy?: string;
   [key: string]: any; // For other quote fields
 }
 
@@ -1071,6 +1074,29 @@ const AdminDashboard: React.FC = () => {
                               {quote.assignedAt && (
                                 <span style={{ fontSize: '0.75rem', color: 'rgba(52, 211, 153, 0.7)', marginLeft: '1.25rem' }}>
                                   {new Date(quote.assignedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </span>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Completion Status */}
+                          {quote.completionStatus === 'completed' && (
+                            <div style={{
+                              marginTop: '0.75rem',
+                              padding: '0.5rem 0.75rem',
+                              background: 'rgba(102, 126, 234, 0.1)',
+                              borderRadius: '6px',
+                              border: '1px solid rgba(102, 126, 234, 0.2)'
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <CheckCircle size={14} color="#667eea" />
+                                <span style={{ fontSize: '0.85rem', color: '#667eea', fontWeight: '500' }}>
+                                  Completed
+                                </span>
+                              </div>
+                              {quote.completedAt && (
+                                <span style={{ fontSize: '0.75rem', color: 'rgba(102, 126, 234, 0.7)', marginLeft: '1.25rem' }}>
+                                  {new Date(quote.completedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                                 </span>
                               )}
                             </div>
