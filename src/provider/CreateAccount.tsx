@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  getFirebase,
   createUserWithEmailAndPassword,
   updateProfile,
-  sendEmailVerification
-} from 'firebase/auth';
-import { doc, setDoc, Timestamp } from 'firebase/firestore';
-import { getFirebase } from '../firebase/firebase';
+  sendEmailVerification,
+  doc,
+  setDoc,
+  Timestamp
+} from '../firebase/firebase';
 import { Eye, EyeOff, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 
 interface FormData {

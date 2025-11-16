@@ -6,6 +6,8 @@ import {
   signOut,
   createUserWithEmailAndPassword,
   onAuthStateChanged,
+  updateProfile,
+  sendEmailVerification,
   User
 } from "firebase/auth";
 import {
@@ -17,7 +19,8 @@ import {
   getDoc,
   getDocs,
   updateDoc,
-  deleteDoc
+  deleteDoc,
+  Timestamp
 } from "firebase/firestore";
 import {
   getStorage,
@@ -68,15 +71,18 @@ export {
   collection,
   doc,
   setDoc,
-  getDoc, // ← ADD these
+  getDoc,
   getDocs,
   updateDoc,
   deleteDoc,
+  Timestamp,
   ref,
   uploadBytes,
   getDownloadURL,
   signInWithEmailAndPassword,
   signOut,
   createUserWithEmailAndPassword,
-  onAuthStateChanged
+  onAuthStateChanged,
+  updateProfile,
+  sendEmailVerification
 };
