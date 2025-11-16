@@ -21,6 +21,9 @@ import AdminPanel from "./admin/pages/AdminPanel";
 // Import provider panel
 import ProviderPanel from "./admin/pages/ProviderPanel";
 
+// Import provider account pages
+import CreateAccount from "./provider/CreateAccount";
+
 function App() {
   useEffect(() => {
     AOS.init({ duration: 600, once: true, easing: "ease-in-out" });
