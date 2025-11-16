@@ -60,8 +60,19 @@ service cloud.firestore {
       // This is safe because provider applications are reviewed by admins before approval
       allow read: if true;
 
-      // Only admins can update and delete provider applications
-      allow update, delete: if isAdmin();
+      // Allow updates from:
+      // 1. Admins (full access)
+      // 2. Authenticated providers updating their own document to mark account as created
+      allow update: if isAdmin() || (
+                      isAuthenticated()
+                      && resource.data.email == request.auth.token.email
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['accountCreated', 'userId', 'accountCreatedAt'])
+                      && request.resource.data.accountCreated == true
+                      && request.resource.data.userId == request.auth.uid
+                    );
+
+      // Only admins can delete provider applications
+      allow delete: if isAdmin();
     }
 
     // Users collection (admin and provider accounts)
@@ -92,6 +103,7 @@ service cloud.firestore {
                       && request.resource.data.firstName is string
                       && request.resource.data.lastName is string
                       && request.resource.data.createdAt is string
+                      && (!request.resource.data.keys().hasAny(['companyName']) || request.resource.data.companyName is string)
                     );
 
       // Users cannot update or delete their own document
