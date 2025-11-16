@@ -13,6 +13,18 @@ service cloud.firestore {
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'superadmin'];
     }
 
+    function isProvider() {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'provider';
+    }
+
+    function isAssignedProvider(quoteData) {
+      return isProvider() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.providerId == quoteData.assignedProviderId;
+    }
+
     function isValidEmail(email) {
       return email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$');
     }
@@ -37,8 +49,10 @@ service cloud.firestore {
                     && (!request.resource.data.keys().hasAny(['phone']) || request.resource.data.phone is string)
                     && (!request.resource.data.keys().hasAny(['fileUrl']) || request.resource.data.fileUrl is string);
 
-      // Only admins can read, update, and delete quotes
-      allow read, update, delete: if isAdmin();
+      // Admins can read/update/delete all quotes
+      // Providers can only read quotes assigned to them
+      allow read: if isAdmin() || isAssignedProvider(resource.data);
+      allow update, delete: if isAdmin();
     }
 
     // Service providers collection
