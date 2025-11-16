@@ -6,9 +6,7 @@ const ProviderLoginPage: React.FC = () => {
   const navigate = useNavigate();
 
   const handleLoginSuccess = () => {
-    // TODO: Navigate to provider dashboard when implemented
-    // For now, navigate back to provider application page
-    navigate('/providers');
+    navigate('/provider-dashboard');
   };
 
   return <ProviderLogin onLoginSuccess={handleLoginSuccess} />;

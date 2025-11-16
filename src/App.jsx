@@ -15,8 +15,11 @@ import ServiceAreaMap from "./components/servicemap/ServiceAreaMap";
 // Import ServiceProviderForm component
 import ServiceProviderForm from "./components/serviceproviders/ServiceProviderForm";
 
-// Import provider login page
+// Import provider pages
 import ProviderLoginPage from "./provider/pages/ProviderLoginPage";
+import ProviderAccountCreationPage from "./provider/pages/ProviderAccountCreationPage";
+import ProtectedProviderRoute from "./provider/components/ProtectedProviderRoute";
+import ProviderDashboard from "./provider/pages/ProviderDashboard";
 
 // Import admin panel
 import AdminPanel from "./admin/pages/AdminPanel";
@@ -89,7 +92,17 @@ function App() {
         {/* Provider Login Page Route */}
         <Route path="/provider-login" element={<ProviderLoginPage />} />
 
-        {/* NEW: Admin Panel Route */}
+        {/* Provider Account Creation Route */}
+        <Route path="/provider-create-account" element={<ProviderAccountCreationPage />} />
+
+        {/* Provider Dashboard Route (Protected) */}
+        <Route path="/provider-dashboard" element={
+          <ProtectedProviderRoute>
+            <ProviderDashboard />
+          </ProtectedProviderRoute>
+        } />
+
+        {/* Admin Panel Route */}
         <Route path="/admin" element={<AdminPanel />} />
       </Routes>
     </Router>
