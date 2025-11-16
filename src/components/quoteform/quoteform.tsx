@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Upload, CheckCircle, AlertCircle, Zap } from "lucide-react";
 
-// ↓— swap this with your real Firebase helper
+// firebase helper
 import submitQuote from "../../firebase/submitQuote";
 
 const QuoteForm = () => {
@@ -96,6 +96,10 @@ const QuoteForm = () => {
     const { name, value } = e.target;
     const errorMessage = validateField(name, value);
     setFormErrors(prev => ({ ...prev, [name]: errorMessage }));
+    
+    // Reset styling
+    e.target.style.borderColor = errorMessage ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
+    e.target.style.background = 'rgba(255, 255, 255, 0.05)';
   };
 
   const handleFile = (e) => {
@@ -422,16 +426,12 @@ const QuoteForm = () => {
                     value={values.name}
                     required
                     onChange={handleChange}
-                    onBlur={handleBlur}
                     onFocus={(e) => {
                       e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
                       e.target.style.background = 'rgba(255, 255, 255, 0.08)';
                     }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = formErrors.name ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
-                      e.target.style.background = 'rgba(255, 255, 255, 0.05)';
-                      handleBlur(e);
-                    }}
+                    onBlur={handleBlur}
+                    autoComplete="name"
                   />
                   {formErrors.name && (
                     <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
@@ -464,11 +464,8 @@ const QuoteForm = () => {
                       e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
                       e.target.style.background = 'rgba(255, 255, 255, 0.08)';
                     }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = formErrors.email ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
-                      e.target.style.background = 'rgba(255, 255, 255, 0.05)';
-                      handleBlur(e);
-                    }}
+                    onBlur={handleBlur}
+                    autoComplete="email"
                   />
                   {formErrors.email && (
                     <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
@@ -501,11 +498,8 @@ const QuoteForm = () => {
                       e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
                       e.target.style.background = 'rgba(255, 255, 255, 0.08)';
                     }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = formErrors.phone ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
-                      e.target.style.background = 'rgba(255, 255, 255, 0.05)';
-                      handleBlur(e);
-                    }}
+                    onBlur={handleBlur}
+                    autoComplete="tel"
                   />
                   {formErrors.phone && (
                     <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
@@ -555,11 +549,8 @@ const QuoteForm = () => {
                       e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
                       e.target.style.background = 'rgba(255, 255, 255, 0.08)';
                     }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = formErrors.houseFlatNumber ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
-                      e.target.style.background = 'rgba(255, 255, 255, 0.05)';
-                      handleBlur(e);
-                    }}
+                    onBlur={handleBlur}
+                    autoComplete="address-line1"
                   />
                   {formErrors.houseFlatNumber && (
                     <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
@@ -592,11 +583,8 @@ const QuoteForm = () => {
                       e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
                       e.target.style.background = 'rgba(255, 255, 255, 0.08)';
                     }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = formErrors.streetName ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
-                      e.target.style.background = 'rgba(255, 255, 255, 0.05)';
-                      handleBlur(e);
-                    }}
+                    onBlur={handleBlur}
+                    autoComplete="address-line2"
                   />
                   {formErrors.streetName && (
                     <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
@@ -629,11 +617,8 @@ const QuoteForm = () => {
                       e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
                       e.target.style.background = 'rgba(255, 255, 255, 0.08)';
                     }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = formErrors.postcode ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
-                      e.target.style.background = 'rgba(255, 255, 255, 0.05)';
-                      handleBlur(e);
-                    }}
+                    onBlur={handleBlur}
+                    autoComplete="postal-code"
                   />
                   {formErrors.postcode && (
                     <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
@@ -752,11 +737,7 @@ const QuoteForm = () => {
                   e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
                   e.target.style.background = 'rgba(255, 255, 255, 0.08)';
                 }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = formErrors.description ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
-                  e.target.style.background = 'rgba(255, 255, 255, 0.05)';
-                  handleBlur(e);
-                }}
+                onBlur={handleBlur}
               />
               {formErrors.description && (
                 <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
@@ -930,9 +911,21 @@ const QuoteForm = () => {
         
         input:-webkit-autofill,
         input:-webkit-autofill:hover,
-        input:-webkit-autofill:focus {
-          -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.05) inset;
-          -webkit-text-fill-color: white;
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+          -webkit-box-shadow: 0 0 0px 1000px rgba(15, 15, 35, 0.9) inset !important;
+          -webkit-text-fill-color: white !important;
+          border: 2px solid rgba(255, 255, 255, 0.1) !important;
+          transition: background-color 5000s ease-in-out 0s;
+        }
+        
+        textarea:-webkit-autofill,
+        textarea:-webkit-autofill:hover,
+        textarea:-webkit-autofill:focus,
+        textarea:-webkit-autofill:active {
+          -webkit-box-shadow: 0 0 0px 1000px rgba(15, 15, 35, 0.9) inset !important;
+          -webkit-text-fill-color: white !important;
+          border: 2px solid rgba(255, 255, 255, 0.1) !important;
           transition: background-color 5000s ease-in-out 0s;
         }
         

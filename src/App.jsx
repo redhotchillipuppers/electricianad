@@ -18,9 +18,8 @@ import ServiceProviderForm from "./components/serviceproviders/ServiceProviderFo
 // Import admin panel
 import AdminPanel from "./admin/pages/AdminPanel";
 
-// Import provider components
-import ProviderDashboard from "./provider/components/ProviderDashboard";
-import ProtectedRoute from "./provider/components/ProtectedRoute";
+// Import provider panel
+import ProviderPanel from "./admin/pages/ProviderPanel";
 
 function App() {
   useEffect(() => {
@@ -90,12 +89,8 @@ function App() {
         {/* NEW: Admin Panel Route */}
         <Route path="/admin" element={<AdminPanel />} />
 
-        {/* Provider Dashboard Route */}
-        <Route path="/provider-dashboard" element={
-          <ProtectedRoute>
-            <ProviderDashboard />
-          </ProtectedRoute>
-        } />
+        {/* Provider Login/Dashboard Route */}
+        <Route path="/provider-login" element={<ProviderPanel />} />
       </Routes>
     </Router>
   );

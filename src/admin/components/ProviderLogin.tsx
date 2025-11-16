@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Lock, User, Eye, EyeOff, Zap, AlertCircle } from 'lucide-react';
+import { signInProvider } from '../utils/providerAuth';
 
 interface ProviderLoginProps {
   onLoginSuccess: () => void;
@@ -9,7 +10,6 @@ const ProviderLogin: React.FC<ProviderLoginProps> = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [stayLoggedIn, setStayLoggedIn] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -19,13 +19,11 @@ const ProviderLogin: React.FC<ProviderLoginProps> = ({ onLoginSuccess }) => {
     setLoading(true);
 
     try {
-      // TODO: Implement provider authentication
-      // await signInProvider(email, password, stayLoggedIn);
-
-      // Placeholder - remove when implementing real auth
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      onLoginSuccess();
+      await signInProvider(email, password);
+      // Small delay to ensure auth state propagates
+      setTimeout(() => {
+        onLoginSuccess();
+      }, 100);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
       setLoading(false);
@@ -95,13 +93,13 @@ const ProviderLogin: React.FC<ProviderLoginProps> = ({ onLoginSuccess }) => {
                 justifyContent: 'center',
                 width: '64px',
                 height: '64px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #FFD300 0%, #f59e0b 100%)',
                 borderRadius: '16px',
                 marginBottom: '1.5rem',
-                boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)'
+                boxShadow: '0 10px 30px rgba(255, 211, 0, 0.3)'
               }}
             >
-              <Zap size={28} color="white" />
+              <Zap size={28} color="#1a1a2e" />
             </div>
 
             <h1
@@ -127,7 +125,7 @@ const ProviderLogin: React.FC<ProviderLoginProps> = ({ onLoginSuccess }) => {
                 fontFamily: 'Inter, system-ui, sans-serif'
               }}
             >
-              Access your service provider dashboard
+              Access your provider dashboard
             </p>
           </div>
 
@@ -200,14 +198,14 @@ const ProviderLogin: React.FC<ProviderLoginProps> = ({ onLoginSuccess }) => {
                     fontFamily: 'Inter, system-ui, sans-serif'
                   }}
                   onFocus={(e) => {
-                    e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.1)';
+                    e.target.style.borderColor = 'rgba(255, 211, 0, 0.5)';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(255, 211, 0, 0.1)';
                   }}
                   onBlur={(e) => {
                     e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
                     e.target.style.boxShadow = 'none';
                   }}
-                  placeholder="provider@email.com"
+                  placeholder="provider@yourcompany.com"
                 />
               </div>
             </div>
@@ -260,8 +258,8 @@ const ProviderLogin: React.FC<ProviderLoginProps> = ({ onLoginSuccess }) => {
                     fontFamily: 'Inter, system-ui, sans-serif'
                   }}
                   onFocus={(e) => {
-                    e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.1)';
+                    e.target.style.borderColor = 'rgba(255, 211, 0, 0.5)';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(255, 211, 0, 0.1)';
                   }}
                   onBlur={(e) => {
                     e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
@@ -294,35 +292,6 @@ const ProviderLogin: React.FC<ProviderLoginProps> = ({ onLoginSuccess }) => {
               </div>
             </div>
 
-            {/* Stay Logged In Checkbox */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <input
-                type="checkbox"
-                id="stayLoggedIn"
-                checked={stayLoggedIn}
-                onChange={(e) => setStayLoggedIn(e.target.checked)}
-                style={{
-                  width: '18px',
-                  height: '18px',
-                  cursor: 'pointer',
-                  accentColor: '#667eea',
-                  borderRadius: '4px'
-                }}
-              />
-              <label
-                htmlFor="stayLoggedIn"
-                style={{
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  fontSize: '0.9rem',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  fontFamily: 'Inter, system-ui, sans-serif'
-                }}
-              >
-                Stay logged in
-              </label>
-            </div>
-
             {/* Login Button */}
             <button
               type="submit"
@@ -332,15 +301,15 @@ const ProviderLogin: React.FC<ProviderLoginProps> = ({ onLoginSuccess }) => {
                 padding: '1rem',
                 background: loading
                   ? 'rgba(255, 255, 255, 0.1)'
-                  : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  : 'linear-gradient(135deg, #FFD300 0%, #f59e0b 100%)',
                 border: 'none',
                 borderRadius: '12px',
-                color: 'white',
+                color: loading ? 'white' : '#1a1a2e',
                 fontSize: '0.95rem',
                 fontWeight: '600',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s ease',
-                boxShadow: loading ? 'none' : '0 10px 30px rgba(102, 126, 234, 0.3)',
+                boxShadow: loading ? 'none' : '0 10px 30px rgba(255, 211, 0, 0.3)',
                 letterSpacing: '0.025em',
                 textTransform: 'uppercase',
                 opacity: loading ? 0.7 : 1,
@@ -350,13 +319,13 @@ const ProviderLogin: React.FC<ProviderLoginProps> = ({ onLoginSuccess }) => {
               onMouseEnter={(e) => {
                 if (!loading) {
                   e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.boxShadow = '0 15px 35px rgba(102, 126, 234, 0.4)';
+                  e.currentTarget.style.boxShadow = '0 15px 35px rgba(255, 211, 0, 0.4)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (!loading) {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 10px 30px rgba(102, 126, 234, 0.3)';
+                  e.currentTarget.style.boxShadow = '0 10px 30px rgba(255, 211, 0, 0.3)';
                 }
               }}
             >
@@ -397,7 +366,7 @@ const ProviderLogin: React.FC<ProviderLoginProps> = ({ onLoginSuccess }) => {
                 fontFamily: 'Inter, system-ui, sans-serif'
               }}
             >
-              Secure provider authentication
+              Secure provider access
             </p>
           </div>
         </div>

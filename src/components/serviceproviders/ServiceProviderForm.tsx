@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { UserPlus, MapPin, Wrench, CheckCircle, ArrowLeft, ChevronDown, Zap, AlertCircle } from "lucide-react";
+import { UserPlus, MapPin, Wrench, CheckCircle, ArrowLeft, ChevronDown, Zap, AlertCircle, LogIn } from "lucide-react";
 import { Link } from "react-router-dom";
 import submitServiceProvider from "../../firebase/submitServiceProvider";
 
@@ -227,6 +227,7 @@ const ServiceProviderForm = () => {
             margin: '0 auto',
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'space-between',
             gap: '1rem'
           }}
         >
@@ -252,6 +253,34 @@ const ServiceProviderForm = () => {
           >
             <ArrowLeft size={20} />
             Back to Home
+          </Link>
+
+          <Link
+            to="/provider-login"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              background: 'linear-gradient(135deg, #FFD300 0%, #f59e0b 100%)',
+              color: '#1a1a2e',
+              textDecoration: 'none',
+              fontWeight: '600',
+              transition: 'all 0.3s ease',
+              padding: '0.625rem 1.25rem',
+              borderRadius: '8px',
+              boxShadow: '0 4px 15px rgba(255, 211, 0, 0.2)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(255, 211, 0, 0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 15px rgba(255, 211, 0, 0.2)';
+            }}
+          >
+            <LogIn size={18} />
+            Provider Login
           </Link>
         </div>
       </header>
