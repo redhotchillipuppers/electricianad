@@ -84,7 +84,7 @@ const AdminDashboard: React.FC = () => {
   // Filter states
   const [providerFilterBy, setProviderFilterBy] = useState<Array<'pending' | 'approved' | 'rejected' | 'inactive'>>([]);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
-  const [quoteFilterBy, setQuoteFilterBy] = useState<Array<'assigned' | 'unassigned'>>([]);
+  const [quoteFilterBy, setQuoteFilterBy] = useState<Array<'assigned' | 'unassigned' | 'completed'>>([]);
   const [showQuoteFilterDropdown, setShowQuoteFilterDropdown] = useState(false);
 
   // Load current user and data
@@ -275,7 +275,7 @@ const AdminDashboard: React.FC = () => {
   };
 
   // Toggle quote filter selection
-  const toggleQuoteFilterStatus = (status: 'assigned' | 'unassigned') => {
+  const toggleQuoteFilterStatus = (status: 'assigned' | 'unassigned' | 'completed') => {
     setQuoteFilterBy(prev => {
       if (prev.includes(status)) {
         return prev.filter(s => s !== status);
@@ -328,8 +328,17 @@ const AdminDashboard: React.FC = () => {
     // If filter array has selections, filter to only those statuses
     if (quoteFilterBy.length > 0) {
       quotes = quotes.filter(q => {
-        const isAssigned = q.assignmentStatus === 'assigned' && q.assignedProviderId;
-        const status = isAssigned ? 'assigned' : 'unassigned';
+        // Determine the current status of the quote
+        let status: 'assigned' | 'unassigned' | 'completed';
+
+        if (q.assignmentStatus === 'completed') {
+          status = 'completed';
+        } else if (q.assignmentStatus === 'assigned' && q.assignedProviderId) {
+          status = 'assigned';
+        } else {
+          status = 'unassigned';
+        }
+
         return quoteFilterBy.includes(status);
       });
     }
@@ -927,7 +936,8 @@ const AdminDashboard: React.FC = () => {
 
                         {[
                           { value: 'assigned' as const, label: 'Assigned', color: '#34d399' },
-                          { value: 'unassigned' as const, label: 'Unassigned', color: '#f87171' }
+                          { value: 'unassigned' as const, label: 'Unassigned', color: '#f87171' },
+                          { value: 'completed' as const, label: 'Completed', color: '#8b5cf6' }
                         ].map((option) => (
                           <label
                             key={option.value}
