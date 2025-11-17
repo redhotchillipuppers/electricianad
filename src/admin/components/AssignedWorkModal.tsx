@@ -17,6 +17,8 @@ interface QuoteRequest {
     assignedProviderName?: string | null;
     assignedAt?: string;
     assignmentStatus?: 'unassigned' | 'assigned';
+    completionStatus?: 'pending' | 'completed';
+    completedAt?: string;
     createdAt?: string;
     [key: string]: any;
 }
@@ -39,6 +41,7 @@ const AssignedWorkModal: React.FC<AssignedWorkModalProps> = ({ isOpen, onClose, 
     const [assignedQuotes, setAssignedQuotes] = useState<QuoteRequest[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [hideCompleted, setHideCompleted] = useState(false);
 
     // Fetch assigned quotes when modal opens
     useEffect(() => {
@@ -106,6 +109,11 @@ const AssignedWorkModal: React.FC<AssignedWorkModalProps> = ({ isOpen, onClose, 
 
     const providerName = provider.companyName || `${provider.firstName} ${provider.lastName}`;
 
+    // Filter quotes based on hideCompleted checkbox
+    const filteredQuotes = hideCompleted
+        ? assignedQuotes.filter(q => q.completionStatus !== 'completed')
+        : assignedQuotes;
+
     return (
         <Modal
             isOpen={isOpen}
@@ -166,6 +174,48 @@ const AssignedWorkModal: React.FC<AssignedWorkModalProps> = ({ isOpen, onClose, 
                 {/* Quote List */}
                 {!loading && !error && assignedQuotes.length > 0 && (
                     <>
+                        {/* Hide Completed Checkbox */}
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    padding: '0.5rem 1rem',
+                                    background: hideCompleted ? 'rgba(30, 64, 175, 0.1)' : '#F9FAFB',
+                                    border: hideCompleted ? '1px solid rgba(30, 64, 175, 0.3)' : '1px solid #E5E7EB',
+                                    borderRadius: '8px',
+                                    color: '#374151',
+                                    fontSize: '0.9rem',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (!hideCompleted) {
+                                        e.currentTarget.style.background = '#F3F4F6';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!hideCompleted) {
+                                        e.currentTarget.style.background = '#F9FAFB';
+                                    }
+                                }}
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={hideCompleted}
+                                    onChange={(e) => setHideCompleted(e.target.checked)}
+                                    style={{
+                                        width: '16px',
+                                        height: '16px',
+                                        cursor: 'pointer',
+                                        accentColor: '#1E40AF'
+                                    }}
+                                />
+                                <span>Hide Completed</span>
+                            </label>
+                        </div>
+
                         {/* Summary Header */}
                         <div style={{
                             background: 'linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%)',
@@ -187,10 +237,15 @@ const AssignedWorkModal: React.FC<AssignedWorkModalProps> = ({ isOpen, onClose, 
                                         fontSize: '1.5rem',
                                         fontWeight: '700'
                                     }}>
-                                        {assignedQuotes.length} Active {assignedQuotes.length === 1 ? 'Quote' : 'Quotes'}
+                                        {filteredQuotes.length} Active {filteredQuotes.length === 1 ? 'Quote' : 'Quotes'}
                                     </h3>
                                     <p style={{ margin: 0, fontSize: '0.9rem', opacity: 0.9 }}>
                                         Currently assigned to {providerName}
+                                        {hideCompleted && assignedQuotes.length > filteredQuotes.length && (
+                                            <span style={{ marginLeft: '0.5rem', opacity: 0.8 }}>
+                                                ({assignedQuotes.length - filteredQuotes.length} hidden)
+                                            </span>
+                                        )}
                                     </p>
                                 </div>
                                 <Briefcase size={40} style={{ opacity: 0.8 }} />
@@ -205,7 +260,22 @@ const AssignedWorkModal: React.FC<AssignedWorkModalProps> = ({ isOpen, onClose, 
                             overflowY: 'auto',
                             paddingRight: '0.5rem'
                         }}>
-                            {assignedQuotes.map((quote) => (
+                            {filteredQuotes.length === 0 ? (
+                                <div style={{
+                                    textAlign: 'center',
+                                    padding: '3rem',
+                                    color: '#6B7280',
+                                    background: 'white',
+                                    border: '1px solid #E5E7EB',
+                                    borderRadius: '12px'
+                                }}>
+                                    <Briefcase size={48} color="#D1D5DB" style={{ margin: '0 auto 1rem auto' }} />
+                                    <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                                        All quotes are completed
+                                    </p>
+                                </div>
+                            ) : (
+                                filteredQuotes.map((quote) => (
                                 <div
                                     key={quote.id}
                                     style={{
@@ -243,29 +313,48 @@ const AssignedWorkModal: React.FC<AssignedWorkModalProps> = ({ isOpen, onClose, 
                                             }}>
                                                 {quote.name}
                                             </h4>
-                                            {quote.assignedAt && (
-                                                <div style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '0.25rem',
-                                                    color: '#6B7280',
-                                                    fontSize: '0.75rem'
-                                                }}>
-                                                    <Calendar size={12} />
-                                                    Assigned {formatDate(quote.assignedAt)}
-                                                </div>
-                                            )}
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                                {quote.assignedAt && (
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.25rem',
+                                                        color: '#6B7280',
+                                                        fontSize: '0.75rem'
+                                                    }}>
+                                                        <Calendar size={12} />
+                                                        Assigned {formatDate(quote.assignedAt)}
+                                                    </div>
+                                                )}
+                                                {quote.completionStatus === 'completed' && quote.completedAt && (
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.25rem',
+                                                        color: '#8B5CF6',
+                                                        fontSize: '0.75rem',
+                                                        fontWeight: '500'
+                                                    }}>
+                                                        <Calendar size={12} />
+                                                        Completed {formatDate(quote.completedAt)}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                         <span style={{
-                                            background: 'rgba(30, 64, 175, 0.1)',
-                                            border: '1px solid rgba(30, 64, 175, 0.3)',
-                                            color: '#1E40AF',
+                                            background: quote.completionStatus === 'completed'
+                                                ? 'rgba(139, 92, 246, 0.1)'
+                                                : 'rgba(30, 64, 175, 0.1)',
+                                            border: quote.completionStatus === 'completed'
+                                                ? '1px solid rgba(139, 92, 246, 0.3)'
+                                                : '1px solid rgba(30, 64, 175, 0.3)',
+                                            color: quote.completionStatus === 'completed' ? '#8B5CF6' : '#1E40AF',
                                             padding: '0.25rem 0.75rem',
                                             borderRadius: '9999px',
                                             fontSize: '0.75rem',
                                             fontWeight: '600'
                                         }}>
-                                            ASSIGNED
+                                            {quote.completionStatus === 'completed' ? 'COMPLETED' : 'ASSIGNED'}
                                         </span>
                                     </div>
 
@@ -360,7 +449,8 @@ const AssignedWorkModal: React.FC<AssignedWorkModalProps> = ({ isOpen, onClose, 
                                         </div>
                                     )}
                                 </div>
-                            ))}
+                                ))
+                            )}
                         </div>
                     </>
                 )}
