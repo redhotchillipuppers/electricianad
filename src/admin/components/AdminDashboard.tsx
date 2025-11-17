@@ -84,6 +84,7 @@ const AdminDashboard: React.FC = () => {
   // Filter states
   const [providerFilterBy, setProviderFilterBy] = useState<Array<'pending' | 'approved' | 'rejected' | 'inactive'>>([]);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [hideCompletedProviders, setHideCompletedProviders] = useState(false);
   const [quoteFilterBy, setQuoteFilterBy] = useState<Array<'assigned' | 'unassigned' | 'completed'>>([]);
   const [showQuoteFilterDropdown, setShowQuoteFilterDropdown] = useState(false);
 
@@ -290,6 +291,11 @@ const AdminDashboard: React.FC = () => {
     // First apply filter
     let providers = [...serviceProviders];
 
+    // Hide completed (approved) providers if checkbox is checked
+    if (hideCompletedProviders) {
+      providers = providers.filter(p => p.status !== 'approved');
+    }
+
     // If filter array has selections, filter to only those statuses
     if (providerFilterBy.length > 0) {
       providers = providers.filter(p => providerFilterBy.includes(p.status));
@@ -318,7 +324,7 @@ const AdminDashboard: React.FC = () => {
       default:
         return providers;
     }
-  }, [serviceProviders, providerSortBy, providerFilterBy]);
+  }, [serviceProviders, providerSortBy, providerFilterBy, hideCompletedProviders]);
 
   // Sorted and filtered quote requests
   const sortedQuotes = useMemo(() => {
@@ -600,6 +606,46 @@ const AdminDashboard: React.FC = () => {
                 <h2 style={{ color: 'white', margin: 0, fontSize: '1.25rem' }}>Service Providers</h2>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  {/* Hide Completed Checkbox */}
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      padding: '0.5rem 1rem',
+                      background: hideCompletedProviders ? 'rgba(102, 126, 234, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                      border: hideCompletedProviders ? '1px solid rgba(102, 126, 234, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '8px',
+                      color: 'white',
+                      fontSize: '0.9rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!hideCompletedProviders) {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!hideCompletedProviders) {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                      }
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={hideCompletedProviders}
+                      onChange={(e) => setHideCompletedProviders(e.target.checked)}
+                      style={{
+                        width: '16px',
+                        height: '16px',
+                        cursor: 'pointer',
+                        accentColor: '#667eea'
+                      }}
+                    />
+                    <span>Hide Completed</span>
+                  </label>
+
                   {/* Filter Dropdown */}
                   <div style={{ position: 'relative' }} data-filter-dropdown>
                     <button
