@@ -92,17 +92,17 @@ const ProviderLogin: React.FC<ProviderLoginProps> = ({ onLoginSuccess }) => {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
+              justifyContent: 'center',
               background: 'rgba(255, 255, 255, 0.05)',
               border: '1px solid rgba(255, 255, 255, 0.1)',
               borderRadius: '10px',
-              padding: '0.625rem 1rem',
+              padding: '0.625rem',
               color: 'rgba(255, 255, 255, 0.7)',
-              fontSize: '0.875rem',
-              fontWeight: '500',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
               marginBottom: '1.5rem',
+              width: '40px',
+              height: '40px',
               fontFamily: 'Inter, system-ui, sans-serif'
             }}
             onMouseEnter={(e) => {
@@ -116,8 +116,7 @@ const ProviderLogin: React.FC<ProviderLoginProps> = ({ onLoginSuccess }) => {
               e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
             }}
           >
-            <ArrowLeft size={16} />
-            <span>Back to Home</span>
+            <ArrowLeft size={18} />
           </button>
 
           {/* Header */}
