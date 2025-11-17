@@ -20,7 +20,7 @@ interface QuoteRequest {
     assignedBy?: string;
     assignedAt?: string;
     assignmentNotes?: string;
-    assignmentStatus?: 'unassigned' | 'assigned';
+    assignmentStatus?: 'unassigned' | 'assigned' | 'completed';
     [key: string]: any;
 }
 

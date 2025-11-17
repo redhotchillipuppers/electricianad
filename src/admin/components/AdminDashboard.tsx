@@ -55,6 +55,9 @@ interface QuoteRequest {
   assignedAt?: string;
   assignmentNotes?: string;
   assignmentStatus?: 'unassigned' | 'assigned';
+  completionStatus?: 'pending' | 'completed';
+  completedAt?: string;
+  completedBy?: string;
   [key: string]: any; // For other quote fields
 }
 
@@ -81,7 +84,7 @@ const AdminDashboard: React.FC = () => {
   // Filter states
   const [providerFilterBy, setProviderFilterBy] = useState<Array<'pending' | 'approved' | 'rejected' | 'inactive'>>([]);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
-  const [quoteFilterBy, setQuoteFilterBy] = useState<Array<'assigned' | 'unassigned'>>([]);
+  const [quoteFilterBy, setQuoteFilterBy] = useState<Array<'assigned' | 'unassigned' | 'completed'>>([]);
   const [showQuoteFilterDropdown, setShowQuoteFilterDropdown] = useState(false);
 
   // Load current user and data
@@ -272,7 +275,7 @@ const AdminDashboard: React.FC = () => {
   };
 
   // Toggle quote filter selection
-  const toggleQuoteFilterStatus = (status: 'assigned' | 'unassigned') => {
+  const toggleQuoteFilterStatus = (status: 'assigned' | 'unassigned' | 'completed') => {
     setQuoteFilterBy(prev => {
       if (prev.includes(status)) {
         return prev.filter(s => s !== status);
@@ -325,8 +328,17 @@ const AdminDashboard: React.FC = () => {
     // If filter array has selections, filter to only those statuses
     if (quoteFilterBy.length > 0) {
       quotes = quotes.filter(q => {
-        const isAssigned = q.assignmentStatus === 'assigned' && q.assignedProviderId;
-        const status = isAssigned ? 'assigned' : 'unassigned';
+        // Determine the current status of the quote
+        let status: 'assigned' | 'unassigned' | 'completed';
+
+        if (q.assignmentStatus === 'completed') {
+          status = 'completed';
+        } else if (q.assignmentStatus === 'assigned' && q.assignedProviderId) {
+          status = 'assigned';
+        } else {
+          status = 'unassigned';
+        }
+
         return quoteFilterBy.includes(status);
       });
     }
@@ -924,7 +936,8 @@ const AdminDashboard: React.FC = () => {
 
                         {[
                           { value: 'assigned' as const, label: 'Assigned', color: '#34d399' },
-                          { value: 'unassigned' as const, label: 'Unassigned', color: '#f87171' }
+                          { value: 'unassigned' as const, label: 'Unassigned', color: '#f87171' },
+                          { value: 'completed' as const, label: 'Completed', color: '#8b5cf6' }
                         ].map((option) => (
                           <label
                             key={option.value}
@@ -1071,6 +1084,29 @@ const AdminDashboard: React.FC = () => {
                               {quote.assignedAt && (
                                 <span style={{ fontSize: '0.75rem', color: 'rgba(52, 211, 153, 0.7)', marginLeft: '1.25rem' }}>
                                   {new Date(quote.assignedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </span>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Completion Status */}
+                          {quote.completionStatus === 'completed' && (
+                            <div style={{
+                              marginTop: '0.75rem',
+                              padding: '0.5rem 0.75rem',
+                              background: 'rgba(102, 126, 234, 0.1)',
+                              borderRadius: '6px',
+                              border: '1px solid rgba(102, 126, 234, 0.2)'
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <CheckCircle size={14} color="#667eea" />
+                                <span style={{ fontSize: '0.85rem', color: '#667eea', fontWeight: '500' }}>
+                                  Completed
+                                </span>
+                              </div>
+                              {quote.completedAt && (
+                                <span style={{ fontSize: '0.75rem', color: 'rgba(102, 126, 234, 0.7)', marginLeft: '1.25rem' }}>
+                                  {new Date(quote.completedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                                 </span>
                               )}
                             </div>
