@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Phone, MapPin, MessageSquare, Calendar, FileText, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { Mail, Phone, MapPin, MessageSquare, Calendar, FileText, Image as ImageIcon, Trash2, CheckCircle, UserPlus } from 'lucide-react';
 import Modal from './Modal';
 
 interface QuoteRequest {
@@ -14,7 +14,14 @@ interface QuoteRequest {
     postcode?: string;
     fileUrl?: string;
     createdAt?: string;
-    assignmentStatus?: 'unassigned' | 'assigned' | 'completed';
+    assignedProviderId?: string;
+    assignedProviderName?: string;
+    assignedAt?: string;
+    assignmentNotes?: string;
+    assignmentStatus?: 'unassigned' | 'assigned';
+    completionStatus?: 'pending' | 'completed';
+    completedAt?: string;
+    completedBy?: string;
     [key: string]: any;
 }
 
@@ -213,6 +220,86 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({ isOpen, onClose, 
                         {formatAddress()}
                     </p>
                 </div>
+
+                {/* Assignment & Completion Status Section */}
+                {(quote.assignmentStatus === 'assigned' || quote.completionStatus === 'completed') && (
+                    <div style={{
+                        background: 'rgba(102, 126, 234, 0.05)',
+                        borderRadius: '12px',
+                        padding: '1.5rem',
+                        marginBottom: '1.5rem',
+                        border: '1px solid rgba(102, 126, 234, 0.1)'
+                    }}>
+                        <h3 style={{
+                            color: '#667eea',
+                            margin: '0 0 1rem 0',
+                            fontSize: '1.1rem',
+                            fontWeight: '600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
+                        }}>
+                            <UserPlus size={18} />
+                            Assignment & Status
+                        </h3>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {/* Assignment Info */}
+                            {quote.assignmentStatus === 'assigned' && quote.assignedProviderName && (
+                                <div style={{
+                                    background: 'rgba(16, 185, 129, 0.1)',
+                                    borderRadius: '8px',
+                                    padding: '0.75rem 1rem',
+                                    border: '1px solid rgba(16, 185, 129, 0.2)'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                                        <UserPlus size={16} color="#10B981" />
+                                        <span style={{ fontSize: '0.9rem', color: '#10B981', fontWeight: '600' }}>
+                                            Assigned to: {quote.assignedProviderName}
+                                        </span>
+                                    </div>
+                                    {quote.assignedAt && (
+                                        <p style={{ fontSize: '0.8rem', color: '#6B7280', margin: '0 0 0 1.5rem' }}>
+                                            {formatDate(quote.assignedAt)}
+                                        </p>
+                                    )}
+                                    {quote.assignmentNotes && (
+                                        <p style={{
+                                            fontSize: '0.85rem',
+                                            color: '#374151',
+                                            margin: '0.5rem 0 0 1.5rem',
+                                            fontStyle: 'italic'
+                                        }}>
+                                            "{quote.assignmentNotes}"
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Completion Info */}
+                            {quote.completionStatus === 'completed' && (
+                                <div style={{
+                                    background: 'rgba(102, 126, 234, 0.1)',
+                                    borderRadius: '8px',
+                                    padding: '0.75rem 1rem',
+                                    border: '1px solid rgba(102, 126, 234, 0.2)'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                                        <CheckCircle size={16} color="#667eea" />
+                                        <span style={{ fontSize: '0.9rem', color: '#667eea', fontWeight: '600' }}>
+                                            Job Completed
+                                        </span>
+                                    </div>
+                                    {quote.completedAt && (
+                                        <p style={{ fontSize: '0.8rem', color: '#6B7280', margin: '0 0 0 1.5rem' }}>
+                                            {formatDate(quote.completedAt)}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 {/* Description Section */}
                 {quote.description && (
