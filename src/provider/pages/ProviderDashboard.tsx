@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   LogOut,
   User,
@@ -42,6 +42,7 @@ const ProviderDashboard: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<ProviderUser | null>(null);
   const [assignedQuotes, setAssignedQuotes] = useState<QuoteRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hideCompleted, setHideCompleted] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -124,6 +125,14 @@ const ProviderDashboard: React.FC = () => {
       alert('Failed to mark job as completed. Please try again.');
     }
   };
+
+  // Filter quotes based on hideCompleted state
+  const filteredQuotes = useMemo(() => {
+    if (hideCompleted) {
+      return assignedQuotes.filter(quote => quote.completionStatus !== 'completed');
+    }
+    return assignedQuotes;
+  }, [assignedQuotes, hideCompleted]);
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
@@ -399,20 +408,68 @@ const ProviderDashboard: React.FC = () => {
           borderRadius: '20px',
           padding: '2rem'
         }}>
-          <h2 style={{
-            color: 'white',
-            fontSize: '1.25rem',
-            fontWeight: '700',
-            margin: '0 0 1.5rem 0',
+          <div style={{
             display: 'flex',
+            justifyContent: 'space-between',
             alignItems: 'center',
-            gap: '0.5rem'
+            marginBottom: '1.5rem',
+            flexWrap: 'wrap',
+            gap: '1rem'
           }}>
-            <FileText size={20} />
-            Assigned Work ({assignedQuotes.length})
-          </h2>
+            <h2 style={{
+              color: 'white',
+              fontSize: '1.25rem',
+              fontWeight: '700',
+              margin: 0,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              <FileText size={20} />
+              Assigned Work ({filteredQuotes.length})
+            </h2>
 
-          {assignedQuotes.length === 0 ? (
+            {/* Hide Completed Checkbox */}
+            <label style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              cursor: 'pointer',
+              padding: '0.5rem 1rem',
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '8px',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+            }}
+            >
+              <input
+                type="checkbox"
+                checked={hideCompleted}
+                onChange={(e) => setHideCompleted(e.target.checked)}
+                style={{
+                  width: '16px',
+                  height: '16px',
+                  cursor: 'pointer',
+                  accentColor: '#667eea'
+                }}
+              />
+              <span style={{
+                color: 'rgba(255, 255, 255, 0.8)',
+                fontSize: '0.9rem',
+                fontWeight: '500'
+              }}>
+                Hide Completed
+              </span>
+            </label>
+          </div>
+
+          {filteredQuotes.length === 0 ? (
             <div style={{
               background: 'rgba(255, 255, 255, 0.03)',
               borderRadius: '12px',
@@ -421,10 +478,10 @@ const ProviderDashboard: React.FC = () => {
             }}>
               <FileText size={48} color="rgba(255, 255, 255, 0.2)" style={{ margin: '0 auto 1rem auto' }} />
               <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '1.1rem', margin: '0 0 0.5rem 0' }}>
-                No assigned work yet
+                {assignedQuotes.length === 0 ? 'No assigned work yet' : 'No jobs to display'}
               </p>
               <p style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '0.9rem', margin: 0 }}>
-                Check back later for new assignments
+                {assignedQuotes.length === 0 ? 'Check back later for new assignments' : 'All jobs are completed'}
               </p>
             </div>
           ) : (
@@ -433,7 +490,7 @@ const ProviderDashboard: React.FC = () => {
               flexDirection: 'column',
               gap: '1rem'
             }}>
-              {assignedQuotes.map((quote) => (
+              {filteredQuotes.map((quote) => (
                 <div
                   key={quote.id}
                   style={{
