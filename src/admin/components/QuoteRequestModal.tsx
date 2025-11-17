@@ -14,6 +14,7 @@ interface QuoteRequest {
     postcode?: string;
     fileUrl?: string;
     createdAt?: string;
+    assignmentStatus?: 'unassigned' | 'assigned' | 'completed';
     [key: string]: any;
 }
 
