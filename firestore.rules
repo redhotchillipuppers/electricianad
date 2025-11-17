@@ -62,7 +62,7 @@ service cloud.firestore {
       // 2. Assigned providers (limited to status and notes fields only)
       allow update: if isAdmin() || (
                       isAssignedProvider(resource.data)
-                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'notes', 'completedAt', 'providerNotes'])
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'completionStatus', 'notes', 'completedAt', 'completedBy', 'providerNotes'])
                     );
 
       // Only admins can delete quotes
