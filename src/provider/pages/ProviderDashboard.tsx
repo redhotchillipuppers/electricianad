@@ -41,6 +41,7 @@ const ProviderDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<ProviderUser | null>(null);
   const [assignedQuotes, setAssignedQuotes] = useState<QuoteRequest[]>([]);
+  const [eligibleJobs, setEligibleJobs] = useState<QuoteRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -51,18 +52,31 @@ const ProviderDashboard: React.FC = () => {
         setCurrentUser(user);
 
         if (user && user.providerId) {
-          // Load assigned quotes
           const { db } = getFirebase();
           const quotesRef = collection(db, 'quotes');
-          const q = query(quotesRef, where('assignedProviderId', '==', user.providerId));
-          const quotesSnapshot = await getDocs(q);
 
-          const quotesData = quotesSnapshot.docs.map(doc => ({
+          // Load assigned quotes
+          const assignedQuery = query(quotesRef, where('assignedProviderId', '==', user.providerId));
+          const assignedSnapshot = await getDocs(assignedQuery);
+
+          const assignedData = assignedSnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
           })) as QuoteRequest[];
 
-          setAssignedQuotes(quotesData);
+          setAssignedQuotes(assignedData);
+
+          // Load eligible jobs (unassigned quotes)
+          // Get all quotes and filter for unassigned ones on the client side
+          const allQuotesSnapshot = await getDocs(quotesRef);
+          const allQuotesData = allQuotesSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          })) as QuoteRequest[];
+
+          const eligibleData = allQuotesData.filter(quote => !quote.assignedProviderId); // Only show unassigned jobs
+
+          setEligibleJobs(eligibleData);
         }
       } catch (error) {
         console.error('Error loading dashboard data:', error);
@@ -389,6 +403,148 @@ const ProviderDashboard: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Eligible Jobs Section */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '20px',
+          padding: '2rem',
+          marginBottom: '2rem'
+        }}>
+          <h2 style={{
+            color: 'white',
+            fontSize: '1.25rem',
+            fontWeight: '700',
+            margin: '0 0 1.5rem 0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}>
+            <Briefcase size={20} />
+            Eligible Jobs ({eligibleJobs.length})
+          </h2>
+
+          {eligibleJobs.length === 0 ? (
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.03)',
+              borderRadius: '12px',
+              padding: '3rem 2rem',
+              textAlign: 'center'
+            }}>
+              <Briefcase size={48} color="rgba(255, 255, 255, 0.2)" style={{ margin: '0 auto 1rem auto' }} />
+              <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '1.1rem', margin: '0 0 0.5rem 0' }}>
+                No eligible jobs available
+              </p>
+              <p style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '0.9rem', margin: 0 }}>
+                Check back later for new opportunities
+              </p>
+            </div>
+          ) : (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem'
+            }}>
+              {eligibleJobs.map((job) => (
+                <div
+                  key={job.id}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '12px',
+                    padding: '1.5rem',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                  }}
+                >
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    marginBottom: '1rem',
+                    flexWrap: 'wrap',
+                    gap: '1rem'
+                  }}>
+                    <div>
+                      <h3 style={{
+                        color: 'white',
+                        fontSize: '1.1rem',
+                        fontWeight: '700',
+                        margin: '0 0 0.5rem 0'
+                      }}>
+                        Job Request
+                      </h3>
+                      {job.postcode && (
+                        <p style={{
+                          color: 'rgba(255, 255, 255, 0.6)',
+                          fontSize: '0.85rem',
+                          margin: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem'
+                        }}>
+                          <MapPin size={14} />
+                          General Area: {job.postcode.split(' ')[0] || job.postcode}
+                        </p>
+                      )}
+                    </div>
+
+                    {job.createdAt && (
+                      <div style={{
+                        background: 'rgba(255, 211, 0, 0.1)',
+                        border: '1px solid rgba(255, 211, 0, 0.3)',
+                        borderRadius: '8px',
+                        padding: '0.5rem 0.75rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
+                      }}>
+                        <Calendar size={14} color="#FFD300" />
+                        <span style={{ color: '#FFD300', fontSize: '0.8rem', fontWeight: '600' }}>
+                          Posted {formatDate(job.createdAt)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {job.description && (
+                    <div style={{
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      borderRadius: '8px',
+                      padding: '1rem'
+                    }}>
+                      <p style={{
+                        color: 'rgba(255, 255, 255, 0.5)',
+                        fontSize: '0.75rem',
+                        margin: '0 0 0.5rem 0',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        fontWeight: '600'
+                      }}>
+                        Job Description
+                      </p>
+                      <p style={{
+                        color: 'rgba(255, 255, 255, 0.8)',
+                        fontSize: '0.9rem',
+                        margin: 0,
+                        lineHeight: '1.5'
+                      }}>
+                        {job.description}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Assigned Work Section */}
