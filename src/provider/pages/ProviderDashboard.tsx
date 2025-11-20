@@ -56,28 +56,43 @@ const ProviderDashboard: React.FC = () => {
           const { db } = getFirebase();
           const quotesRef = collection(db, 'quotes');
 
+          console.log('Provider user loaded:', { uid: user.uid, providerId: user.providerId, role: user.role });
+
           // Load assigned quotes
-          const assignedQuery = query(quotesRef, where('assignedProviderId', '==', user.providerId));
-          const assignedSnapshot = await getDocs(assignedQuery);
+          try {
+            console.log('Fetching assigned quotes for provider:', user.providerId);
+            const assignedQuery = query(quotesRef, where('assignedProviderId', '==', user.providerId));
+            const assignedSnapshot = await getDocs(assignedQuery);
 
-          const assignedData = assignedSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          })) as QuoteRequest[];
+            const assignedData = assignedSnapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data()
+            })) as QuoteRequest[];
 
-          setAssignedQuotes(assignedData);
+            console.log('Assigned quotes loaded:', assignedData.length);
+            setAssignedQuotes(assignedData);
+          } catch (error) {
+            console.error('Error loading assigned quotes:', error);
+            throw new Error('Failed to load assigned quotes: ' + (error instanceof Error ? error.message : 'Unknown error'));
+          }
 
           // Load eligible jobs (unassigned quotes only)
-          // Query for quotes where assignedProviderId is null
-          const unassignedQuery = query(quotesRef, where('assignedProviderId', '==', null));
-          const unassignedSnapshot = await getDocs(unassignedQuery);
+          try {
+            console.log('Fetching unassigned quotes...');
+            const unassignedQuery = query(quotesRef, where('assignedProviderId', '==', null));
+            const unassignedSnapshot = await getDocs(unassignedQuery);
 
-          const eligibleData = unassignedSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          })) as QuoteRequest[];
+            const eligibleData = unassignedSnapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data()
+            })) as QuoteRequest[];
 
-          setEligibleJobs(eligibleData);
+            console.log('Eligible jobs loaded:', eligibleData.length);
+            setEligibleJobs(eligibleData);
+          } catch (error) {
+            console.error('Error loading eligible jobs:', error);
+            throw new Error('Failed to load eligible jobs: ' + (error instanceof Error ? error.message : 'Unknown error'));
+          }
         }
       } catch (error) {
         console.error('Error loading dashboard data:', error);
