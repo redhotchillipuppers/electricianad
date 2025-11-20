@@ -41,7 +41,7 @@ service cloud.firestore {
     match /quotes/{quoteId} {
       // Anyone can create a quote (public submission)
       // Updated to match actual data structure from submitQuote.ts
-      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'contactMethod', 'description', 'houseFlatNumber', 'streetName', 'postcode', 'createdAt'])
+      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'contactMethod', 'description', 'houseFlatNumber', 'streetName', 'postcode', 'createdAt', 'assignedProviderId'])
                     && isValidEmail(request.resource.data.email)
                     && request.resource.data.name is string && request.resource.data.name.size() > 0
                     && request.resource.data.contactMethod is string && request.resource.data.contactMethod.size() > 0
@@ -50,6 +50,7 @@ service cloud.firestore {
                     && request.resource.data.streetName is string
                     && request.resource.data.postcode is string
                     && request.resource.data.createdAt is string
+                    && request.resource.data.assignedProviderId == null
                     && (!request.resource.data.keys().hasAny(['phone']) || request.resource.data.phone is string)
                     && (!request.resource.data.keys().hasAny(['fileUrl']) || request.resource.data.fileUrl is string);
 

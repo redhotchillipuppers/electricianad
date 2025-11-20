@@ -81,6 +81,7 @@ export default async function submitQuote(payload: QuotePayload) {
       streetName,
       postcode,
       createdAt: new Date().toISOString(),
+      assignedProviderId: null, // Initially unassigned
     });
 
     return docRef.id; // useful if you want to show a "ticket number"
