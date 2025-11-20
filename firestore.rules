@@ -55,8 +55,13 @@ service cloud.firestore {
                     && (!request.resource.data.keys().hasAny(['fileUrl']) || request.resource.data.fileUrl is string);
 
       // Admins can read/update/delete all quotes
-      // Providers can only read quotes assigned to them
-      allow read: if isAdmin() || isAssignedProvider(resource.data);
+      // Providers can read:
+      //   1. Quotes assigned to them (full access)
+      //   2. Unassigned quotes (to see eligible jobs)
+      // Note: Unassigned means assignedProviderId doesn't exist or is null
+      allow read: if isAdmin()
+                  || isAssignedProvider(resource.data)
+                  || (isProvider() && (!('assignedProviderId' in resource.data) || resource.data.assignedProviderId == null));
 
       // Allow updates from:
       // 1. Admins (full access)
