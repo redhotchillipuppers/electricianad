@@ -33,11 +33,15 @@ service cloud.firestore {
       return phone.matches('^[0-9\\s\\-\\+\\(\\)]+$');
     }
 
+    function getProviderIdForUser() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.providerId;
+    }
+
     // Quote requests collection
     match /quotes/{quoteId} {
       // Anyone can create a quote (public submission)
       // Updated to match actual data structure from submitQuote.ts
-      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'contactMethod', 'description', 'houseFlatNumber', 'streetName', 'postcode', 'createdAt'])
+      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'contactMethod', 'description', 'houseFlatNumber', 'streetName', 'postcode', 'createdAt', 'assignedProviderId'])
                     && isValidEmail(request.resource.data.email)
                     && request.resource.data.name is string && request.resource.data.name.size() > 0
                     && request.resource.data.contactMethod is string && request.resource.data.contactMethod.size() > 0
@@ -46,13 +50,29 @@ service cloud.firestore {
                     && request.resource.data.streetName is string
                     && request.resource.data.postcode is string
                     && request.resource.data.createdAt is string
+                    && request.resource.data.assignedProviderId == null
                     && (!request.resource.data.keys().hasAny(['phone']) || request.resource.data.phone is string)
                     && (!request.resource.data.keys().hasAny(['fileUrl']) || request.resource.data.fileUrl is string);
 
       // Admins can read/update/delete all quotes
-      // Providers can only read quotes assigned to them
-      allow read: if isAdmin() || isAssignedProvider(resource.data);
-      allow update, delete: if isAdmin();
+      // Providers can read:
+      //   1. Quotes assigned to them (full access)
+      //   2. Unassigned quotes (to see eligible jobs)
+      // Note: Unassigned means assignedProviderId doesn't exist or is null
+      allow read: if isAdmin()
+                  || isAssignedProvider(resource.data)
+                  || (isProvider() && (!('assignedProviderId' in resource.data) || resource.data.assignedProviderId == null));
+
+      // Allow updates from:
+      // 1. Admins (full access)
+      // 2. Assigned providers (limited to status and notes fields only)
+      allow update: if isAdmin() || (
+                      isAssignedProvider(resource.data)
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'completionStatus', 'notes', 'completedAt', 'completedBy', 'providerNotes'])
+                    );
+
+      // Only admins can delete quotes
+      allow delete: if isAdmin();
     }
 
     // Service providers collection
@@ -70,9 +90,13 @@ service cloud.firestore {
                     && request.resource.data.createdAt is string
                     && (!request.resource.data.keys().hasAny(['companyName']) || request.resource.data.companyName is string);
 
-      // Allow anyone to read (needed for provider account creation to check if email is approved)
-      // This is safe because provider applications are reviewed by admins before approval
-      allow read: if true;
+      // Multi-tier read access:
+      // - Admins can see everything
+      // - Providers can see their own record
+      // - Public can only see approved providers (business directory model)
+      allow read: if isAdmin() ||
+                  (isProvider() && providerId == getProviderIdForUser()) ||
+                  resource.data.status == 'approved';
 
       // Allow updates from:
       // 1. Admins (full access)
