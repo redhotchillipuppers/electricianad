@@ -1,5 +1,5 @@
 import React from "react";
-import { MessageSquareQuote, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const HeaderBanner = () => {
@@ -114,22 +114,22 @@ const HeaderBanner = () => {
         </Link>
       </div>
 
-      <div style={{ 
-        position: 'relative', 
-        zIndex: 1, 
-        maxWidth: '1200px', 
+      <div style={{
+        position: 'relative',
+        zIndex: 1,
+        maxWidth: '800px',
         margin: '0 auto',
         paddingTop: '4rem'
       }}>
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', 
-          gap: '4rem', 
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          minHeight: '80vh'
+          justifyContent: 'center',
+          minHeight: '80vh',
+          textAlign: 'center'
         }}>
-          {/* Left column - Main content */}
-          <div style={{ order: 1 }}>
+          <div>
             {/* Animated title */}
             <div style={{ marginBottom: '2rem' }}>
               <div
@@ -192,252 +192,53 @@ const HeaderBanner = () => {
                 YOUR QUICK FIX FOR A BRIGHTER HOME
               </p>
               
-              <p 
+              <p
                 style={{
                   fontSize: '1.1rem',
                   color: 'rgba(255, 255, 255, 0.8)',
                   lineHeight: '1.6',
-                  maxWidth: '500px'
+                  maxWidth: '600px',
+                  margin: '0 auto'
                 }}
               >
-                Professional electrical services with transparent pricing. 
+                Professional electrical services with transparent pricing.
                 Quick, reliable work you can trust — snap a pic for an instant quote.
               </p>
             </div>
 
-            {/* CTA Buttons */}
-            <div style={{ 
-              display: 'flex', 
-              gap: '1rem', 
-              flexWrap: 'wrap',
-              marginBottom: '3rem'
-            }}>
-              <button
-                type="button"
-                onClick={scrollToQuote}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '1rem 2rem',
-                  background: 'linear-gradient(135deg, #FFD300 0%, #f59e0b 100%)',
-                  color: '#1a1a2e',
-                  fontWeight: '700',
-                  borderRadius: '12px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '1rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 10px 30px rgba(255, 211, 0, 0.3)'
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-3px)';
-                  e.currentTarget.style.boxShadow = '0 15px 40px rgba(255, 211, 0, 0.4)';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 10px 30px rgba(255, 211, 0, 0.3)';
-                }}
-              >
-                Request Free Quote
-                <ArrowRight size={20} />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  const servicesSection = document.getElementById("services");
-                  if (servicesSection) {
-                    servicesSection.scrollIntoView({ behavior: "smooth" });
-                  }
-                }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '1rem 2rem',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderRadius: '12px',
-                  color: '#ffffff',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  fontSize: '1rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
-              >
-                Our Services
-              </button>
-            </div>
-
-            {/* Trust indicators */}
-            <div 
+            {/* CTA Button */}
+            <button
+              type="button"
+              onClick={scrollToQuote}
               style={{
-                display: 'flex',
-                gap: '2rem',
-                flexWrap: 'wrap',
-                alignItems: 'center'
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '1rem 2rem',
+                background: 'linear-gradient(135deg, #FFD300 0%, #f59e0b 100%)',
+                color: '#1a1a2e',
+                fontWeight: '700',
+                borderRadius: '12px',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 10px 30px rgba(255, 211, 0, 0.3)'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'translateY(-3px)';
+                e.currentTarget.style.boxShadow = '0 15px 40px rgba(255, 211, 0, 0.4)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 10px 30px rgba(255, 211, 0, 0.3)';
               }}
             >
-              {['Licensed & Insured', 'Same-Day Service', '24/7 Emergency'].map((item, index) => (
-                <div 
-                  key={index}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    color: 'rgba(255, 255, 255, 0.7)',
-                    fontSize: '0.875rem',
-                    fontWeight: '500'
-                  }}
-                >
-                  <div 
-                    style={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
-                      background: '#FFD300'
-                    }}
-                  />
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right column - Testimonial Card */}
-          <div style={{ order: 2 }}>
-            <div
-              style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '20px',
-                padding: '2.5rem',
-                maxWidth: '450px',
-                margin: '0 auto',
-                position: 'relative',
-                overflow: 'hidden',
-                boxShadow: '0 25px 50px rgba(0, 0, 0, 0.2)'
-              }}
-            >
-              {/* Card background pattern */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  right: 0,
-                  width: '100px',
-                  height: '100px',
-                  background: 'radial-gradient(circle, rgba(255, 211, 0, 0.1) 0%, transparent 70%)',
-                  borderRadius: '50%'
-                }}
-              />
-
-              <div style={{ display: 'flex', gap: '1.5rem', position: 'relative' }}>
-                {/* Avatar */}
-                <div
-                  style={{
-                    width: '60px',
-                    height: '60px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #FFD300 0%, #f59e0b 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    boxShadow: '0 10px 25px rgba(255, 211, 0, 0.3)'
-                  }}
-                >
-                  <MessageSquareQuote size={24} style={{ color: '#1a1a2e' }} />
-                </div>
-
-                {/* Quote content */}
-                <div style={{ flex: 1 }}>
-                  <blockquote style={{ margin: 0 }}>
-                    <p style={{
-                      fontSize: '1.1rem',
-                      fontWeight: '600',
-                      fontStyle: 'italic',
-                      lineHeight: '1.5',
-                      color: '#ffffff',
-                      marginBottom: '1rem',
-                      position: 'relative'
-                    }}>
-                      "Ampalign installed our outdoor security lighting. They were professional, efficient, and the price was very reasonable. Highly recommend!"
-                    </p>
-                    
-                    <footer style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem'
-                    }}>
-                      <div>
-                        <div style={{
-                          fontSize: '0.95rem',
-                          fontWeight: '600',
-                          color: '#FFD300'
-                        }}>
-                          Jamie R.
-                        </div>
-                        <div style={{
-                          fontSize: '0.875rem',
-                          color: 'rgba(255, 255, 255, 0.6)'
-                        }}>
-                          Grimsby
-                        </div>
-                      </div>
-                      
-                      {/* Rating stars */}
-                      <div style={{ 
-                        display: 'flex', 
-                        gap: '2px',
-                        marginLeft: 'auto'
-                      }}>
-                        {[...Array(5)].map((_, i) => (
-                          <div 
-                            key={i}
-                            style={{
-                              width: '12px',
-                              height: '12px',
-                              background: '#FFD300',
-                              clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)'
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </footer>
-                  </blockquote>
-                </div>
-              </div>
-
-              {/* Accent line */}
-              <div
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  top: '50%',
-                  width: '4px',
-                  height: '40%',
-                  background: 'linear-gradient(to bottom, #FFD300, #f59e0b)',
-                  borderRadius: '0 4px 4px 0',
-                  transform: 'translateY(-50%)'
-                }}
-              />
-            </div>
+              Request Free Quote
+              <ArrowRight size={20} />
+            </button>
           </div>
         </div>
       </div>
