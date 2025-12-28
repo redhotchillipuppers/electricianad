@@ -15,58 +15,19 @@ const HeaderBanner = () => {
       data-aos="fade-down"
       style={{
         position: 'relative',
-        minHeight: '100vh',
-        padding: '2rem 1.5rem 6rem',
-        background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
+        padding: '2rem 1.5rem 3rem',
+        background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%)',
         color: '#fff',
-        overflow: 'hidden',
         fontFamily: 'Inter, system-ui, sans-serif'
       }}
     >
-      {/* Enhanced geometric pattern background */}
+      {/* Minimal background pattern */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
-          opacity: 0.15
-        }}
-      >
-        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="circuit-header-modern" width="80" height="80" patternUnits="userSpaceOnUse">
-              {/* Main circuit paths */}
-              <path d="M20 20 L60 20 L60 60 L20 60 Z" fill="none" stroke="#667eea" strokeWidth="2" opacity="0.6" />
-              <path d="M0 40 L20 40" fill="none" stroke="#667eea" strokeWidth="2" opacity="0.4" />
-              <path d="M60 40 L80 40" fill="none" stroke="#667eea" strokeWidth="2" opacity="0.4" />
-              <path d="M40 0 L40 20" fill="none" stroke="#667eea" strokeWidth="2" opacity="0.4" />
-              <path d="M40 60 L40 80" fill="none" stroke="#667eea" strokeWidth="2" opacity="0.4" />
-              
-              {/* Circuit nodes */}
-              <circle cx="20" cy="20" r="3" fill="#FFD300" opacity="0.8" />
-              <circle cx="60" cy="60" r="3" fill="#667eea" opacity="0.6" />
-              <circle cx="60" cy="20" r="2" fill="#8b9aef" opacity="0.5" />
-              <circle cx="20" cy="60" r="2" fill="#8b9aef" opacity="0.5" />
-              
-              {/* Secondary paths */}
-              <path d="M20 40 H40 V60" fill="none" stroke="#8b9aef" strokeWidth="1.5" opacity="0.4" />
-              <path d="M40 20 V40 H60" fill="none" stroke="#8b9aef" strokeWidth="1.5" opacity="0.4" />
-              
-              {/* Micro circuits */}
-              <rect x="35" y="35" width="10" height="10" fill="none" stroke="#FFD300" strokeWidth="1" opacity="0.3" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#circuit-header-modern)" />
-        </svg>
-      </div>
-
-      {/* Floating particles effect */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          opacity: 0.1,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23667eea' fill-opacity='0.8'%3E%3Ccircle cx='20' cy='20' r='1'/%3E%3C/g%3E%3C/svg%3E")`,
-          animation: 'float 20s ease-in-out infinite'
+          opacity: 0.08,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23667eea' fill-opacity='0.4'%3E%3Ccircle cx='20' cy='20' r='1'/%3E%3C/g%3E%3C/svg%3E")`
         }}
       />
 
@@ -117,178 +78,50 @@ const HeaderBanner = () => {
       <div style={{
         position: 'relative',
         zIndex: 1,
-        maxWidth: '800px',
+        maxWidth: '600px',
         margin: '0 auto',
-        paddingTop: '4rem'
+        paddingTop: '2rem',
+        textAlign: 'center'
       }}>
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '80vh',
-          textAlign: 'center'
-        }}>
-          <div>
-            {/* Animated title */}
-            <div style={{ marginBottom: '2rem' }}>
-              <div
-                style={{
-                  display: 'inline-block',
-                  padding: '0.5rem 1.5rem',
-                  background: 'rgba(102, 126, 234, 0.1)',
-                  border: '1px solid rgba(102, 126, 234, 0.3)',
-                  borderRadius: '50px',
-                  color: '#8b9aef',
-                  fontSize: '0.875rem',
-                  fontWeight: '600',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.1em',
-                  marginBottom: '2rem'
-                }}
-              >
-                Electrical Excellence
-              </div>
-              
-              <h1 
-                style={{
-                  fontSize: 'clamp(2.5rem, 5vw, 4rem)',
-                  fontWeight: '800',
-                  lineHeight: '1.1',
-                  letterSpacing: '-0.02em',
-                  marginBottom: '1.5rem',
-                  background: 'linear-gradient(135deg, #ffffff 0%, #8b9aef 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text'
-                }}
-              >
-                <span style={{ display: 'block' }}>AMPALIGN</span>
-                <span 
-                  style={{
-                    fontSize: '0.4em',
-                    fontWeight: '700',
-                    color: '#FFD300',
-                    letterSpacing: '0.3em',
-                    display: 'block',
-                    marginTop: '0.5rem'
-                  }}
-                >
-                  LINCOLNSHIRE
-                </span>
-              </h1>
-            </div>
-
-            <div style={{ marginBottom: '3rem' }}>
-              <p 
-                style={{
-                  fontSize: '1.5rem',
-                  fontWeight: '600',
-                  color: '#ffffff',
-                  marginBottom: '1rem',
-                  lineHeight: '1.3'
-                }}
-              >
-                YOUR QUICK FIX FOR A BRIGHTER HOME
-              </p>
-              
-              <p
-                style={{
-                  fontSize: '1.1rem',
-                  color: 'rgba(255, 255, 255, 0.8)',
-                  lineHeight: '1.6',
-                  maxWidth: '600px',
-                  margin: '0 auto'
-                }}
-              >
-                Professional electrical services with transparent pricing.
-                Quick, reliable work you can trust — snap a pic for an instant quote.
-              </p>
-            </div>
-
-            {/* CTA Button */}
-            <button
-              type="button"
-              onClick={scrollToQuote}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                padding: '1rem 2rem',
-                background: 'linear-gradient(135deg, #FFD300 0%, #f59e0b 100%)',
-                color: '#1a1a2e',
-                fontWeight: '700',
-                borderRadius: '12px',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 10px 30px rgba(255, 211, 0, 0.3)'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-3px)';
-                e.currentTarget.style.boxShadow = '0 15px 40px rgba(255, 211, 0, 0.4)';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 10px 30px rgba(255, 211, 0, 0.3)';
-              }}
-            >
-              Request Free Quote
-              <ArrowRight size={20} />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Modern wave divider */}
-      <div style={{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: '6rem',
-        overflow: 'hidden'
-      }}>
-        <svg
-          viewBox="0 0 1200 120"
-          preserveAspectRatio="none"
-          xmlns="http://www.w3.org/2000/svg"
+        {/* Compact title */}
+        <h1
           style={{
-            position: 'absolute',
-            bottom: 0,
-            width: '100%',
-            height: '8rem'
+            fontSize: 'clamp(2rem, 4vw, 2.5rem)',
+            fontWeight: '800',
+            lineHeight: '1.2',
+            letterSpacing: '-0.02em',
+            marginBottom: '0.5rem',
+            color: '#ffffff'
           }}
         >
-          <defs>
-            <linearGradient id="waveGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="rgba(255, 255, 255, 0.1)" />
-              <stop offset="100%" stopColor="white" />
-            </linearGradient>
-          </defs>
-          <path
-            d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
-            fill="url(#waveGradient)"
-          />
-        </svg>
-      </div>
+          AMPALIGN
+          <span
+            style={{
+              fontSize: '0.5em',
+              fontWeight: '600',
+              color: '#FFD300',
+              letterSpacing: '0.2em',
+              display: 'block',
+              marginTop: '0.25rem'
+            }}
+          >
+            LINCOLNSHIRE
+          </span>
+        </h1>
 
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(2deg); }
-        }
-        
-        @media (max-width: 768px) {
-          .grid-responsive {
-            grid-template-columns: 1fr !important;
-            gap: 2rem !important;
-          }
-        }
-      `}</style>
+        <p
+          style={{
+            fontSize: '1rem',
+            color: 'rgba(255, 255, 255, 0.75)',
+            lineHeight: '1.5',
+            marginBottom: '0',
+            maxWidth: '500px',
+            margin: '0 auto'
+          }}
+        >
+          Snap a pic for an instant quote
+        </p>
+      </div>
     </section>
   );
 };
