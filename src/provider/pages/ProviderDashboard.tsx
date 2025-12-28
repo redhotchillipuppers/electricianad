@@ -67,15 +67,15 @@ const ProviderDashboard: React.FC = () => {
 
           setAssignedQuotes(assignedData);
 
-          // Load eligible jobs (unassigned quotes)
-          // Get all quotes and filter for unassigned ones on the client side
-          const allQuotesSnapshot = await getDocs(quotesRef);
-          const allQuotesData = allQuotesSnapshot.docs.map(doc => ({
+          // Load eligible jobs (unassigned quotes only)
+          // Query for quotes where assignedProviderId is null
+          const unassignedQuery = query(quotesRef, where('assignedProviderId', '==', null));
+          const unassignedSnapshot = await getDocs(unassignedQuery);
+
+          const eligibleData = unassignedSnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
           })) as QuoteRequest[];
-
-          const eligibleData = allQuotesData.filter(quote => !quote.assignedProviderId); // Only show unassigned jobs
 
           setEligibleJobs(eligibleData);
         }

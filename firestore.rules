@@ -41,7 +41,7 @@ service cloud.firestore {
     match /quotes/{quoteId} {
       // Anyone can create a quote (public submission)
       // Updated to match actual data structure from submitQuote.ts
-      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'contactMethod', 'description', 'houseFlatNumber', 'streetName', 'postcode', 'createdAt'])
+      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'contactMethod', 'description', 'houseFlatNumber', 'streetName', 'postcode', 'createdAt', 'assignedProviderId'])
                     && isValidEmail(request.resource.data.email)
                     && request.resource.data.name is string && request.resource.data.name.size() > 0
                     && request.resource.data.contactMethod is string && request.resource.data.contactMethod.size() > 0
@@ -50,12 +50,18 @@ service cloud.firestore {
                     && request.resource.data.streetName is string
                     && request.resource.data.postcode is string
                     && request.resource.data.createdAt is string
+                    && request.resource.data.assignedProviderId == null
                     && (!request.resource.data.keys().hasAny(['phone']) || request.resource.data.phone is string)
                     && (!request.resource.data.keys().hasAny(['fileUrl']) || request.resource.data.fileUrl is string);
 
       // Admins can read/update/delete all quotes
-      // Providers can only read quotes assigned to them
-      allow read: if isAdmin() || isAssignedProvider(resource.data);
+      // Providers can read:
+      //   1. Quotes assigned to them (full access)
+      //   2. Unassigned quotes (to see eligible jobs)
+      // Note: Unassigned means assignedProviderId doesn't exist or is null
+      allow read: if isAdmin()
+                  || isAssignedProvider(resource.data)
+                  || (isProvider() && (!('assignedProviderId' in resource.data) || resource.data.assignedProviderId == null));
 
       // Allow updates from:
       // 1. Admins (full access)
