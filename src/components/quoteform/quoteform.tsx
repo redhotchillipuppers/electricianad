@@ -361,8 +361,7 @@ const QuoteForm = () => {
           borderRadius: '24px',
           padding: '3rem',
           boxShadow: '0 25px 50px rgba(0, 0, 0, 0.2)',
-          position: 'relative',
-          overflow: 'hidden'
+          position: 'relative'
         }}>
           {/* Form header icon */}
           <div style={{
