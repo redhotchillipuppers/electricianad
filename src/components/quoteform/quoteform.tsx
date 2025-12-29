@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Upload, CheckCircle, AlertCircle, Zap } from "lucide-react";
+import { Upload, CheckCircle, AlertCircle, Zap, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 // ↓— swap this with your real Firebase helper
 import submitQuote from "../../firebase/submitQuote";
@@ -204,49 +205,65 @@ const QuoteForm = () => {
       id="quote-form"
       style={{
         position: 'relative',
-        padding: '6rem 1.5rem',
-        background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
+        padding: '2rem 1.5rem 6rem',
+        background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%)',
         color: '#fff',
         overflow: 'hidden',
         fontFamily: 'Inter, system-ui, sans-serif'
       }}
     >
-      {/* Enhanced geometric background */}
-      <div 
+      {/* Minimal background pattern */}
+      <div
         style={{
           position: 'absolute',
           inset: 0,
-          opacity: 0.1
+          opacity: 0.08,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23667eea' fill-opacity='0.4'%3E%3Ccircle cx='20' cy='20' r='1'/%3E%3C/g%3E%3C/svg%3E")`
+        }}
+      />
+
+      {/* Service Providers Button - Top Right */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '2rem',
+          right: '2rem',
+          zIndex: 10
         }}
       >
-        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="circuit-quote-modern" width="100" height="100" patternUnits="userSpaceOnUse">
-              {/* Main circuit structure */}
-              <path d="M25 25 L75 25 L75 75 L25 75 Z" fill="none" stroke="#667eea" strokeWidth="2" opacity="0.5" />
-              <path d="M0 50 L25 50" fill="none" stroke="#8b9aef" strokeWidth="1.5" opacity="0.3" />
-              <path d="M75 50 L100 50" fill="none" stroke="#8b9aef" strokeWidth="1.5" opacity="0.3" />
-              <path d="M50 0 L50 25" fill="none" stroke="#8b9aef" strokeWidth="1.5" opacity="0.3" />
-              <path d="M50 75 L50 100" fill="none" stroke="#8b9aef" strokeWidth="1.5" opacity="0.3" />
-              
-              {/* Connection points */}
-              <circle cx="25" cy="25" r="3" fill="#FFD300" opacity="0.8" />
-              <circle cx="75" cy="75" r="3" fill="#667eea" opacity="0.6" />
-              <circle cx="75" cy="25" r="2" fill="#8b9aef" opacity="0.5" />
-              <circle cx="25" cy="75" r="2" fill="#8b9aef" opacity="0.5" />
-              
-              {/* Internal pathways */}
-              <path d="M25 50 H50 V75" fill="none" stroke="#FFD300" strokeWidth="1.5" opacity="0.4" />
-              <path d="M50 25 V50 H75" fill="none" stroke="#FFD300" strokeWidth="1.5" opacity="0.4" />
-              
-              {/* Detail elements */}
-              <rect x="40" y="40" width="20" height="20" fill="none" stroke="#667eea" strokeWidth="1" opacity="0.3" />
-              <circle cx="35" cy="35" r="1.5" fill="#8b9aef" opacity="0.4" />
-              <circle cx="65" cy="65" r="1.5" fill="#8b9aef" opacity="0.4" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#circuit-quote-modern)" />
-        </svg>
+        <Link
+          to="/providers"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.75rem 1.5rem',
+            background: 'rgba(255, 255, 255, 0.05)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 211, 0, 0.3)',
+            borderRadius: '12px',
+            color: '#FFD300',
+            textDecoration: 'none',
+            fontSize: '0.875rem',
+            fontWeight: '600',
+            textTransform: 'uppercase',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.background = 'rgba(255, 211, 0, 0.1)';
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 12px 40px rgba(255, 211, 0, 0.2)';
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.1)';
+          }}
+        >
+          Service Providers
+          <ArrowRight size={16} />
+        </Link>
       </div>
       
       <div style={{
@@ -255,41 +272,46 @@ const QuoteForm = () => {
         maxWidth: '800px',
         margin: '0 auto'
       }}>
-        {/* Section Header */}
-        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-          <div
-            style={{
-              display: 'inline-block',
-              padding: '0.5rem 1.5rem',
-              background: 'rgba(255, 211, 0, 0.1)',
-              border: '1px solid rgba(255, 211, 0, 0.3)',
-              borderRadius: '50px',
-              color: '#FFD300',
-              fontSize: '0.875rem',
-              fontWeight: '600',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              marginBottom: '1.5rem'
-            }}
-          >
-            Get Your Quote
-          </div>
-          
-          <h2
+        {/* AMPALIGN Header */}
+        <div style={{ textAlign: 'center', marginBottom: '3rem', paddingTop: '2rem' }}>
+          <h1
             style={{
               fontSize: 'clamp(2rem, 4vw, 2.5rem)',
               fontWeight: '800',
-              marginBottom: '1rem',
-              background: 'linear-gradient(135deg, #ffffff 0%, #8b9aef 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              lineHeight: '1.2'
+              lineHeight: '1.2',
+              letterSpacing: '-0.02em',
+              marginBottom: '0.5rem',
+              color: '#ffffff'
             }}
           >
-            REQUEST A FREE QUOTE
-          </h2>
-          
+            AMPALIGN
+            <span
+              style={{
+                fontSize: '0.5em',
+                fontWeight: '600',
+                color: '#FFD300',
+                letterSpacing: '0.2em',
+                display: 'block',
+                marginTop: '0.25rem'
+              }}
+            >
+              LINCOLNSHIRE
+            </span>
+          </h1>
+
+          <p
+            style={{
+              fontSize: '1rem',
+              color: 'rgba(255, 255, 255, 0.75)',
+              lineHeight: '1.5',
+              marginBottom: '2rem',
+              maxWidth: '500px',
+              margin: '0 auto 2rem'
+            }}
+          >
+            Snap a pic for an instant quote
+          </p>
+
           <p
             style={{
               fontSize: '1.125rem',

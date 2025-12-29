@@ -6,7 +6,6 @@ import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 
-import HeaderBanner from "./components/header/HeaderBanner";
 import QuoteForm from "./components/quoteform/quoteform";
 
 // Import ServiceProviderForm component
@@ -32,7 +31,6 @@ function App() {
         {/* Main Landing Page Route */}
         <Route path="/" element={
           <>
-            <HeaderBanner />
             <QuoteForm />
             <footer
               style={{
