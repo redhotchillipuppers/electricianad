@@ -301,7 +301,7 @@ const QuoteForm = () => {
         margin: '0 auto'
       }}>
         {/* AMPALIGN Header */}
-        <div style={{ textAlign: 'center', marginBottom: '3rem', paddingTop: '2rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '3rem', paddingTop: '5rem' }}>
           <h1
             style={{
               fontSize: 'clamp(2rem, 4vw, 2.5rem)',
