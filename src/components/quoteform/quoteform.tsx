@@ -212,15 +212,43 @@ const QuoteForm = () => {
         fontFamily: 'Inter, system-ui, sans-serif'
       }}
     >
-      {/* Minimal background pattern */}
+      {/* Enhanced geometric background - matches service providers page */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
-          opacity: 0.08,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23667eea' fill-opacity='0.4'%3E%3Ccircle cx='20' cy='20' r='1'/%3E%3C/g%3E%3C/svg%3E")`
+          opacity: 0.1
         }}
-      />
+      >
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="circuit-quote-modern" width="100" height="100" patternUnits="userSpaceOnUse">
+              {/* Main circuit structure */}
+              <path d="M25 25 L75 25 L75 75 L25 75 Z" fill="none" stroke="#667eea" strokeWidth="2" opacity="0.5" />
+              <path d="M0 50 L25 50" fill="none" stroke="#8b9aef" strokeWidth="1.5" opacity="0.3" />
+              <path d="M75 50 L100 50" fill="none" stroke="#8b9aef" strokeWidth="1.5" opacity="0.3" />
+              <path d="M50 0 L50 25" fill="none" stroke="#8b9aef" strokeWidth="1.5" opacity="0.3" />
+              <path d="M50 75 L50 100" fill="none" stroke="#8b9aef" strokeWidth="1.5" opacity="0.3" />
+
+              {/* Connection points */}
+              <circle cx="25" cy="25" r="3" fill="#FFD300" opacity="0.8" />
+              <circle cx="75" cy="75" r="3" fill="#667eea" opacity="0.6" />
+              <circle cx="75" cy="25" r="2" fill="#8b9aef" opacity="0.5" />
+              <circle cx="25" cy="75" r="2" fill="#8b9aef" opacity="0.5" />
+
+              {/* Internal pathways */}
+              <path d="M25 50 H50 V75" fill="none" stroke="#FFD300" strokeWidth="1.5" opacity="0.4" />
+              <path d="M50 25 V50 H75" fill="none" stroke="#FFD300" strokeWidth="1.5" opacity="0.4" />
+
+              {/* Detail elements */}
+              <rect x="40" y="40" width="20" height="20" fill="none" stroke="#667eea" strokeWidth="1" opacity="0.3" />
+              <circle cx="35" cy="35" r="1.5" fill="#8b9aef" opacity="0.4" />
+              <circle cx="65" cy="65" r="1.5" fill="#8b9aef" opacity="0.4" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#circuit-quote-modern)" />
+        </svg>
+      </div>
 
       {/* Service Providers Button - Top Right */}
       <div
