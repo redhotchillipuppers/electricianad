@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Upload, CheckCircle, AlertCircle, Zap, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Upload, CheckCircle, AlertCircle, Zap } from "lucide-react";
 
 // ↓— swap this with your real Firebase helper
 import submitQuote from "../../firebase/submitQuote";
@@ -250,50 +249,6 @@ const QuoteForm = () => {
         </svg>
       </div>
 
-      {/* Service Providers Button - Top Right */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '2rem',
-          right: '2rem',
-          zIndex: 10
-        }}
-      >
-        <Link
-          to="/providers"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.75rem 1.5rem',
-            background: 'rgba(255, 255, 255, 0.05)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 211, 0, 0.3)',
-            borderRadius: '12px',
-            color: '#FFD300',
-            textDecoration: 'none',
-            fontSize: '0.875rem',
-            fontWeight: '600',
-            textTransform: 'uppercase',
-            transition: 'all 0.3s ease',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.background = 'rgba(255, 211, 0, 0.1)';
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 12px 40px rgba(255, 211, 0, 0.2)';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.1)';
-          }}
-        >
-          Service Providers
-          <ArrowRight size={16} />
-        </Link>
-      </div>
-      
       <div style={{
         position: 'relative',
         zIndex: 1,
@@ -301,7 +256,7 @@ const QuoteForm = () => {
         margin: '0 auto'
       }}>
         {/* AMPALIGN Header */}
-        <div style={{ textAlign: 'center', marginBottom: '3rem', paddingTop: '5rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '3rem', paddingTop: '2rem' }}>
           <h1
             style={{
               fontSize: 'clamp(2rem, 4vw, 2.5rem)',
