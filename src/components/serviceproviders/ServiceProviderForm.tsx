@@ -563,7 +563,7 @@ const ServiceProviderForm = () => {
             padding: '3rem',
             boxShadow: '0 25px 50px rgba(0, 0, 0, 0.2)',
             position: 'relative',
-            overflow: 'hidden'
+            overflow: 'visible'
           }}>
             {/* Form header icon */}
             <div style={{
