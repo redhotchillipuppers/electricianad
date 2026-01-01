@@ -5,9 +5,9 @@ const emailConfig = {
   // Company/Brand Information
   company: {
     name: "AMPALIGN",
-    website: "https://yourwebsite.com", // Update with your actual website
-    phone: "+44 1522 XXXXXX", // Update with your actual phone number
-    email: "johnconnolly38@googlemail.com",
+    website: "https://Ampalign.pro", // Update with your actual website
+    phone: "", // Update with your actual phone number
+    email: "Info@Ampalign.pro",
     address: "Lincolnshire" // Update with your actual business address
   },
 
@@ -69,16 +69,16 @@ const emailConfig = {
   content: {
     quote: {
       greeting: "Hi {name},",
-      thankYou: "Thank you for requesting a quote! We've received your details and one of our qualified electricians will be in touch within {responseTime}.",
+      thankYou: "Thank you for requesting a quote! We've received your details and one of our qualified electricians will be in touch.",
       
       nextSteps: [
         "We'll review your requirements",
         "One of our electricians will contact you to discuss your needs",
         "We'll arrange a convenient time for a free, no-obligation quote",
-        "You'll receive a detailed written quote within 48 hours of our visit"
+        "You'll receive a detailed written quote."
       ],
       
-      contactInfo: "If you have any urgent questions, please don't hesitate to call us directly at {phone}.",
+      contactInfo: "",
       
       signature: "Best regards,\n{companyName} Team",
       
