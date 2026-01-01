@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Phone, MapPin, MessageSquare, Calendar, FileText, Image as ImageIcon, Trash2, CheckCircle, UserPlus } from 'lucide-react';
+import { Mail, Phone, MapPin, MessageSquare, Calendar, FileText, Image as ImageIcon, Trash2, CheckCircle, UserPlus, ExternalLink, Loader2 } from 'lucide-react';
 import Modal from './Modal';
+import { getFileType, getFileIcon, getFileTypeLabel, getFileName } from '../utils/fileHelpers';
 
 interface QuoteRequest {
     id: string;
@@ -35,12 +36,20 @@ interface QuoteRequestModalProps {
 const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({ isOpen, onClose, quote, onDelete }) => {
     const [deleting, setDeleting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [imageLoading, setImageLoading] = useState(true);
+    const [imageError, setImageError] = useState(false);
 
     // Reset states when modal closes or quote changes
     useEffect(() => {
         if (!isOpen || !quote) {
             setDeleting(false);
             setError(null);
+            setImageLoading(true);
+            setImageError(false);
+        } else {
+            // Reset image states when quote changes
+            setImageLoading(true);
+            setImageError(false);
         }
     }, [isOpen, quote?.id]);
 
@@ -88,26 +97,6 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({ isOpen, onClose, 
     const formatAddress = () => {
         const parts = [quote.houseFlatNumber, quote.streetName, quote.postcode].filter(Boolean);
         return parts.length > 0 ? parts.join(', ') : 'Address not provided';
-    };
-
-    // Check if file is an image
-    const isImageFile = (url?: string) => {
-        if (!url) return false;
-        const imageExtensions = /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i;
-        return imageExtensions.test(url) || url.includes('image');
-    };
-
-    // Get file name from URL
-    const getFileName = (url?: string) => {
-        if (!url) return 'Unknown file';
-        try {
-            const urlParts = url.split('/');
-            const fileName = urlParts[urlParts.length - 1];
-            // Remove any URL parameters
-            return fileName.split('?')[0] || 'Download file';
-        } catch {
-            return 'Download file';
-        }
     };
 
     return (
@@ -352,105 +341,261 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({ isOpen, onClose, 
                             gap: '0.5rem'
                         }}>
                             <ImageIcon size={18} />
-                            Attached File
+                            Attached {getFileTypeLabel(quote.fileUrl)}
                         </h3>
 
-                        {isImageFile(quote.fileUrl) ? (
-                            <div style={{ textAlign: 'center' }}>
-                                <img
-                                    src={quote.fileUrl}
-                                    alt="Quote attachment"
-                                    style={{
-                                        maxWidth: '100%',
-                                        maxHeight: '400px',
-                                        borderRadius: '8px',
-                                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                                        objectFit: 'contain'
-                                    }}
-                                    onError={(e) => {
-                                        // Fallback if image fails to load
-                                        const target = e.target as HTMLImageElement;
-                                        target.style.display = 'none';
-                                        const parent = target.parentElement;
-                                        if (parent) {
-                                            parent.innerHTML = `
-                        <div style="
-                          padding: 2rem;
-                          text-align: center;
-                          color: #6B7280;
-                          border: 2px dashed #D1D5DB;
-                          border-radius: 8px;
-                        ">
-                          <p>Image could not be loaded</p>
-                          <a href="${quote.fileUrl}" target="_blank" rel="noopener noreferrer" style="
-                            color: #1E40AF;
-                            text-decoration: underline;
-                          ">
-                            Download file instead
-                          </a>
-                        </div>
-                      `;
-                                        }
-                                    }}
-                                />
+                        {getFileType(quote.fileUrl) === 'image' ? (
+                            <div style={{ textAlign: 'center', position: 'relative' }}>
+                                {/* Loading Spinner */}
+                                {imageLoading && !imageError && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '50%',
+                                        left: '50%',
+                                        transform: 'translate(-50%, -50%)',
+                                        zIndex: 1
+                                    }}>
+                                        <Loader2
+                                            size={40}
+                                            color="#F59E0B"
+                                            style={{
+                                                animation: 'spin 1s linear infinite'
+                                            }}
+                                        />
+                                    </div>
+                                )}
+
+                                {/* Image */}
+                                {!imageError && (
+                                    <img
+                                        src={quote.fileUrl}
+                                        alt="Quote attachment"
+                                        style={{
+                                            maxWidth: '100%',
+                                            maxHeight: '500px',
+                                            borderRadius: '12px',
+                                            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
+                                            objectFit: 'contain',
+                                            opacity: imageLoading ? 0.3 : 1,
+                                            transition: 'opacity 0.3s ease',
+                                            border: '1px solid rgba(245, 158, 11, 0.2)'
+                                        }}
+                                        onLoad={() => setImageLoading(false)}
+                                        onError={() => {
+                                            setImageLoading(false);
+                                            setImageError(true);
+                                        }}
+                                    />
+                                )}
+
+                                {/* Error Fallback */}
+                                {imageError && (
+                                    <div style={{
+                                        padding: '3rem 2rem',
+                                        textAlign: 'center',
+                                        color: '#6B7280',
+                                        border: '2px dashed rgba(245, 158, 11, 0.3)',
+                                        borderRadius: '12px',
+                                        background: 'rgba(245, 158, 11, 0.05)'
+                                    }}>
+                                        <ImageIcon size={48} color="#F59E0B" style={{ margin: '0 auto 1rem auto' }} />
+                                        <p style={{ margin: '0 0 1rem 0', color: '#374151', fontWeight: '500' }}>
+                                            Image could not be loaded
+                                        </p>
+                                        <a
+                                            href={quote.fileUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '0.5rem',
+                                                padding: '0.75rem 1.5rem',
+                                                backgroundColor: '#F59E0B',
+                                                color: 'white',
+                                                textDecoration: 'none',
+                                                borderRadius: '8px',
+                                                fontSize: '0.9rem',
+                                                fontWeight: '500',
+                                                transition: 'background-color 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.backgroundColor = '#D97706';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.backgroundColor = '#F59E0B';
+                                            }}
+                                        >
+                                            <ExternalLink size={16} />
+                                            Open File in New Tab
+                                        </a>
+                                    </div>
+                                )}
+
+                                {/* Action Buttons */}
+                                {!imageLoading && !imageError && (
+                                    <div style={{
+                                        marginTop: '1rem',
+                                        display: 'flex',
+                                        gap: '0.75rem',
+                                        justifyContent: 'center',
+                                        flexWrap: 'wrap'
+                                    }}>
+                                        <a
+                                            href={quote.fileUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '0.5rem',
+                                                padding: '0.75rem 1.25rem',
+                                                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                                                border: '1px solid rgba(102, 126, 234, 0.3)',
+                                                borderRadius: '8px',
+                                                color: '#667eea',
+                                                textDecoration: 'none',
+                                                fontSize: '0.875rem',
+                                                fontWeight: '500',
+                                                transition: 'all 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'rgba(102, 126, 234, 0.2)';
+                                                e.currentTarget.style.transform = 'translateY(-1px)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'rgba(102, 126, 234, 0.1)';
+                                                e.currentTarget.style.transform = 'translateY(0)';
+                                            }}
+                                        >
+                                            <ExternalLink size={16} />
+                                            View Full Size
+                                        </a>
+                                        <a
+                                            href={quote.fileUrl}
+                                            download
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '0.5rem',
+                                                padding: '0.75rem 1.25rem',
+                                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                                border: '1px solid rgba(16, 185, 129, 0.3)',
+                                                borderRadius: '8px',
+                                                color: '#10B981',
+                                                textDecoration: 'none',
+                                                fontSize: '0.875rem',
+                                                fontWeight: '500',
+                                                transition: 'all 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
+                                                e.currentTarget.style.transform = 'translateY(-1px)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+                                                e.currentTarget.style.transform = 'translateY(0)';
+                                            }}
+                                        >
+                                            <FileText size={16} />
+                                            Download
+                                        </a>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div style={{
+                                padding: '2rem',
+                                textAlign: 'center',
+                                border: '2px dashed rgba(245, 158, 11, 0.3)',
+                                borderRadius: '12px',
+                                background: 'rgba(245, 158, 11, 0.05)'
+                            }}>
+                                <div style={{
+                                    fontSize: '3rem',
+                                    marginBottom: '1rem'
+                                }}>
+                                    {getFileIcon(quote.fileUrl)}
+                                </div>
                                 <p style={{
-                                    marginTop: '0.5rem',
-                                    fontSize: '0.875rem',
-                                    color: '#6B7280'
+                                    margin: '0 0 0.25rem 0',
+                                    color: '#F59E0B',
+                                    fontSize: '0.85rem',
+                                    fontWeight: '600',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.05em'
+                                }}>
+                                    {getFileTypeLabel(quote.fileUrl)}
+                                </p>
+                                <p style={{
+                                    margin: '0 0 1.5rem 0',
+                                    color: '#6B7280',
+                                    fontSize: '0.9rem',
+                                    wordBreak: 'break-word'
+                                }}>
+                                    {getFileName(quote.fileUrl)}
+                                </p>
+                                <div style={{
+                                    display: 'flex',
+                                    gap: '0.75rem',
+                                    justifyContent: 'center',
+                                    flexWrap: 'wrap'
                                 }}>
                                     <a
                                         href={quote.fileUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         style={{
-                                            color: '#1E40AF',
-                                            textDecoration: 'underline'
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem',
+                                            padding: '0.75rem 1.5rem',
+                                            backgroundColor: '#F59E0B',
+                                            color: 'white',
+                                            textDecoration: 'none',
+                                            borderRadius: '8px',
+                                            fontSize: '0.875rem',
+                                            fontWeight: '500',
+                                            transition: 'background-color 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.backgroundColor = '#D97706';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.backgroundColor = '#F59E0B';
                                         }}
                                     >
-                                        View full size
+                                        <ExternalLink size={16} />
+                                        Open File
                                     </a>
-                                </p>
-                            </div>
-                        ) : (
-                            <div style={{
-                                padding: '1.5rem',
-                                textAlign: 'center',
-                                border: '2px dashed #D1D5DB',
-                                borderRadius: '8px',
-                                background: 'rgba(249, 250, 251, 0.5)'
-                            }}>
-                                <FileText size={32} color="#6B7280" style={{ margin: '0 auto 0.5rem auto' }} />
-                                <p style={{
-                                    margin: '0 0 0.5rem 0',
-                                    color: '#374151',
-                                    fontSize: '0.9rem'
-                                }}>
-                                    {getFileName(quote.fileUrl)}
-                                </p>
-                                <a
-                                    href={quote.fileUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style={{
-                                        display: 'inline-block',
-                                        padding: '0.5rem 1rem',
-                                        backgroundColor: '#1E40AF',
-                                        color: 'white',
-                                        textDecoration: 'none',
-                                        borderRadius: '6px',
-                                        fontSize: '0.875rem',
-                                        fontWeight: '500',
-                                        transition: 'background-color 0.2s'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.backgroundColor = '#1E3A8A';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.backgroundColor = '#1E40AF';
-                                    }}
-                                >
-                                    Download File
-                                </a>
+                                    <a
+                                        href={quote.fileUrl}
+                                        download
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem',
+                                            padding: '0.75rem 1.5rem',
+                                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                                            border: '1px solid rgba(245, 158, 11, 0.3)',
+                                            color: '#F59E0B',
+                                            textDecoration: 'none',
+                                            borderRadius: '8px',
+                                            fontSize: '0.875rem',
+                                            fontWeight: '500',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.backgroundColor = 'rgba(245, 158, 11, 0.2)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.backgroundColor = 'rgba(245, 158, 11, 0.1)';
+                                        }}
+                                    >
+                                        <FileText size={16} />
+                                        Download
+                                    </a>
+                                </div>
                             </div>
                         )}
                     </div>

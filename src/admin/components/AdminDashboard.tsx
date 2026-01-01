@@ -24,6 +24,7 @@ import ServiceProviderModal from './ServiceProviderModal';
 import AssignQuoteModal from './AssignQuoteModal';
 import EligibleJobsModal from './EligibleJobsModal';
 import AssignedWorkModal from './AssignedWorkModal';
+import { getFileIcon, getFileTypeLabel } from '../utils/fileHelpers';
 
 interface ServiceProvider {
   id: string;
@@ -85,7 +86,7 @@ const AdminDashboard: React.FC = () => {
   const [providerFilterBy, setProviderFilterBy] = useState<Array<'pending' | 'approved' | 'rejected' | 'inactive'>>([]);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [hideCompletedProviders, setHideCompletedProviders] = useState(false);
-  const [quoteFilterBy, setQuoteFilterBy] = useState<Array<'assigned' | 'unassigned' | 'completed'>>([]);
+  const [quoteFilterBy, setQuoteFilterBy] = useState<Array<'assigned' | 'unassigned' | 'completed' | 'withAttachments'>>([]);
   const [showQuoteFilterDropdown, setShowQuoteFilterDropdown] = useState(false);
 
   // Load current user and data
@@ -276,7 +277,7 @@ const AdminDashboard: React.FC = () => {
   };
 
   // Toggle quote filter selection
-  const toggleQuoteFilterStatus = (status: 'assigned' | 'unassigned' | 'completed') => {
+  const toggleQuoteFilterStatus = (status: 'assigned' | 'unassigned' | 'completed' | 'withAttachments') => {
     setQuoteFilterBy(prev => {
       if (prev.includes(status)) {
         return prev.filter(s => s !== status);
@@ -334,18 +335,30 @@ const AdminDashboard: React.FC = () => {
     // If filter array has selections, filter to only those statuses
     if (quoteFilterBy.length > 0) {
       quotes = quotes.filter(q => {
-        // Determine the current status of the quote
-        let status: 'assigned' | 'unassigned' | 'completed';
+        const matchesFilters: boolean[] = [];
 
-        if (q.assignmentStatus === 'completed') {
-          status = 'completed';
-        } else if (q.assignmentStatus === 'assigned' && q.assignedProviderId) {
-          status = 'assigned';
-        } else {
-          status = 'unassigned';
-        }
+        // Check each filter condition
+        quoteFilterBy.forEach(filter => {
+          if (filter === 'withAttachments') {
+            matchesFilters.push(!!q.fileUrl);
+          } else {
+            // Determine the current status of the quote
+            let status: 'assigned' | 'unassigned' | 'completed';
 
-        return quoteFilterBy.includes(status);
+            if (q.assignmentStatus === 'completed') {
+              status = 'completed';
+            } else if (q.assignmentStatus === 'assigned' && q.assignedProviderId) {
+              status = 'assigned';
+            } else {
+              status = 'unassigned';
+            }
+
+            matchesFilters.push(filter === status);
+          }
+        });
+
+        // Return true if ANY filter matches (OR logic)
+        return matchesFilters.some(match => match);
       });
     }
 
@@ -983,7 +996,8 @@ const AdminDashboard: React.FC = () => {
                         {[
                           { value: 'assigned' as const, label: 'Assigned', color: '#34d399' },
                           { value: 'unassigned' as const, label: 'Unassigned', color: '#f87171' },
-                          { value: 'completed' as const, label: 'Completed', color: '#8b5cf6' }
+                          { value: 'completed' as const, label: 'Completed', color: '#8b5cf6' },
+                          { value: 'withAttachments' as const, label: 'With Attachments', color: '#fbbf24' }
                         ].map((option) => (
                           <label
                             key={option.value}
@@ -1163,16 +1177,45 @@ const AdminDashboard: React.FC = () => {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end' }}>
                           {/* File Indicator */}
                           {quote.fileUrl && (
-                            <span style={{
-                              padding: '0.25rem 0.5rem',
-                              backgroundColor: 'rgba(245, 158, 11, 0.2)',
-                              color: '#fbbf24',
-                              borderRadius: '12px',
-                              fontSize: '0.75rem',
-                              fontWeight: '500'
-                            }}>
-                              📎 FILE
-                            </span>
+                            <div
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleQuoteClick(quote);
+                              }}
+                              style={{
+                                padding: '0.5rem 0.75rem',
+                                backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                                border: '1px solid rgba(245, 158, 11, 0.3)',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = 'rgba(245, 158, 11, 0.25)';
+                                e.currentTarget.style.transform = 'scale(1.05)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'rgba(245, 158, 11, 0.15)';
+                                e.currentTarget.style.transform = 'scale(1)';
+                              }}
+                              title={`View ${getFileTypeLabel(quote.fileUrl)}`}
+                            >
+                              <span style={{ fontSize: '1rem' }}>
+                                {getFileIcon(quote.fileUrl)}
+                              </span>
+                              <span style={{
+                                color: '#fbbf24',
+                                fontSize: '0.75rem',
+                                fontWeight: '600',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.05em'
+                              }}>
+                                {getFileTypeLabel(quote.fileUrl).split(' ')[0]}
+                              </span>
+                            </div>
                           )}
 
                           {/* Assignment Button */}
