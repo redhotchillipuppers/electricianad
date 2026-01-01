@@ -4,11 +4,11 @@
 const emailConfig = {
   // Company/Brand Information
   company: {
-    name: "Your Electrical Services",
-    website: "https://yourwebsite.com",
-    phone: "+44 1234 567890",
-    email: "info@yourdomain.com",
-    address: "Your Business Address, City, Postcode"
+    name: "AMPALIGN",
+    website: "https://yourwebsite.com", // Update with your actual website
+    phone: "+44 1522 XXXXXX", // Update with your actual phone number
+    email: "johnconnolly38@googlemail.com",
+    address: "Lincolnshire" // Update with your actual business address
   },
 
   // Email Settings
@@ -19,8 +19,8 @@ const emailConfig = {
     
     // Admin notification settings
     adminEmails: [
-      "admin@yourdomain.com"
-      // Add more admin emails here
+      "johnconnolly38@googlemail.com"
+      // Add more admin emails here if needed
     ],
     
     // Service provider notification settings
