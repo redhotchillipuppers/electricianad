@@ -1,5 +1,5 @@
 // functions/index.js
-const { onDocumentCreated } = require('firebase-functions/v2/firestore');
+const { onDocumentCreated, onDocumentUpdated } = require('firebase-functions/v2/firestore');
 const { logger } = require('firebase-functions');
 const nodemailer = require('nodemailer');
 const { defineString, defineSecret } = require('firebase-functions/params');
@@ -393,6 +393,106 @@ Status: Pending Review
   }
 };
 
+const getProviderApprovalEmail = (data) => {
+  const { firstName, lastName, email } = data;
+  const config = emailConfig;
+
+  const templateVars = {
+    firstName,
+    companyName: config.company.name,
+    email: config.company.email
+  };
+
+  const greeting = replaceTemplateVars(config.content.providerApproval.greeting, templateVars);
+  const signature = replaceTemplateVars(config.content.providerApproval.signature, templateVars);
+  const footer = replaceTemplateVars(config.content.providerApproval.footer, templateVars);
+
+  return {
+    subject: config.templates.providerApproval.subject,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: ${config.styling.fonts.primary}; line-height: 1.6; color: ${config.styling.textColor}; }
+            .container { max-width: ${config.styling.containerMaxWidth}; margin: 0 auto; padding: ${config.styling.containerPadding}; }
+            .header { background: linear-gradient(135deg, #10B981, #059669); color: white; padding: ${config.styling.containerPadding}; text-align: center; border-radius: ${config.styling.spacing.borderRadius} ${config.styling.spacing.borderRadius} 0 0; }
+            .content { background: ${config.styling.backgroundColor}; padding: ${config.styling.containerPadding}; border-radius: 0 0 ${config.styling.spacing.borderRadius} ${config.styling.spacing.borderRadius}; }
+            .success-badge { background: #D1FAE5; color: #065F46; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; margin: 20px 0; }
+            .next-steps { background: white; padding: ${config.styling.spacing.sectionPadding}; border-radius: 4px; margin: 15px 0; }
+            .cta-button { display: inline-block; background: ${config.styling.accentColor}; color: ${config.styling.primaryColor}; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+            .cta-button:hover { background: #E6C000; }
+            .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🎉 Application Approved!</h1>
+            </div>
+            <div class="content">
+              <p>${greeting}</p>
+
+              <div class="success-badge">
+                ✓ Your application has been approved!
+              </div>
+
+              <p>${config.content.providerApproval.congratulations}</p>
+              ${config.templates.providerApproval.customMessage ? `<p>${config.templates.providerApproval.customMessage}</p>` : ''}
+
+              <div class="next-steps">
+                <h3>What's Next:</h3>
+                <ul>
+                  ${config.content.providerApproval.nextSteps.map(step => `<li>${step}</li>`).join('')}
+                </ul>
+              </div>
+
+              <p>${config.content.providerApproval.accountSetupInfo}</p>
+
+              <div style="text-align: center;">
+                <a href="${config.content.providerApproval.accountCreationLink}" class="cta-button">
+                  Create Your Account
+                </a>
+              </div>
+
+              <p style="font-size: 12px; color: #666; margin-top: 20px;">
+                Or copy this link: <a href="${config.content.providerApproval.accountCreationLink}">${config.content.providerApproval.accountCreationLink}</a>
+              </p>
+
+              <p>${signature.replace('\n', '<br>')}</p>
+            </div>
+            <div class="footer">
+              <p>${footer}</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `,
+    text: `
+${greeting}
+
+✓ YOUR APPLICATION HAS BEEN APPROVED!
+
+${config.content.providerApproval.congratulations}
+${config.templates.providerApproval.customMessage || ''}
+
+What's Next:
+${config.content.providerApproval.nextSteps.map((step, index) => `${index + 1}. ${step}`).join('\n')}
+
+${config.content.providerApproval.accountSetupInfo}
+
+CREATE YOUR ACCOUNT HERE:
+${config.content.providerApproval.accountCreationLink}
+
+${signature}
+
+---
+${footer}
+    `
+  };
+};
+
 // Cloud Function for quote submissions
 exports.onQuoteCreated = onDocumentCreated(
   { document: 'quotes/{quoteId}', secrets: [SMTP_PASS] }, 
@@ -493,3 +593,42 @@ exports.onServiceProviderCreated = onDocumentCreated(
     // Don't throw - we don't want to prevent the application from being saved
   }
 });
+
+// Cloud Function for service provider approval
+exports.onServiceProviderStatusUpdated = onDocumentUpdated(
+  { document: 'serviceProviders/{providerId}', secrets: [SMTP_PASS] },
+  async (event) => {
+    try {
+      const beforeData = event.data.before.data();
+      const afterData = event.data.after.data();
+
+      // Check if status changed to 'approved'
+      if (beforeData.status !== 'approved' && afterData.status === 'approved') {
+        const transporter = createTransporter();
+        const approvalEmail = getProviderApprovalEmail(afterData);
+
+        // Send approval email to the provider
+        await transporter.sendMail({
+          from: FROM_EMAIL.value(),
+          to: afterData.email,
+          subject: approvalEmail.subject,
+          html: approvalEmail.html,
+          text: approvalEmail.text,
+        });
+
+        logger.info(`Provider approval email sent successfully for provider ${event.params.providerId}`, {
+          providerEmail: afterData.email,
+          providerName: `${afterData.firstName} ${afterData.lastName}`,
+          statusChange: `${beforeData.status} -> ${afterData.status}`
+        });
+      }
+    } catch (error) {
+      logger.error('Error sending provider approval email:', {
+        providerId: event.params.providerId,
+        error: error.message,
+        stack: error.stack
+      });
+      // Don't throw - we don't want to prevent the status update from being saved
+    }
+  }
+);
