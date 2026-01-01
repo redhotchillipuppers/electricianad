@@ -51,6 +51,13 @@ const emailConfig = {
       includeBranding: true,
       customMessage: "" // Add custom message to all SP confirmations
     },
+
+    providerApproval: {
+      subject: "🎉 Application Approved - Welcome to AMPALIGN!",
+      headerColor: "#10B981",
+      accentColor: "#FFD300",
+      customMessage: "" // Add custom message to all approval notifications
+    },
     
     admin: {
       quoteSubjectPrefix: "🔔 New Quote Request",
@@ -88,19 +95,38 @@ const emailConfig = {
     serviceProvider: {
       greeting: "Hi {firstName},",
       thankYou: "Thank you for your interest in joining our network of service providers! We've received your application and will review it carefully.",
-      
+
       reviewProcess: [
         "Verification of qualifications and certifications",
-        "Reference checks", 
+        "Reference checks",
         "Discussion of our partnership terms",
         "Onboarding process if approved"
       ],
-      
+
       reviewTime: "Our review process typically takes {reviewTime}. We'll contact you with next steps, which may include:",
-      
+
       signature: "Best regards,\nPartnership Team",
-      
+
       footer: "This is an automated confirmation email. Please do not reply to this address."
+    },
+
+    providerApproval: {
+      greeting: "Hi {firstName},",
+      congratulations: "Congratulations! We're excited to inform you that your application to join the AMPALIGN network has been approved!",
+
+      nextSteps: [
+        "Click the link below to create your provider account",
+        "Set up your profile and service preferences",
+        "Start receiving job opportunities in your service areas",
+        "Get access to our provider dashboard and tools"
+      ],
+
+      accountSetupInfo: "To get started, please create your account using the link below:",
+      accountCreationLink: "https://www.ampalign.pro/provider-create-account",
+
+      signature: "Welcome to the team!\n{companyName} Partnership Team",
+
+      footer: "This is an automated notification email. If you have any questions, please contact us at {email}"
     }
   },
 
