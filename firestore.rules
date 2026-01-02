@@ -101,12 +101,19 @@ service cloud.firestore {
       // Allow updates from:
       // 1. Admins (full access)
       // 2. Authenticated providers updating their own document to mark account as created
+      // 3. Authenticated providers updating their own service areas
       allow update: if isAdmin() || (
                       isAuthenticated()
                       && resource.data.email == request.auth.token.email
                       && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['accountCreated', 'userId', 'accountCreatedAt'])
                       && request.resource.data.accountCreated == true
                       && request.resource.data.userId == request.auth.uid
+                    ) || (
+                      isProvider()
+                      && providerId == getProviderIdForUser()
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['serviceAreas'])
+                      && request.resource.data.serviceAreas is list
+                      && request.resource.data.serviceAreas.size() > 0
                     );
 
       // Only admins can delete provider applications
