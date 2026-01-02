@@ -177,6 +177,22 @@ const ProviderDashboard: React.FC = () => {
     });
   };
 
+  const loadEligibleJobs = async (providerId: string) => {
+    const { db } = getFirebase();
+    const quotesRef = collection(db, 'quotes');
+
+    // Load eligible jobs (unassigned quotes only)
+    const unassignedQuery = query(quotesRef, where('assignedProviderId', '==', null));
+    const unassignedSnapshot = await getDocs(unassignedQuery);
+
+    const eligibleData = unassignedSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as QuoteRequest[];
+
+    setEligibleJobs(eligibleData);
+  };
+
   const handleUpdateServiceAreas = async () => {
     if (!currentUser || !currentUser.providerId) {
       alert('Unable to update service areas: User information not available');
@@ -199,6 +215,9 @@ const ProviderDashboard: React.FC = () => {
 
       // Update local user state
       setCurrentUser(prev => prev ? { ...prev, serviceAreas: selectedServiceAreas } : null);
+
+      // Reload eligible jobs to reflect the updated service areas
+      await loadEligibleJobs(currentUser.providerId);
 
       alert('Service areas updated successfully!');
       setServiceAreasOpen(false);
