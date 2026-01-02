@@ -28,6 +28,7 @@ interface QuoteRequest {
   houseFlatNumber?: string;
   streetName?: string;
   postcode?: string;
+  serviceArea?: string;
   fileUrl?: string;
   createdAt?: string;
   assignedProviderId?: string;
@@ -185,12 +186,19 @@ const ProviderDashboard: React.FC = () => {
     const unassignedQuery = query(quotesRef, where('assignedProviderId', '==', null));
     const unassignedSnapshot = await getDocs(unassignedQuery);
 
-    const eligibleData = unassignedSnapshot.docs.map(doc => ({
+    const allUnassignedJobs = unassignedSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     })) as QuoteRequest[];
 
-    setEligibleJobs(eligibleData);
+    // Filter jobs based on provider's service areas
+    // Only show jobs where the serviceArea matches one of the provider's selected areas
+    const filteredJobs = allUnassignedJobs.filter(job => {
+      if (!job.serviceArea) return false; // Skip jobs without service area
+      return selectedServiceAreas.includes(job.serviceArea);
+    });
+
+    setEligibleJobs(filteredJobs);
   };
 
   const handleUpdateServiceAreas = async () => {
