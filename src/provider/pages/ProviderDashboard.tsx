@@ -95,17 +95,9 @@ const ProviderDashboard: React.FC = () => {
 
           setAssignedQuotes(assignedData);
 
-          // Load eligible jobs (unassigned quotes only)
-          // Query for quotes where assignedProviderId is null
-          const unassignedQuery = query(quotesRef, where('assignedProviderId', '==', null));
-          const unassignedSnapshot = await getDocs(unassignedQuery);
-
-          const eligibleData = unassignedSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          })) as QuoteRequest[];
-
-          setEligibleJobs(eligibleData);
+          // Load eligible jobs filtered by service areas
+          const userServiceAreas = user.serviceAreas || [];
+          await loadEligibleJobs(user.providerId, userServiceAreas);
         }
       } catch (error) {
         console.error('Error loading dashboard data:', error);
@@ -178,7 +170,7 @@ const ProviderDashboard: React.FC = () => {
     });
   };
 
-  const loadEligibleJobs = async (providerId: string) => {
+  const loadEligibleJobs = async (providerId: string, serviceAreas: string[]) => {
     const { db } = getFirebase();
     const quotesRef = collection(db, 'quotes');
 
@@ -195,7 +187,7 @@ const ProviderDashboard: React.FC = () => {
     // Only show jobs where the serviceArea matches one of the provider's selected areas
     const filteredJobs = allUnassignedJobs.filter(job => {
       if (!job.serviceArea) return false; // Skip jobs without service area
-      return selectedServiceAreas.includes(job.serviceArea);
+      return serviceAreas.includes(job.serviceArea);
     });
 
     setEligibleJobs(filteredJobs);
@@ -225,7 +217,7 @@ const ProviderDashboard: React.FC = () => {
       setCurrentUser(prev => prev ? { ...prev, serviceAreas: selectedServiceAreas } : null);
 
       // Reload eligible jobs to reflect the updated service areas
-      await loadEligibleJobs(currentUser.providerId);
+      await loadEligibleJobs(currentUser.providerId, selectedServiceAreas);
 
       alert('Service areas updated successfully!');
       setServiceAreasOpen(false);
