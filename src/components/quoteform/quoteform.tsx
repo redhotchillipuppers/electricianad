@@ -8,6 +8,23 @@ const QuoteForm = () => {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  // Available service areas
+  const availableServiceAreas = [
+    "Grimsby",
+    "Cleethorpes",
+    "Lincoln",
+    "Scunthorpe",
+    "Louth",
+    "Boston",
+    "Skegness",
+    "Spalding",
+    "Sleaford",
+    "Gainsborough",
+    "Market Rasen",
+    "Horncastle",
+    "Other"
+  ];
   const [formErrors, setFormErrors] = useState({
     name: "",
     email: "",
@@ -16,6 +33,7 @@ const QuoteForm = () => {
     houseFlatNumber: "",
     streetName: "",
     postcode: "",
+    serviceArea: "",
   });
 
   const [values, setValues] = useState({
@@ -28,6 +46,7 @@ const QuoteForm = () => {
     houseFlatNumber: "",
     streetName: "",
     postcode: "",
+    serviceArea: "",
   });
 
   const validateField = (name, value) => {
@@ -73,6 +92,11 @@ const QuoteForm = () => {
           errorMessage = "Postcode is required";
         } else if (!/^[A-Z]{1,2}[0-9][A-Z0-9]? ?[0-9][A-Z]{2}$/i.test(value)) {
           errorMessage = "Please enter a valid UK postcode";
+        }
+        break;
+      case "serviceArea":
+        if (!value.trim()) {
+          errorMessage = "Please select a service area";
         }
         break;
       default:
@@ -129,6 +153,7 @@ const QuoteForm = () => {
       houseFlatNumber: "",
       streetName: "",
       postcode: "",
+      serviceArea: "",
     });
     setFormErrors({
       name: "",
@@ -138,6 +163,7 @@ const QuoteForm = () => {
       houseFlatNumber: "",
       streetName: "",
       postcode: "",
+      serviceArea: "",
     });
   };
 
@@ -152,6 +178,7 @@ const QuoteForm = () => {
     if (!formData.houseFlatNumber?.trim()) errors.push('House/Flat number is required');
     if (!formData.streetName?.trim()) errors.push('Street name is required');
     if (!formData.postcode?.trim()) errors.push('Postcode is required');
+    if (!formData.serviceArea?.trim()) errors.push('Service area is required');
     
     // Length validation
     if (formData.name && formData.name.length > 100) errors.push('Name too long (max 100 characters)');
@@ -642,6 +669,51 @@ const QuoteForm = () => {
                   {formErrors.postcode && (
                     <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
                       {formErrors.postcode}
+                    </p>
+                  )}
+                </div>
+
+                <div style={{ gridColumn: 'span 2' }}>
+                  <select
+                    style={{
+                      width: '100%',
+                      padding: '1rem',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: `2px solid ${formErrors.serviceArea ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)'}`,
+                      borderRadius: '12px',
+                      color: values.serviceArea ? '#fff' : 'rgba(255, 255, 255, 0.4)',
+                      fontSize: '1rem',
+                      outline: 'none',
+                      transition: 'all 0.3s ease',
+                      backdropFilter: 'blur(10px)',
+                      cursor: 'pointer'
+                    }}
+                    name="serviceArea"
+                    value={values.serviceArea}
+                    required
+                    onChange={handleChange}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                      e.target.style.background = 'rgba(255, 255, 255, 0.08)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = formErrors.serviceArea ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.1)';
+                      e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+                      handleBlur(e);
+                    }}
+                  >
+                    <option value="" disabled style={{ background: '#1a1a2e', color: 'rgba(255, 255, 255, 0.4)' }}>
+                      Select Service Area *
+                    </option>
+                    {availableServiceAreas.map((area) => (
+                      <option key={area} value={area} style={{ background: '#1a1a2e', color: '#fff' }}>
+                        {area}
+                      </option>
+                    ))}
+                  </select>
+                  {formErrors.serviceArea && (
+                    <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
+                      {formErrors.serviceArea}
                     </p>
                   )}
                 </div>
