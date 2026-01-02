@@ -491,7 +491,9 @@ const ProviderDashboard: React.FC = () => {
           border: '1px solid rgba(255, 255, 255, 0.1)',
           borderRadius: '20px',
           padding: '2rem',
-          marginBottom: '2rem'
+          marginBottom: '2rem',
+          position: 'relative',
+          zIndex: 20
         }}>
           <h2 style={{
             color: 'white',
@@ -514,7 +516,7 @@ const ProviderDashboard: React.FC = () => {
             Select the areas where you provide services to see relevant job opportunities
           </p>
 
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative', zIndex: 25 }}>
             <button
               type="button"
               onClick={() => setServiceAreasOpen(!serviceAreasOpen)}
@@ -565,7 +567,7 @@ const ProviderDashboard: React.FC = () => {
                 borderRadius: '0 0 12px 12px',
                 maxHeight: '250px',
                 overflowY: 'auto',
-                zIndex: 10,
+                zIndex: 100,
                 boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)'
               }}>
                 {availableServiceAreas.map((area) => (
