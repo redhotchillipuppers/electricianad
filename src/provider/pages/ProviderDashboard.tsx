@@ -10,7 +10,9 @@ import {
   Clock,
   Calendar,
   Zap,
-  CheckCircle
+  CheckCircle,
+  ChevronDown,
+  Settings
 } from 'lucide-react';
 import { getCurrentProviderUser, signOutProvider, ProviderUser } from '../utils/providerAuth';
 import { getFirebase, collection, getDocs, query, where, doc, updateDoc } from '../../firebase/firebase';
@@ -44,6 +46,26 @@ const ProviderDashboard: React.FC = () => {
   const [eligibleJobs, setEligibleJobs] = useState<QuoteRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [hideCompleted, setHideCompleted] = useState(false);
+  const [serviceAreasOpen, setServiceAreasOpen] = useState(false);
+  const [selectedServiceAreas, setSelectedServiceAreas] = useState<string[]>([]);
+  const [updatingAreas, setUpdatingAreas] = useState(false);
+
+  // Service Areas - Based on coverage areas
+  const availableServiceAreas = [
+    "Grimsby",
+    "Cleethorpes",
+    "Lincoln",
+    "Scunthorpe",
+    "Louth",
+    "Boston",
+    "Skegness",
+    "Spalding",
+    "Sleaford",
+    "Gainsborough",
+    "Market Rasen",
+    "Horncastle",
+    "Other"
+  ];
 
   useEffect(() => {
     const loadData = async () => {
@@ -51,6 +73,11 @@ const ProviderDashboard: React.FC = () => {
         // Get current provider user
         const user = await getCurrentProviderUser();
         setCurrentUser(user);
+
+        // Initialize selected service areas from user data
+        if (user && user.serviceAreas && Array.isArray(user.serviceAreas)) {
+          setSelectedServiceAreas(user.serviceAreas);
+        }
 
         if (user && user.providerId) {
           const { db } = getFirebase();
@@ -137,6 +164,49 @@ const ProviderDashboard: React.FC = () => {
     } catch (error) {
       console.error('Error completing job:', error);
       alert('Failed to mark job as completed. Please try again.');
+    }
+  };
+
+  const handleServiceAreaToggle = (area: string) => {
+    setSelectedServiceAreas(prev => {
+      if (prev.includes(area)) {
+        return prev.filter(a => a !== area);
+      } else {
+        return [...prev, area];
+      }
+    });
+  };
+
+  const handleUpdateServiceAreas = async () => {
+    if (!currentUser || !currentUser.providerId) {
+      alert('Unable to update service areas: User information not available');
+      return;
+    }
+
+    if (selectedServiceAreas.length === 0) {
+      alert('Please select at least one service area');
+      return;
+    }
+
+    setUpdatingAreas(true);
+    try {
+      const { db } = getFirebase();
+      const providerRef = doc(db, 'serviceProviders', currentUser.providerId);
+
+      await updateDoc(providerRef, {
+        serviceAreas: selectedServiceAreas
+      });
+
+      // Update local user state
+      setCurrentUser(prev => prev ? { ...prev, serviceAreas: selectedServiceAreas } : null);
+
+      alert('Service areas updated successfully!');
+      setServiceAreasOpen(false);
+    } catch (error) {
+      console.error('Error updating service areas:', error);
+      alert('Failed to update service areas. Please try again.');
+    } finally {
+      setUpdatingAreas(false);
     }
   };
 
@@ -412,6 +482,201 @@ const ProviderDashboard: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Service Areas Management Section */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '20px',
+          padding: '2rem',
+          marginBottom: '2rem'
+        }}>
+          <h2 style={{
+            color: 'white',
+            fontSize: '1.25rem',
+            fontWeight: '700',
+            margin: '0 0 1.5rem 0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}>
+            <Settings size={20} />
+            Manage Service Areas
+          </h2>
+
+          <p style={{
+            color: 'rgba(255, 255, 255, 0.7)',
+            fontSize: '0.9rem',
+            margin: '0 0 1rem 0'
+          }}>
+            Select the areas where you provide services to see relevant job opportunities
+          </p>
+
+          <div style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => setServiceAreasOpen(!serviceAreasOpen)}
+              style={{
+                width: '100%',
+                padding: '1rem',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '2px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '12px',
+                color: '#fff',
+                fontSize: '1rem',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                backdropFilter: 'blur(10px)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+              }}
+            >
+              <span style={{ color: selectedServiceAreas.length > 0 ? '#fff' : 'rgba(255, 255, 255, 0.4)' }}>
+                {selectedServiceAreas.length > 0
+                  ? `${selectedServiceAreas.length} area${selectedServiceAreas.length > 1 ? 's' : ''} selected`
+                  : 'Select service areas'
+                }
+              </span>
+              <ChevronDown size={16} style={{
+                transform: serviceAreasOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s'
+              }} />
+            </button>
+
+            {serviceAreasOpen && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(20px)',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+                borderTop: 'none',
+                borderRadius: '0 0 12px 12px',
+                maxHeight: '250px',
+                overflowY: 'auto',
+                zIndex: 10,
+                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)'
+              }}>
+                {availableServiceAreas.map((area) => (
+                  <label
+                    key={area}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '0.75rem 1rem',
+                      cursor: 'pointer',
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                      color: '#1a1a2e',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(102, 126, 234, 0.1)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedServiceAreas.includes(area)}
+                      onChange={() => handleServiceAreaToggle(area)}
+                      style={{
+                        marginRight: '0.75rem',
+                        accentColor: '#667eea',
+                        transform: 'scale(1.1)'
+                      }}
+                    />
+                    <span style={{ fontSize: '0.95rem', fontWeight: '500' }}>{area}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {selectedServiceAreas.length > 0 && (
+            <div style={{ marginTop: '1rem' }}>
+              <p style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.7)', marginBottom: '0.5rem' }}>
+                Selected areas:
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                {selectedServiceAreas.map((area) => (
+                  <span
+                    key={area}
+                    style={{
+                      fontSize: '0.875rem',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      padding: '0.25rem 0.75rem',
+                      borderRadius: '20px',
+                      fontWeight: '500'
+                    }}
+                  >
+                    {area}
+                  </span>
+                ))}
+              </div>
+
+              <button
+                onClick={handleUpdateServiceAreas}
+                disabled={updatingAreas}
+                style={{
+                  background: updatingAreas
+                    ? 'rgba(255, 255, 255, 0.1)'
+                    : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: updatingAreas ? 'rgba(255, 255, 255, 0.5)' : '#fff',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '0.75rem 1.5rem',
+                  fontSize: '0.95rem',
+                  fontWeight: '600',
+                  cursor: updatingAreas ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: updatingAreas ? 'none' : '0 4px 15px rgba(102, 126, 234, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+                onMouseEnter={(e) => {
+                  if (!updatingAreas) {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.4)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!updatingAreas) {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.3)';
+                  }
+                }}
+              >
+                {updatingAreas ? (
+                  <>
+                    <div style={{
+                      width: '16px',
+                      height: '16px',
+                      border: '2px solid rgba(255, 255, 255, 0.3)',
+                      borderTop: '2px solid rgba(255, 255, 255, 0.8)',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }} />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Settings size={16} />
+                    Update Service Areas
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Eligible Jobs Section */}
