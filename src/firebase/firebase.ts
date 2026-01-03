@@ -18,6 +18,8 @@ import {
   getDocs,
   updateDoc,
   deleteDoc,
+  addDoc,
+  increment,
   query,
   where
 } from "firebase/firestore";
@@ -74,6 +76,8 @@ export {
   getDocs,
   updateDoc,
   deleteDoc,
+  addDoc,
+  increment,
   query,
   where,
   ref,
