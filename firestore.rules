@@ -41,7 +41,7 @@ service cloud.firestore {
     match /quotes/{quoteId} {
       // Anyone can create a quote (public submission)
       // Updated to match actual data structure from submitQuote.ts
-      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'contactMethod', 'description', 'houseFlatNumber', 'streetName', 'postcode', 'createdAt', 'assignedProviderId'])
+      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'contactMethod', 'description', 'houseFlatNumber', 'streetName', 'postcode', 'serviceArea', 'createdAt', 'assignedProviderId'])
                     && isValidEmail(request.resource.data.email)
                     && request.resource.data.name is string && request.resource.data.name.size() > 0
                     && request.resource.data.contactMethod is string && request.resource.data.contactMethod.size() > 0
@@ -49,6 +49,7 @@ service cloud.firestore {
                     && request.resource.data.houseFlatNumber is string
                     && request.resource.data.streetName is string
                     && request.resource.data.postcode is string
+                    && request.resource.data.serviceArea is string && request.resource.data.serviceArea.size() > 0
                     && request.resource.data.createdAt is string
                     && request.resource.data.assignedProviderId == null
                     && (!request.resource.data.keys().hasAny(['phone']) || request.resource.data.phone is string)
@@ -101,12 +102,19 @@ service cloud.firestore {
       // Allow updates from:
       // 1. Admins (full access)
       // 2. Authenticated providers updating their own document to mark account as created
+      // 3. Authenticated providers updating their own service areas
       allow update: if isAdmin() || (
                       isAuthenticated()
                       && resource.data.email == request.auth.token.email
                       && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['accountCreated', 'userId', 'accountCreatedAt'])
                       && request.resource.data.accountCreated == true
                       && request.resource.data.userId == request.auth.uid
+                    ) || (
+                      isProvider()
+                      && providerId == getProviderIdForUser()
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['serviceAreas'])
+                      && request.resource.data.serviceAreas is list
+                      && request.resource.data.serviceAreas.size() > 0
                     );
 
       // Only admins can delete provider applications
