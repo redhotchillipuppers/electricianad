@@ -4,6 +4,13 @@ const { logger } = require('firebase-functions');
 const nodemailer = require('nodemailer');
 const { defineString, defineSecret } = require('firebase-functions/params');
 const emailConfig = require('./emailConfig');
+const admin = require('firebase-admin');
+
+// Initialize Firebase Admin
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+const db = admin.firestore();
 
 // Environment variables (all using v2 parameter system)
 const SMTP_HOST = defineString('SMTP_HOST');
