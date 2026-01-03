@@ -150,6 +150,60 @@ service cloud.firestore {
                              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin';
     }
 
+    // Job requests collection (provider job requests)
+    match /jobRequests/{requestId} {
+      // Providers can create requests for themselves
+      // Must include all required fields and set status to 'pending'
+      allow create: if isProvider()
+                    && request.resource.data.keys().hasAll(['quoteId', 'quoteName', 'quotePostcode', 'quoteCreatedAt', 'providerId', 'providerName', 'requestedAt', 'status'])
+                    && request.resource.data.providerId == getProviderIdForUser()
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.requestedAt is string
+                    && request.resource.data.quoteId is string
+                    && request.resource.data.quoteName is string
+                    && request.resource.data.quotePostcode is string
+                    && request.resource.data.quoteCreatedAt is string
+                    && request.resource.data.providerName is string
+                    && (!request.resource.data.keys().hasAny(['providerCompanyName']) || request.resource.data.providerCompanyName is string);
+
+      // Read access:
+      // - Admins can see all requests
+      // - Providers can see their own requests
+      // - Providers can see requests for quotes they might work on (for transparency)
+      allow read: if isAdmin() ||
+                  (isProvider() && resource.data.providerId == getProviderIdForUser());
+
+      // Update access:
+      // - Admins can update any request (for approval/rejection)
+      // - Providers cannot update their own requests once submitted
+      allow update: if isAdmin();
+
+      // Delete access:
+      // - Only admins can delete requests (for cleanup)
+      allow delete: if isAdmin();
+    }
+
+    // Auto-approval settings
+    match /settings/autoApproval {
+      // Only admins can read settings
+      allow read: if isAdmin();
+
+      // Only admins can write settings
+      // Ensure key fields are present and valid
+      allow write: if isAdmin()
+                   && request.resource.data.keys().hasAll(['enabled', 'ageThresholdHours', 'maxOpenJobsLimit', 'considerServiceArea', 'useWorkloadBalancing', 'useRatingWeight'])
+                   && request.resource.data.enabled is bool
+                   && request.resource.data.ageThresholdHours is number
+                   && request.resource.data.ageThresholdHours >= 1
+                   && request.resource.data.ageThresholdHours <= 720
+                   && request.resource.data.maxOpenJobsLimit is number
+                   && request.resource.data.maxOpenJobsLimit >= 1
+                   && request.resource.data.maxOpenJobsLimit <= 100
+                   && request.resource.data.considerServiceArea is bool
+                   && request.resource.data.useWorkloadBalancing is bool
+                   && request.resource.data.useRatingWeight is bool;
+    }
+
     // Deny access to all other documents
     match /{document=**} {
       allow read, write: if false;

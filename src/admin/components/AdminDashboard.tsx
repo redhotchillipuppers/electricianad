@@ -24,6 +24,7 @@ import ServiceProviderModal from './ServiceProviderModal';
 import AssignQuoteModal from './AssignQuoteModal';
 import EligibleJobsModal from './EligibleJobsModal';
 import AssignedWorkModal from './AssignedWorkModal';
+import AutoApprovalSettings from './AutoApprovalSettings';
 import { getFileIcon, getFileTypeLabel } from '../utils/fileHelpers';
 
 interface ServiceProvider {
@@ -609,6 +610,11 @@ const AdminDashboard: React.FC = () => {
                     </p>
                   </div>
                 ))}
+              </div>
+
+              {/* Auto-Approval Settings Section */}
+              <div style={{ marginTop: '2rem' }}>
+                <AutoApprovalSettings />
               </div>
             </div>
           )}

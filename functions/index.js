@@ -1,9 +1,17 @@
 // functions/index.js
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { logger } = require('firebase-functions');
 const nodemailer = require('nodemailer');
 const { defineString, defineSecret } = require('firebase-functions/params');
 const emailConfig = require('./emailConfig');
+const admin = require('firebase-admin');
+
+// Initialize Firebase Admin
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+const db = admin.firestore();
 
 // Environment variables (all using v2 parameter system)
 const SMTP_HOST = defineString('SMTP_HOST');
@@ -493,3 +501,239 @@ exports.onServiceProviderCreated = onDocumentCreated(
     // Don't throw - we don't want to prevent the application from being saved
   }
 });
+
+// Cloud Function for auto-approval of job requests
+// Runs every hour to check for eligible quotes
+exports.checkAutoApproval = onSchedule('every 1 hours', async (event) => {
+  try {
+    logger.info('Starting auto-approval check');
+
+    // 1. Get auto-approval settings
+    const settingsDoc = await db.collection('settings').doc('autoApproval').get();
+
+    if (!settingsDoc.exists) {
+      logger.info('Auto-approval settings not found, skipping');
+      return;
+    }
+
+    const settings = settingsDoc.data();
+
+    if (!settings.enabled) {
+      logger.info('Auto-approval is disabled, skipping');
+      return;
+    }
+
+    logger.info('Auto-approval settings:', {
+      ageThresholdHours: settings.ageThresholdHours,
+      maxOpenJobsLimit: settings.maxOpenJobsLimit,
+      useWorkloadBalancing: settings.useWorkloadBalancing,
+      considerServiceArea: settings.considerServiceArea
+    });
+
+    // 2. Calculate cutoff time
+    const cutoffTime = new Date(Date.now() - (settings.ageThresholdHours * 60 * 60 * 1000));
+    logger.info('Cutoff time for auto-approval:', cutoffTime.toISOString());
+
+    // 3. Find eligible quotes (past age threshold, not assigned)
+    const quotesSnapshot = await db.collection('quotes')
+      .where('assignedProviderId', '==', null)
+      .get();
+
+    const eligibleQuotes = quotesSnapshot.docs.filter(doc => {
+      const quoteData = doc.data();
+      const createdAt = new Date(quoteData.createdAt);
+      return createdAt < cutoffTime;
+    });
+
+    logger.info(`Found ${eligibleQuotes.length} eligible quotes for auto-approval`);
+
+    if (eligibleQuotes.length === 0) {
+      // Update last run time
+      await db.collection('settings').doc('autoApproval').update({
+        lastAutoRunAt: new Date().toISOString()
+      });
+      return;
+    }
+
+    let totalAssigned = 0;
+
+    // 4. Process each eligible quote
+    for (const quoteDoc of eligibleQuotes) {
+      const quote = quoteDoc.data();
+      const quoteId = quoteDoc.id;
+
+      logger.info(`Processing quote ${quoteId}`);
+
+      // Get pending job requests for this quote
+      const requestsSnapshot = await db.collection('jobRequests')
+        .where('quoteId', '==', quoteId)
+        .where('status', '==', 'pending')
+        .get();
+
+      if (requestsSnapshot.empty) {
+        logger.info(`No pending requests for quote ${quoteId}, skipping`);
+        continue;
+      }
+
+      logger.info(`Found ${requestsSnapshot.size} pending requests for quote ${quoteId}`);
+
+      // 5. Filter eligible providers
+      const eligibleProviders = [];
+
+      for (const requestDoc of requestsSnapshot.docs) {
+        const request = requestDoc.data();
+        const providerId = request.providerId;
+
+        // Check provider status
+        const providerDoc = await db.collection('serviceProviders').doc(providerId).get();
+
+        if (!providerDoc.exists) {
+          logger.warn(`Provider ${providerId} not found, skipping`);
+          continue;
+        }
+
+        const provider = providerDoc.data();
+
+        if (provider.status !== 'approved') {
+          logger.info(`Provider ${providerId} not approved (status: ${provider.status}), skipping`);
+          continue;
+        }
+
+        // Check service area match if enabled
+        if (settings.considerServiceArea) {
+          const matchesArea = checkServiceAreaMatch(quote.postcode, provider.serviceAreas);
+          if (!matchesArea) {
+            logger.info(`Provider ${providerId} doesn't match service area for quote ${quoteId}, skipping`);
+            continue;
+          }
+        }
+
+        // Count active jobs
+        const activeJobsSnapshot = await db.collection('quotes')
+          .where('assignedProviderId', '==', providerId)
+          .where('completionStatus', '!=', 'completed')
+          .get();
+
+        const activeJobsCount = activeJobsSnapshot.size;
+
+        if (activeJobsCount >= settings.maxOpenJobsLimit) {
+          logger.info(`Provider ${providerId} has ${activeJobsCount} active jobs (limit: ${settings.maxOpenJobsLimit}), skipping`);
+          continue;
+        }
+
+        eligibleProviders.push({
+          providerId,
+          providerName: request.providerName,
+          requestId: requestDoc.id,
+          requestData: request,
+          activeJobsCount
+        });
+      }
+
+      if (eligibleProviders.length === 0) {
+        logger.info(`No eligible providers for quote ${quoteId}, skipping`);
+        continue;
+      }
+
+      // 6. Sort by workload if enabled
+      if (settings.useWorkloadBalancing) {
+        eligibleProviders.sort((a, b) => a.activeJobsCount - b.activeJobsCount);
+      }
+
+      // 7. Auto-assign to first eligible provider (least busy if workload balancing enabled)
+      const selectedProvider = eligibleProviders[0];
+
+      logger.info(`Auto-assigning quote ${quoteId} to provider ${selectedProvider.providerId} (${selectedProvider.activeJobsCount} active jobs)`);
+
+      // Update quote with assignment
+      await db.collection('quotes').doc(quoteId).update({
+        assignedProviderId: selectedProvider.providerId,
+        assignedProviderName: selectedProvider.providerName,
+        assignedBy: 'auto-approval-system',
+        assignedAt: new Date().toISOString(),
+        assignmentStatus: 'assigned',
+        assignmentNotes: `Auto-assigned after ${settings.ageThresholdHours} hours (${eligibleProviders.length} eligible providers, ${selectedProvider.activeJobsCount} active jobs)`
+      });
+
+      // Update job request status to auto-approved
+      await db.collection('jobRequests').doc(selectedProvider.requestId).update({
+        status: 'auto-approved',
+        reviewedBy: 'auto-approval-system',
+        reviewedAt: new Date().toISOString(),
+        autoApproved: true,
+        autoApprovalRun: new Date().toISOString()
+      });
+
+      // Mark other pending requests as expired
+      for (const provider of eligibleProviders) {
+        if (provider.requestId !== selectedProvider.requestId) {
+          await db.collection('jobRequests').doc(provider.requestId).update({
+            status: 'expired',
+            reviewedBy: 'auto-approval-system',
+            reviewedAt: new Date().toISOString()
+          });
+        }
+      }
+
+      totalAssigned++;
+    }
+
+    // 8. Update statistics
+    const currentStats = settings.stats || {
+      totalAutoApproved: 0,
+      lastMonthAutoApproved: 0,
+      lastWeekAutoApproved: 0
+    };
+
+    await db.collection('settings').doc('autoApproval').update({
+      lastAutoRunAt: new Date().toISOString(),
+      'stats.totalAutoApproved': admin.firestore.FieldValue.increment(totalAssigned),
+      'stats.lastMonthAutoApproved': admin.firestore.FieldValue.increment(totalAssigned),
+      'stats.lastWeekAutoApproved': admin.firestore.FieldValue.increment(totalAssigned),
+      'stats.lastRunAssignmentCount': totalAssigned
+    });
+
+    logger.info(`Auto-approval completed: ${totalAssigned} jobs assigned out of ${eligibleQuotes.length} eligible quotes`);
+  } catch (error) {
+    logger.error('Error in auto-approval function:', {
+      error: error.message,
+      stack: error.stack
+    });
+    throw error;
+  }
+});
+
+// Helper function to check service area match
+function checkServiceAreaMatch(postcode, serviceAreas) {
+  if (!postcode || !serviceAreas || serviceAreas.length === 0) {
+    return false;
+  }
+
+  // Extract postcode area (e.g., "LN1 3AA" -> "LN")
+  const postcodeMatch = postcode.match(/^[A-Z]{1,2}/);
+  if (!postcodeMatch) {
+    return false;
+  }
+
+  const postcodeArea = postcodeMatch[0];
+
+  // Postcode to service area mapping
+  const postcodeToServiceArea = {
+    'LN': ['Lincoln', 'Lincolnshire'],
+    'DN': ['Grimsby', 'Cleethorpes', 'Scunthorpe', 'Gainsborough'],
+    'PE': ['Boston', 'Skegness', 'Spalding', 'Sleaford'],
+    'NG': ['Lincoln', 'Sleaford']
+  };
+
+  const relevantAreas = postcodeToServiceArea[postcodeArea] || [];
+
+  // Check if provider's service areas overlap with relevant areas
+  const matches = serviceAreas.some(area =>
+    relevantAreas.some(relevantArea =>
+      area.toLowerCase().includes(relevantArea.toLowerCase()) ||
+      relevantArea.toLowerCase().includes(area.toLowerCase())
+    )
+  ) || serviceAreas.includes('Other');
+
+  return matches;
+}
