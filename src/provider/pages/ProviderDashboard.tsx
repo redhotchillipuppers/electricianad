@@ -38,6 +38,7 @@ interface QuoteRequest {
   completionStatus?: 'pending' | 'completed';
   completedAt?: string;
   completedBy?: string;
+  requestedByProviders?: string[];
 }
 
 const ProviderDashboard: React.FC = () => {
@@ -50,6 +51,7 @@ const ProviderDashboard: React.FC = () => {
   const [serviceAreasOpen, setServiceAreasOpen] = useState(false);
   const [selectedServiceAreas, setSelectedServiceAreas] = useState<string[]>([]);
   const [updatingAreas, setUpdatingAreas] = useState(false);
+  const [requestingJob, setRequestingJob] = useState<string | null>(null);
 
   // Service Areas - Based on coverage areas
   const availableServiceAreas = [
@@ -237,6 +239,65 @@ const ProviderDashboard: React.FC = () => {
     }
   };
 
+  const handleRequestJob = async (jobId: string) => {
+    if (!currentUser || !currentUser.providerId) {
+      alert('Unable to request job: User information not available');
+      return;
+    }
+
+    // Find the job
+    const job = eligibleJobs.find(j => j.id === jobId);
+    if (!job) return;
+
+    const requestedByProviders = job.requestedByProviders || [];
+    const isAlreadyRequested = requestedByProviders.includes(currentUser.providerId);
+
+    // Count how many jobs this provider has already requested
+    const currentRequestCount = eligibleJobs.filter(j =>
+      (j.requestedByProviders || []).includes(currentUser.providerId)
+    ).length;
+
+    // If not already requested and would exceed limit, show alert
+    if (!isAlreadyRequested && currentRequestCount >= 5) {
+      alert('You can only request up to 5 jobs at a time. Please unrequest a job before requesting a new one.');
+      return;
+    }
+
+    setRequestingJob(jobId);
+    try {
+      const { db } = getFirebase();
+      const quoteRef = doc(db, 'quotes', jobId);
+
+      let updatedProviders: string[];
+      if (isAlreadyRequested) {
+        // Remove the request
+        updatedProviders = requestedByProviders.filter(id => id !== currentUser.providerId);
+      } else {
+        // Add the request
+        updatedProviders = [...requestedByProviders, currentUser.providerId];
+      }
+
+      await updateDoc(quoteRef, {
+        requestedByProviders: updatedProviders
+      });
+
+      // Update local state
+      setEligibleJobs(prev =>
+        prev.map(j =>
+          j.id === jobId
+            ? { ...j, requestedByProviders: updatedProviders }
+            : j
+        )
+      );
+
+    } catch (error) {
+      console.error('Error requesting job:', error);
+      alert('Failed to request job. Please try again.');
+    } finally {
+      setRequestingJob(null);
+    }
+  };
+
   // Filter quotes based on hideCompleted state
   const filteredQuotes = useMemo(() => {
     if (hideCompleted) {
@@ -244,6 +305,27 @@ const ProviderDashboard: React.FC = () => {
     }
     return assignedQuotes;
   }, [assignedQuotes, hideCompleted]);
+
+  // Sort eligible jobs - requested jobs at the top
+  const sortedEligibleJobs = useMemo(() => {
+    if (!currentUser) return eligibleJobs;
+
+    return [...eligibleJobs].sort((a, b) => {
+      const aRequested = (a.requestedByProviders || []).includes(currentUser.providerId);
+      const bRequested = (b.requestedByProviders || []).includes(currentUser.providerId);
+
+      // Requested jobs come first
+      if (aRequested && !bRequested) return -1;
+      if (!aRequested && bRequested) return 1;
+
+      // Otherwise sort by creation date (newest first)
+      if (a.createdAt && b.createdAt) {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+
+      return 0;
+    });
+  }, [eligibleJobs, currentUser]);
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
@@ -717,20 +799,43 @@ const ProviderDashboard: React.FC = () => {
           padding: '2rem',
           marginBottom: '2rem'
         }}>
-          <h2 style={{
-            color: 'white',
-            fontSize: '1.25rem',
-            fontWeight: '700',
-            margin: '0 0 1.5rem 0',
+          <div style={{
             display: 'flex',
+            justifyContent: 'space-between',
             alignItems: 'center',
-            gap: '0.5rem'
+            marginBottom: '1.5rem',
+            flexWrap: 'wrap',
+            gap: '1rem'
           }}>
-            <Briefcase size={20} />
-            Eligible Jobs ({eligibleJobs.length})
-          </h2>
+            <h2 style={{
+              color: 'white',
+              fontSize: '1.25rem',
+              fontWeight: '700',
+              margin: 0,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              <Briefcase size={20} />
+              Eligible Jobs ({eligibleJobs.length})
+            </h2>
 
-          {eligibleJobs.length === 0 ? (
+            {eligibleJobs.length > 0 && (
+              <div style={{
+                background: 'rgba(102, 126, 234, 0.1)',
+                border: '1px solid rgba(102, 126, 234, 0.3)',
+                borderRadius: '8px',
+                padding: '0.5rem 1rem',
+                color: '#667eea',
+                fontSize: '0.85rem',
+                fontWeight: '600'
+              }}>
+                {eligibleJobs.filter(j => (j.requestedByProviders || []).includes(currentUser?.providerId || '')).length} / 5 Requested
+              </div>
+            )}
+          </div>
+
+          {sortedEligibleJobs.length === 0 ? (
             <div style={{
               background: 'rgba(255, 255, 255, 0.03)',
               borderRadius: '12px',
@@ -751,21 +856,32 @@ const ProviderDashboard: React.FC = () => {
               flexDirection: 'column',
               gap: '1rem'
             }}>
-              {eligibleJobs.map((job) => (
+              {sortedEligibleJobs.map((job) => {
+                const isRequested = currentUser && (job.requestedByProviders || []).includes(currentUser.providerId);
+                return (
                 <div
                   key={job.id}
                   style={{
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    background: isRequested
+                      ? 'rgba(102, 126, 234, 0.08)'
+                      : 'rgba(255, 255, 255, 0.03)',
+                    border: isRequested
+                      ? '2px solid rgba(102, 126, 234, 0.3)'
+                      : '1px solid rgba(255, 255, 255, 0.1)',
                     borderRadius: '12px',
                     padding: '1.5rem',
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.2s ease',
+                    position: 'relative'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                    e.currentTarget.style.background = isRequested
+                      ? 'rgba(102, 126, 234, 0.12)'
+                      : 'rgba(255, 255, 255, 0.05)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                    e.currentTarget.style.background = isRequested
+                      ? 'rgba(102, 126, 234, 0.08)'
+                      : 'rgba(255, 255, 255, 0.03)';
                   }}
                 >
                   <div style={{
@@ -822,7 +938,8 @@ const ProviderDashboard: React.FC = () => {
                     <div style={{
                       background: 'rgba(255, 255, 255, 0.03)',
                       borderRadius: '8px',
-                      padding: '1rem'
+                      padding: '1rem',
+                      marginBottom: '1rem'
                     }}>
                       <p style={{
                         color: 'rgba(255, 255, 255, 0.5)',
@@ -844,8 +961,77 @@ const ProviderDashboard: React.FC = () => {
                       </p>
                     </div>
                   )}
+
+                  {/* Request Job Button */}
+                  <button
+                    onClick={() => handleRequestJob(job.id)}
+                    disabled={requestingJob === job.id}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem 1.5rem',
+                      background: isRequested
+                        ? 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)'
+                        : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: 'white',
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      cursor: requestingJob === job.id ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
+                      transition: 'all 0.2s ease',
+                      boxShadow: isRequested
+                        ? '0 4px 12px rgba(239, 68, 68, 0.3)'
+                        : '0 4px 12px rgba(102, 126, 234, 0.3)',
+                      opacity: requestingJob === job.id ? 0.6 : 1
+                    }}
+                    onMouseEnter={(e) => {
+                      if (requestingJob !== job.id) {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = isRequested
+                          ? '0 6px 16px rgba(239, 68, 68, 0.4)'
+                          : '0 6px 16px rgba(102, 126, 234, 0.4)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (requestingJob !== job.id) {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = isRequested
+                          ? '0 4px 12px rgba(239, 68, 68, 0.3)'
+                          : '0 4px 12px rgba(102, 126, 234, 0.3)';
+                      }
+                    }}
+                  >
+                    {requestingJob === job.id ? (
+                      <>
+                        <div style={{
+                          width: '16px',
+                          height: '16px',
+                          border: '2px solid rgba(255, 255, 255, 0.3)',
+                          borderTop: '2px solid rgba(255, 255, 255, 0.8)',
+                          borderRadius: '50%',
+                          animation: 'spin 1s linear infinite'
+                        }} />
+                        Processing...
+                      </>
+                    ) : isRequested ? (
+                      <>
+                        <CheckCircle size={18} />
+                        Unrequest Job
+                      </>
+                    ) : (
+                      <>
+                        <Briefcase size={18} />
+                        Request Job
+                      </>
+                    )}
+                  </button>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
