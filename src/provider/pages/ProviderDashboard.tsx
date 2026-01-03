@@ -183,41 +183,6 @@ const ProviderDashboard: React.FC = () => {
     }
   };
 
-  // Reload data when a job request is created
-  const handleJobRequestCreated = async () => {
-    if (!currentUser || !currentUser.providerId) return;
-
-    try {
-      const { db } = getFirebase();
-
-      // Reload requested jobs
-      const requestsRef = collection(db, 'jobRequests');
-      const requestsQuery = query(requestsRef, where('providerId', '==', currentUser.providerId));
-      const requestsSnapshot = await getDocs(requestsQuery);
-
-      const requestsData = requestsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as JobRequest[];
-
-      setRequestedJobs(requestsData);
-
-      // Also reload eligible jobs to update the UI
-      const quotesRef = collection(db, 'quotes');
-      const unassignedQuery = query(quotesRef, where('assignedProviderId', '==', null));
-      const unassignedSnapshot = await getDocs(unassignedQuery);
-
-      const eligibleData = unassignedSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as QuoteRequest[];
-
-      setEligibleJobs(eligibleData);
-    } catch (error) {
-      console.error('Error reloading job requests:', error);
-    }
-  };
-
   const handleServiceAreaToggle = (area: string) => {
     setSelectedServiceAreas(prev => {
       if (prev.includes(area)) {
