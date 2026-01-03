@@ -21,6 +21,7 @@ interface QuoteRequest {
     assignedAt?: string;
     assignmentNotes?: string;
     assignmentStatus?: 'unassigned' | 'assigned' | 'completed';
+    requestedByProviders?: string[];
     [key: string]: any;
 }
 
@@ -143,6 +144,7 @@ const AssignQuoteModal: React.FC<AssignQuoteModalProps> = ({
         if (!quote) return [];
 
         const postcodeArea = getPostcodeArea(quote.postcode);
+        const requestedByProviders = quote.requestedByProviders || [];
 
         // Filter: approved status and matching service area
         let filtered = providers.filter(p => {
@@ -159,8 +161,16 @@ const AssignQuoteModal: React.FC<AssignQuoteModalProps> = ({
             );
         });
 
-        // Sort by workload (least busy first)
+        // Sort: Requested providers first, then by workload (least busy first)
         filtered.sort((a, b) => {
+            const aRequested = requestedByProviders.includes(a.id);
+            const bRequested = requestedByProviders.includes(b.id);
+
+            // Requested providers come first
+            if (aRequested && !bRequested) return -1;
+            if (!aRequested && bRequested) return 1;
+
+            // If both or neither requested, sort by workload
             const countA = a.activeQuoteCount || 0;
             const countB = b.activeQuoteCount || 0;
             return countA - countB;
@@ -422,7 +432,9 @@ const AssignQuoteModal: React.FC<AssignQuoteModalProps> = ({
                             gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
                             gap: '1rem'
                         }}>
-                            {filteredAndSortedProviders.map((provider) => (
+                            {filteredAndSortedProviders.map((provider) => {
+                                const hasRequested = quote && (quote.requestedByProviders || []).includes(provider.id);
+                                return (
                                 <div
                                     key={provider.id}
                                     onClick={() => !submitting && setSelectedProviderId(provider.id)}
@@ -471,14 +483,28 @@ const AssignQuoteModal: React.FC<AssignQuoteModalProps> = ({
                                     )}
 
                                     <div style={{ marginBottom: '0.75rem' }}>
-                                        <h4 style={{
-                                            margin: '0 0 0.25rem 0',
-                                            fontSize: '1rem',
-                                            color: '#1F2937',
-                                            fontWeight: '600'
-                                        }}>
-                                            {provider.firstName} {provider.lastName}
-                                        </h4>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                                            <h4 style={{
+                                                margin: 0,
+                                                fontSize: '1rem',
+                                                color: '#1F2937',
+                                                fontWeight: '600'
+                                            }}>
+                                                {provider.firstName} {provider.lastName}
+                                            </h4>
+                                            {hasRequested && (
+                                                <span style={{
+                                                    fontSize: '0.7rem',
+                                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                                    color: 'white',
+                                                    padding: '0.125rem 0.5rem',
+                                                    borderRadius: '9999px',
+                                                    fontWeight: '600'
+                                                }}>
+                                                    REQUESTED
+                                                </span>
+                                            )}
+                                        </div>
                                         {provider.companyName && (
                                             <p style={{
                                                 margin: 0,
@@ -527,7 +553,8 @@ const AssignQuoteModal: React.FC<AssignQuoteModalProps> = ({
                                         )}
                                     </div>
                                 </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </div>
