@@ -24,6 +24,7 @@ export interface ProviderUser {
   companyName?: string;
   status: 'active' | 'inactive';
   createdAt: string;
+  serviceAreas?: string[]; // Service areas from serviceProviders collection
 }
 
 interface ServiceProviderData {
@@ -183,6 +184,21 @@ const checkProviderRole = async (uid: string): Promise<ProviderUser | null> => {
         if (userData.status !== 'active') {
           throw new Error('Your account has been deactivated. Please contact support.');
         }
+
+        // Fetch service areas from serviceProviders collection
+        if (userData.providerId) {
+          try {
+            const providerDoc = await getDoc(doc(db, 'serviceProviders', userData.providerId));
+            if (providerDoc.exists()) {
+              const providerData = providerDoc.data();
+              userData.serviceAreas = providerData.serviceAreas || [];
+            }
+          } catch (error) {
+            console.error('Error fetching service areas:', error);
+            // Don't fail the whole auth if we can't get service areas
+          }
+        }
+
         return userData;
       }
     }

@@ -19,6 +19,7 @@ export interface QuotePayload {
   houseFlatNumber: string;
   streetName: string;
   postcode: string;
+  serviceArea: string;
 }
 
 /** Adds a quote + optional file to Firestore & Storage */
@@ -46,6 +47,7 @@ export default async function submitQuote(payload: QuotePayload) {
       houseFlatNumber,
       streetName,
       postcode,
+      serviceArea,
     } = payload;
 
     // 1. Upload file (if any) and grab URL
@@ -80,6 +82,7 @@ export default async function submitQuote(payload: QuotePayload) {
       houseFlatNumber,
       streetName,
       postcode,
+      serviceArea,
       createdAt: new Date().toISOString(),
       assignedProviderId: null, // Initially unassigned
     });

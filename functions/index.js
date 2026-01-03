@@ -1,6 +1,5 @@
 // functions/index.js
-const { onDocumentCreated } = require('firebase-functions/v2/firestore');
-const { onSchedule } = require('firebase-functions/v2/scheduler');
+const { onDocumentCreated, onDocumentUpdated } = require('firebase-functions/v2/firestore');
 const { logger } = require('firebase-functions');
 const nodemailer = require('nodemailer');
 const { defineString, defineSecret } = require('firebase-functions/params');
@@ -401,6 +400,106 @@ Status: Pending Review
   }
 };
 
+const getProviderApprovalEmail = (data) => {
+  const { firstName, lastName, email } = data;
+  const config = emailConfig;
+
+  const templateVars = {
+    firstName,
+    companyName: config.company.name,
+    email: config.company.email
+  };
+
+  const greeting = replaceTemplateVars(config.content.providerApproval.greeting, templateVars);
+  const signature = replaceTemplateVars(config.content.providerApproval.signature, templateVars);
+  const footer = replaceTemplateVars(config.content.providerApproval.footer, templateVars);
+
+  return {
+    subject: config.templates.providerApproval.subject,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: ${config.styling.fonts.primary}; line-height: 1.6; color: ${config.styling.textColor}; }
+            .container { max-width: ${config.styling.containerMaxWidth}; margin: 0 auto; padding: ${config.styling.containerPadding}; }
+            .header { background: linear-gradient(135deg, #10B981, #059669); color: white; padding: ${config.styling.containerPadding}; text-align: center; border-radius: ${config.styling.spacing.borderRadius} ${config.styling.spacing.borderRadius} 0 0; }
+            .content { background: ${config.styling.backgroundColor}; padding: ${config.styling.containerPadding}; border-radius: 0 0 ${config.styling.spacing.borderRadius} ${config.styling.spacing.borderRadius}; }
+            .success-badge { background: #D1FAE5; color: #065F46; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; margin: 20px 0; }
+            .next-steps { background: white; padding: ${config.styling.spacing.sectionPadding}; border-radius: 4px; margin: 15px 0; }
+            .cta-button { display: inline-block; background: ${config.styling.accentColor}; color: ${config.styling.primaryColor}; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+            .cta-button:hover { background: #E6C000; }
+            .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🎉 Application Approved!</h1>
+            </div>
+            <div class="content">
+              <p>${greeting}</p>
+
+              <div class="success-badge">
+                ✓ Your application has been approved!
+              </div>
+
+              <p>${config.content.providerApproval.congratulations}</p>
+              ${config.templates.providerApproval.customMessage ? `<p>${config.templates.providerApproval.customMessage}</p>` : ''}
+
+              <div class="next-steps">
+                <h3>What's Next:</h3>
+                <ul>
+                  ${config.content.providerApproval.nextSteps.map(step => `<li>${step}</li>`).join('')}
+                </ul>
+              </div>
+
+              <p>${config.content.providerApproval.accountSetupInfo}</p>
+
+              <div style="text-align: center;">
+                <a href="${config.content.providerApproval.accountCreationLink}" class="cta-button">
+                  Create Your Account
+                </a>
+              </div>
+
+              <p style="font-size: 12px; color: #666; margin-top: 20px;">
+                Or copy this link: <a href="${config.content.providerApproval.accountCreationLink}">${config.content.providerApproval.accountCreationLink}</a>
+              </p>
+
+              <p>${signature.replace('\n', '<br>')}</p>
+            </div>
+            <div class="footer">
+              <p>${footer}</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `,
+    text: `
+${greeting}
+
+✓ YOUR APPLICATION HAS BEEN APPROVED!
+
+${config.content.providerApproval.congratulations}
+${config.templates.providerApproval.customMessage || ''}
+
+What's Next:
+${config.content.providerApproval.nextSteps.map((step, index) => `${index + 1}. ${step}`).join('\n')}
+
+${config.content.providerApproval.accountSetupInfo}
+
+CREATE YOUR ACCOUNT HERE:
+${config.content.providerApproval.accountCreationLink}
+
+${signature}
+
+---
+${footer}
+    `
+  };
+};
+
 // Cloud Function for quote submissions
 exports.onQuoteCreated = onDocumentCreated(
   { document: 'quotes/{quoteId}', secrets: [SMTP_PASS] }, 
@@ -502,238 +601,41 @@ exports.onServiceProviderCreated = onDocumentCreated(
   }
 });
 
-// Cloud Function for auto-approval of job requests
-// Runs every hour to check for eligible quotes
-exports.checkAutoApproval = onSchedule('every 1 hours', async (event) => {
-  try {
-    logger.info('Starting auto-approval check');
+// Cloud Function for service provider approval
+exports.onServiceProviderStatusUpdated = onDocumentUpdated(
+  { document: 'serviceProviders/{providerId}', secrets: [SMTP_PASS] },
+  async (event) => {
+    try {
+      const beforeData = event.data.before.data();
+      const afterData = event.data.after.data();
 
-    // 1. Get auto-approval settings
-    const settingsDoc = await db.collection('settings').doc('autoApproval').get();
+      // Check if status changed to 'approved'
+      if (beforeData.status !== 'approved' && afterData.status === 'approved') {
+        const transporter = createTransporter();
+        const approvalEmail = getProviderApprovalEmail(afterData);
 
-    if (!settingsDoc.exists) {
-      logger.info('Auto-approval settings not found, skipping');
-      return;
-    }
+        // Send approval email to the provider
+        await transporter.sendMail({
+          from: FROM_EMAIL.value(),
+          to: afterData.email,
+          subject: approvalEmail.subject,
+          html: approvalEmail.html,
+          text: approvalEmail.text,
+        });
 
-    const settings = settingsDoc.data();
-
-    if (!settings.enabled) {
-      logger.info('Auto-approval is disabled, skipping');
-      return;
-    }
-
-    logger.info('Auto-approval settings:', {
-      ageThresholdHours: settings.ageThresholdHours,
-      maxOpenJobsLimit: settings.maxOpenJobsLimit,
-      useWorkloadBalancing: settings.useWorkloadBalancing,
-      considerServiceArea: settings.considerServiceArea
-    });
-
-    // 2. Calculate cutoff time
-    const cutoffTime = new Date(Date.now() - (settings.ageThresholdHours * 60 * 60 * 1000));
-    logger.info('Cutoff time for auto-approval:', cutoffTime.toISOString());
-
-    // 3. Find eligible quotes (past age threshold, not assigned)
-    const quotesSnapshot = await db.collection('quotes')
-      .where('assignedProviderId', '==', null)
-      .get();
-
-    const eligibleQuotes = quotesSnapshot.docs.filter(doc => {
-      const quoteData = doc.data();
-      const createdAt = new Date(quoteData.createdAt);
-      return createdAt < cutoffTime;
-    });
-
-    logger.info(`Found ${eligibleQuotes.length} eligible quotes for auto-approval`);
-
-    if (eligibleQuotes.length === 0) {
-      // Update last run time
-      await db.collection('settings').doc('autoApproval').update({
-        lastAutoRunAt: new Date().toISOString()
-      });
-      return;
-    }
-
-    let totalAssigned = 0;
-
-    // 4. Process each eligible quote
-    for (const quoteDoc of eligibleQuotes) {
-      const quote = quoteDoc.data();
-      const quoteId = quoteDoc.id;
-
-      logger.info(`Processing quote ${quoteId}`);
-
-      // Get pending job requests for this quote
-      const requestsSnapshot = await db.collection('jobRequests')
-        .where('quoteId', '==', quoteId)
-        .where('status', '==', 'pending')
-        .get();
-
-      if (requestsSnapshot.empty) {
-        logger.info(`No pending requests for quote ${quoteId}, skipping`);
-        continue;
-      }
-
-      logger.info(`Found ${requestsSnapshot.size} pending requests for quote ${quoteId}`);
-
-      // 5. Filter eligible providers
-      const eligibleProviders = [];
-
-      for (const requestDoc of requestsSnapshot.docs) {
-        const request = requestDoc.data();
-        const providerId = request.providerId;
-
-        // Check provider status
-        const providerDoc = await db.collection('serviceProviders').doc(providerId).get();
-
-        if (!providerDoc.exists) {
-          logger.warn(`Provider ${providerId} not found, skipping`);
-          continue;
-        }
-
-        const provider = providerDoc.data();
-
-        if (provider.status !== 'approved') {
-          logger.info(`Provider ${providerId} not approved (status: ${provider.status}), skipping`);
-          continue;
-        }
-
-        // Check service area match if enabled
-        if (settings.considerServiceArea) {
-          const matchesArea = checkServiceAreaMatch(quote.postcode, provider.serviceAreas);
-          if (!matchesArea) {
-            logger.info(`Provider ${providerId} doesn't match service area for quote ${quoteId}, skipping`);
-            continue;
-          }
-        }
-
-        // Count active jobs
-        const activeJobsSnapshot = await db.collection('quotes')
-          .where('assignedProviderId', '==', providerId)
-          .where('completionStatus', '!=', 'completed')
-          .get();
-
-        const activeJobsCount = activeJobsSnapshot.size;
-
-        if (activeJobsCount >= settings.maxOpenJobsLimit) {
-          logger.info(`Provider ${providerId} has ${activeJobsCount} active jobs (limit: ${settings.maxOpenJobsLimit}), skipping`);
-          continue;
-        }
-
-        eligibleProviders.push({
-          providerId,
-          providerName: request.providerName,
-          requestId: requestDoc.id,
-          requestData: request,
-          activeJobsCount
+        logger.info(`Provider approval email sent successfully for provider ${event.params.providerId}`, {
+          providerEmail: afterData.email,
+          providerName: `${afterData.firstName} ${afterData.lastName}`,
+          statusChange: `${beforeData.status} -> ${afterData.status}`
         });
       }
-
-      if (eligibleProviders.length === 0) {
-        logger.info(`No eligible providers for quote ${quoteId}, skipping`);
-        continue;
-      }
-
-      // 6. Sort by workload if enabled
-      if (settings.useWorkloadBalancing) {
-        eligibleProviders.sort((a, b) => a.activeJobsCount - b.activeJobsCount);
-      }
-
-      // 7. Auto-assign to first eligible provider (least busy if workload balancing enabled)
-      const selectedProvider = eligibleProviders[0];
-
-      logger.info(`Auto-assigning quote ${quoteId} to provider ${selectedProvider.providerId} (${selectedProvider.activeJobsCount} active jobs)`);
-
-      // Update quote with assignment
-      await db.collection('quotes').doc(quoteId).update({
-        assignedProviderId: selectedProvider.providerId,
-        assignedProviderName: selectedProvider.providerName,
-        assignedBy: 'auto-approval-system',
-        assignedAt: new Date().toISOString(),
-        assignmentStatus: 'assigned',
-        assignmentNotes: `Auto-assigned after ${settings.ageThresholdHours} hours (${eligibleProviders.length} eligible providers, ${selectedProvider.activeJobsCount} active jobs)`
+    } catch (error) {
+      logger.error('Error sending provider approval email:', {
+        providerId: event.params.providerId,
+        error: error.message,
+        stack: error.stack
       });
-
-      // Update job request status to auto-approved
-      await db.collection('jobRequests').doc(selectedProvider.requestId).update({
-        status: 'auto-approved',
-        reviewedBy: 'auto-approval-system',
-        reviewedAt: new Date().toISOString(),
-        autoApproved: true,
-        autoApprovalRun: new Date().toISOString()
-      });
-
-      // Mark other pending requests as expired
-      for (const provider of eligibleProviders) {
-        if (provider.requestId !== selectedProvider.requestId) {
-          await db.collection('jobRequests').doc(provider.requestId).update({
-            status: 'expired',
-            reviewedBy: 'auto-approval-system',
-            reviewedAt: new Date().toISOString()
-          });
-        }
-      }
-
-      totalAssigned++;
+      // Don't throw - we don't want to prevent the status update from being saved
     }
-
-    // 8. Update statistics
-    const currentStats = settings.stats || {
-      totalAutoApproved: 0,
-      lastMonthAutoApproved: 0,
-      lastWeekAutoApproved: 0
-    };
-
-    await db.collection('settings').doc('autoApproval').update({
-      lastAutoRunAt: new Date().toISOString(),
-      'stats.totalAutoApproved': admin.firestore.FieldValue.increment(totalAssigned),
-      'stats.lastMonthAutoApproved': admin.firestore.FieldValue.increment(totalAssigned),
-      'stats.lastWeekAutoApproved': admin.firestore.FieldValue.increment(totalAssigned),
-      'stats.lastRunAssignmentCount': totalAssigned
-    });
-
-    logger.info(`Auto-approval completed: ${totalAssigned} jobs assigned out of ${eligibleQuotes.length} eligible quotes`);
-  } catch (error) {
-    logger.error('Error in auto-approval function:', {
-      error: error.message,
-      stack: error.stack
-    });
-    throw error;
   }
-});
-
-// Helper function to check service area match
-function checkServiceAreaMatch(postcode, serviceAreas) {
-  if (!postcode || !serviceAreas || serviceAreas.length === 0) {
-    return false;
-  }
-
-  // Extract postcode area (e.g., "LN1 3AA" -> "LN")
-  const postcodeMatch = postcode.match(/^[A-Z]{1,2}/);
-  if (!postcodeMatch) {
-    return false;
-  }
-
-  const postcodeArea = postcodeMatch[0];
-
-  // Postcode to service area mapping
-  const postcodeToServiceArea = {
-    'LN': ['Lincoln', 'Lincolnshire'],
-    'DN': ['Grimsby', 'Cleethorpes', 'Scunthorpe', 'Gainsborough'],
-    'PE': ['Boston', 'Skegness', 'Spalding', 'Sleaford'],
-    'NG': ['Lincoln', 'Sleaford']
-  };
-
-  const relevantAreas = postcodeToServiceArea[postcodeArea] || [];
-
-  // Check if provider's service areas overlap with relevant areas
-  const matches = serviceAreas.some(area =>
-    relevantAreas.some(relevantArea =>
-      area.toLowerCase().includes(relevantArea.toLowerCase()) ||
-      relevantArea.toLowerCase().includes(area.toLowerCase())
-    )
-  ) || serviceAreas.includes('Other');
-
-  return matches;
-}
+);
